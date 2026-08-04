@@ -4,7 +4,7 @@
 
 Swift TCG's visual language is inspired by **Apple**, **Stripe**, **Linear**, and **Vercel**: quiet confidence, generous whitespace, sharp typography, and product-first composition.
 
-Design should feel premium without decoration for its own sake. Every surface earns its place.
+Design should feel premium without decoration for its own sake. Every surface earns its place. Never use marketing hype in UI copy or visual treatment.
 
 ## Principles
 
@@ -55,7 +55,13 @@ The first viewport should usually contain only:
 - One CTA group
 - One dominant image
 
-Do **not** place stats, schedules, address blocks, promo stickers, or secondary marketing content in the first viewport.
+Do **not** place stats, schedules, address blocks, promo stickers, floating badges, or secondary marketing content in the first viewport.
+
+## Section Rules
+
+- One job per section: one purpose, one headline, and usually one short supporting sentence
+- Reduce clutter: avoid pill clusters, stat strips, icon rows, and boxed promo stacks
+- Imagery should show the product, place, atmosphere, or context
 
 ## Component Guidance
 
@@ -66,13 +72,14 @@ Do **not** place stats, schedules, address blocks, promo stickers, or secondary 
 | Product media | Edge-to-edge or dominant plane; high-quality photography |
 | Announcements | Short, factual, dismissible when appropriate |
 | Forms / checkout | Stripe-like clarity: labels, states, and errors are obvious |
+| Trust / social proof | Factual and quiet — never hype-driven |
 
 ## Accessibility
 
 - Maintain sufficient contrast
 - Support keyboard navigation
 - Prefer semantic HTML over decorative wrappers
-- Motion should respect reduced-motion preferences
+- Motion should respect `prefers-reduced-motion`
 
 ## Quality Bar
 

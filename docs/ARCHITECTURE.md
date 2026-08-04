@@ -5,6 +5,7 @@
 | Layer | Choice |
 | --- | --- |
 | Framework | Next.js 15 (App Router) |
+| UI library | React 19 |
 | Language | TypeScript |
 | Styling | Tailwind CSS v4 |
 | UI primitives | shadcn/ui |
@@ -15,18 +16,22 @@
 
 ```
 app/           → Pages, layouts, and route handlers
-components/    → Reusable UI (layout, home, product, shared)
-lib/           → Business logic, Shopify clients, helpers, types
+components/    → Reusable UI
+lib/           → Business logic, Shopify clients, helpers
+types/         → Shared TypeScript types
+public/        → Static assets
 docs/          → Project documentation
 ```
 
 ### Rules
 
-- **Pages live in `app/`** — route composition only; keep pages thin.
-- **Reusable UI lives in `components/`** — presentational and interaction-focused.
-- **Business logic lives in `lib/`** — data fetching, transforms, commerce rules, utilities.
+- **Pages belong in `app/`** — route composition only; keep pages thin.
+- **Reusable UI belongs in `components/`** — presentational and interaction-focused.
+- **Business logic belongs in `lib/`** — data fetching, transforms, commerce rules, utilities.
+- **Shared types belong in `types/`** — domain and API shapes used across the app.
+- **Static assets belong in `public/`** — images, icons, and other static files.
 - **Never fetch Shopify directly inside UI components.** Components receive data via props, server components in `app/`, or dedicated `lib/` modules.
-- **Keep components small and reusable.** Prefer composition over large monolithic files.
+- **Components should stay under 200 lines whenever practical.** Prefer composition over large files.
 
 ## Data Flow
 
@@ -45,6 +50,7 @@ Shopify Admin / Storefront API
 - UI stays testable and reusable without commerce credentials
 - Shopify API details stay centralized and easier to change
 - Pages orchestrate; components render; `lib/` owns domain logic
+- Shared types in `types/` keep commerce boundaries explicit
 
 ## Component Organization
 
@@ -68,15 +74,17 @@ components/
 ## Shopify Integration Guidelines
 
 - Place Storefront API clients and query functions in `lib/shopify/` (or equivalent)
-- Map Shopify responses into app-friendly types before UI consumption
+- Map Shopify responses into app-friendly types in `types/` before UI consumption
 - Do not hardcode secrets in components; use environment variables
 - Prefer typed helpers over ad-hoc `fetch` calls scattered across the tree
+- UI components must never call Shopify APIs directly
 
 ## Styling Guidelines
 
 - Use Tailwind utility classes and shared tokens
 - Prefer shadcn/ui for accessible primitives (`Button`, etc.)
 - Co-locate visual decisions with components; keep domain logic out of class strings
+- Follow `docs/DESIGN.md` for visual direction and composition rules
 
 ## Quality Checklist
 
@@ -84,6 +92,7 @@ Before merging a feature:
 
 - [ ] No Shopify fetches inside UI components
 - [ ] New logic has a clear home in `lib/` when it is not purely presentational
-- [ ] Components remain small enough to understand in one screen
-- [ ] Types cover commerce data boundaries
+- [ ] Shared types live in `types/` when reused across boundaries
+- [ ] Components remain under ~200 lines whenever practical
+- [ ] Prefer composition over monolithic files
 - [ ] Pages compose sections; sections do not own global data strategy
