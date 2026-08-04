@@ -6,7 +6,7 @@ export default function Hero() {
       <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:gap-16 lg:py-0">
         <div className="flex flex-col items-start">
           <span className="mb-6 inline-flex items-center rounded-full border border-green-600/20 bg-green-600/10 px-3 py-1 text-xs font-medium tracking-wide text-green-600">
-            🇯🇵 Direct from Japan
+            Direct from Japan
           </span>
 
           <h1 className="text-4xl font-semibold tracking-tight text-black sm:text-5xl lg:text-6xl lg:leading-[1.1]">
@@ -16,8 +16,8 @@ export default function Hero() {
           </h1>
 
           <p className="mt-6 max-w-md text-base leading-relaxed text-black/60 sm:text-lg">
-            Factory-sealed Pokémon, One Piece, and premium TCG products imported
-            directly from trusted suppliers in Japan.
+            Factory sealed releases. Newest imports. Fastest access for
+            collectors and stores.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -25,14 +25,14 @@ export default function Hero() {
               size="lg"
               className="h-11 bg-green-600 px-6 text-white hover:bg-green-600/90"
             >
-              Shop Now
+              Shop Newest Releases
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="h-11 border-black/10 px-6 text-black hover:bg-black/5"
             >
-              View Preorders
+              Preorders
             </Button>
           </div>
         </div>
