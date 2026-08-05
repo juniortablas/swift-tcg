@@ -1,6 +1,6 @@
 import type { CatalogCategory, Product } from "@/types/product"
 
-import { getProducts } from "./getProducts"
+import { catalogRepository } from "./CatalogRepository"
 
 /**
  * Related products from the same category, excluding the current slug.
@@ -10,7 +10,5 @@ export function getRelatedProducts(
   slug: string,
   limit = 4
 ): Product[] {
-  return getProducts(category)
-    .filter((product) => product.slug !== slug)
-    .slice(0, limit)
+  return catalogRepository.getRelatedProducts(category, slug).slice(0, limit)
 }

@@ -1,5 +1,7 @@
 export type CatalogCategory = "pokemon" | "onepiece"
 
+export type ProductStatus = "instock" | "preorder" | "soldout" | "unknown"
+
 /**
  * Storefront product record.
  *
@@ -14,6 +16,7 @@ export interface Product {
   image: string
   price: number | null
   url: string
+  status: ProductStatus
   /** Optional UI flag — not present in catalog JSON. */
   isNew?: boolean
 }

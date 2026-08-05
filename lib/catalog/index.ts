@@ -5,7 +5,12 @@
  * Storefront API queries later — call sites should keep importing from here.
  */
 
-export { getProducts, normalizeProduct } from "./getProducts"
+export {
+  CatalogRepository,
+  catalogRepository,
+  normalizeProduct,
+} from "./CatalogRepository"
+export { getProducts } from "./getProducts"
 export { getProductBySlug } from "./getProductBySlug"
 export { getRelatedProducts } from "./getRelatedProducts"
 export {

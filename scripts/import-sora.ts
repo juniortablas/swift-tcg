@@ -1,9 +1,9 @@
 /**
  * SORA CardShop multi-catalog importer
  *
- * Crawls configured game catalogs, extracts product metadata, downloads
- * images into public/products/, and writes one JSON file per catalog under
- * data/. Existing image files are never overwritten.
+ * Crawls configured game catalogs, extracts product metadata + availability
+ * status, downloads images into public/products/, and writes one JSON file
+ * per catalog under data/. Existing image files are never overwritten.
  *
  * Usage: npx tsx scripts/import-sora.ts
  *
@@ -18,6 +18,8 @@ import { access, mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { pipeline } from "node:stream/promises"
 import { setTimeout as delay } from "node:timers/promises"
+
+import type { ProductStatus } from "@/types/product"
 
 const BASE_URL = "https://sora-cardshop.com"
 
@@ -52,6 +54,7 @@ export interface ImportedProduct {
   image: string
   price: number | null
   url: string
+  status: ProductStatus
 }
 
 /** Internal product with remote image URL used only during download. */
@@ -61,6 +64,7 @@ interface ScrapedProduct {
   category: string
   imageUrl: string
   price: number | null
+  status: ProductStatus
 }
 
 interface CatalogProduct extends ImportedProduct {
@@ -151,6 +155,7 @@ function applyImageSlugs(
       image: `/products/${filename}`,
       price: product.price,
       url: `/products/${slug}`,
+      status: product.status,
       imageUrl: product.imageUrl,
     }
   })
@@ -213,6 +218,165 @@ function extractPrice($card: cheerio.Cheerio<Element>): number | null {
 }
 
 /**
+ * Catalog-card availability signals only — no guessing.
+ * Preorder badges/classes are explicit; otherwise leave unknown for product-page enrichment.
+ */
+function extractStatusFromCard($card: cheerio.Cheerio<Element>): ProductStatus {
+  const className = $card.attr("class") ?? ""
+  if (
+    className.includes("preorder-card") ||
+    $card.find(".preorder-badge").length > 0
+  ) {
+    return "preorder"
+  }
+
+  const stockText = cleanText($card.find(".stock-tag").first().text()).toLowerCase()
+  if (stockText.includes("sold out") || stockText.includes("out of stock")) {
+    return "soldout"
+  }
+  if (stockText === "in stock") {
+    return "instock"
+  }
+
+  return "unknown"
+}
+
+/** Map schema.org Offer availability URLs to our status enum. */
+function statusFromSchemaAvailability(value: string): ProductStatus {
+  const normalized = value.toLowerCase()
+  if (normalized.includes("preorder")) return "preorder"
+  if (normalized.includes("instock")) return "instock"
+  if (
+    normalized.includes("soldout") ||
+    normalized.includes("outofstock") ||
+    normalized.includes("discontinued")
+  ) {
+    return "soldout"
+  }
+  return "unknown"
+}
+
+/** Walk JSON-LD (including @graph) and collect Offer.availability strings. */
+function collectSchemaAvailabilities(data: unknown): string[] {
+  const found: string[] = []
+
+  function walk(node: unknown): void {
+    if (!node) return
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item)
+      return
+    }
+    if (typeof node !== "object") return
+
+    const record = node as Record<string, unknown>
+    if ("@graph" in record) walk(record["@graph"])
+
+    const offers = record.offers
+    const offerList = Array.isArray(offers)
+      ? offers
+      : offers && typeof offers === "object"
+        ? [offers]
+        : []
+
+    for (const offer of offerList) {
+      if (!offer || typeof offer !== "object") continue
+      const availability = (offer as Record<string, unknown>).availability
+      if (typeof availability === "string") found.push(availability)
+    }
+
+    if (typeof record.availability === "string") {
+      found.push(record.availability)
+    }
+  }
+
+  walk(data)
+  return found
+}
+
+/**
+ * Parse explicit availability from a SORA product detail page.
+ * Prefers JSON-LD schema.org/availability (do not guess from ambiguous UI).
+ */
+function extractStatusFromProductPage(html: string): ProductStatus {
+  const $ = cheerio.load(html)
+
+  const schemaBlocks: string[] = []
+  $('script[type="application/ld+json"]').each((_, el) => {
+    const raw = $(el).html()
+    if (raw) schemaBlocks.push(raw)
+  })
+
+  for (const block of schemaBlocks) {
+    try {
+      const data = JSON.parse(block) as unknown
+      for (const availability of collectSchemaAvailabilities(data)) {
+        const status = statusFromSchemaAvailability(availability)
+        if (status !== "unknown") return status
+      }
+    } catch {
+      // ignore invalid JSON-LD
+    }
+  }
+
+  // Schema missing: only trust explicit product-level markers.
+  // Do not use bare "In Stock" — SORA also shows it on preorder pages.
+  if ($(".preorder-badge").length > 0) return "preorder"
+
+  const stockTag = cleanText($(".stock-tag").first().text()).toLowerCase()
+  if (stockTag.includes("sold out") || stockTag.includes("out of stock")) {
+    return "soldout"
+  }
+
+  return "unknown"
+}
+
+async function fetchProductPage(id: string): Promise<string> {
+  const url = `${BASE_URL}/product/${id}`
+  const response = await axios.get<string>(url, {
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "text/html,application/xhtml+xml",
+      Referer: BASE_URL,
+    },
+    responseType: "text",
+    timeout: 30_000,
+  })
+  return response.data
+}
+
+/**
+ * Enrich unknown statuses via product detail pages.
+ * Explicit catalog preorder/soldout/instock values are kept as-is.
+ */
+async function enrichAvailabilityStatuses(
+  products: ScrapedProduct[]
+): Promise<ScrapedProduct[]> {
+  const enriched: ScrapedProduct[] = []
+
+  for (const product of products) {
+    if (product.status !== "unknown") {
+      enriched.push(product)
+      continue
+    }
+
+    try {
+      const html = await fetchProductPage(product.id)
+      const status = extractStatusFromProductPage(html)
+      enriched.push({ ...product, status })
+      console.log(`  Status ${product.id}: ${status}`)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      console.warn(`  Status ${product.id}: unknown (${message})`)
+      enriched.push(product)
+    }
+
+    await delay(DOWNLOAD_DELAY_MS)
+  }
+
+  return enriched
+}
+
+/**
  * Parse product cards from a catalog HTML page.
  * Category comes from the CATALOGS config so new games only need an array entry.
  */
@@ -253,6 +417,7 @@ function parseProducts(html: string, category: string): ScrapedProduct[] {
       category,
       imageUrl: absoluteUrl(src),
       price: extractPrice($card),
+      status: extractStatusFromCard($card),
     })
   })
 
@@ -433,6 +598,7 @@ function toJsonProduct(product: CatalogProduct): ImportedProduct {
     image: product.image,
     price: product.price,
     url: product.url,
+    status: product.status,
   }
 }
 
@@ -464,8 +630,24 @@ async function importCatalog(
   console.log(`\n=== Importing ${catalog.category} [${catalog.slug}] ===`)
 
   const parsed = await fetchAllProducts(catalog)
-  const products = applyImageSlugs(parsed, usedSlugs)
-  console.log(`  Parsed ${products.length} products`)
+  console.log(`  Parsed ${parsed.length} products`)
+
+  const unknownCount = parsed.filter((p) => p.status === "unknown").length
+  console.log(
+    `  Resolving availability (${unknownCount} unknown via product pages)…`
+  )
+  const withStatus = await enrichAvailabilityStatuses(parsed)
+
+  const statusCounts = withStatus.reduce(
+    (acc, p) => {
+      acc[p.status] = (acc[p.status] ?? 0) + 1
+      return acc
+    },
+    {} as Record<ProductStatus, number>
+  )
+  console.log(`  Status counts: ${JSON.stringify(statusCounts)}`)
+
+  const products = applyImageSlugs(withStatus, usedSlugs)
 
   const { downloaded, skipped, failed } = await downloadImages(products)
   const jsonPath = await writeJson(catalog.slug, products)
