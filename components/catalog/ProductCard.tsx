@@ -1,12 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
 
+import { formatUsdPrice } from "@/lib/pricing"
 import type { Product } from "@/types/product"
-
-function formatPrice(price: number | null): string {
-  if (typeof price !== "number") return "Coming Soon"
-  return `¥${price.toLocaleString("en-US")}`
-}
 
 function productHref(product: Product): string {
   if (product.url) return product.url
@@ -46,7 +42,7 @@ export default function ProductCard({ product }: { product: Product }) {
             {product.title}
           </h3>
           <p className="mt-2 text-sm font-semibold text-black">
-            {formatPrice(product.price)}
+            {formatUsdPrice(product.price)}
           </p>
         </div>
       </Link>

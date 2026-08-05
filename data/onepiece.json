@@ -5,8 +5,10 @@
     "title": "Premium Card Collection: 29th Anniversary Edition",
     "category": "One Piece TCG",
     "image": "/products/premium-card-collection-29th-anniversary-edition.webp",
-    "price": null,
-    "url": "/products/premium-card-collection-29th-anniversary-edition"
+    "price": 53.99,
+    "url": "/products/premium-card-collection-29th-anniversary-edition",
+    "status": "preorder",
+    "cost": 33.62
   },
   {
     "id": "TK-0185",
@@ -14,8 +16,10 @@
     "title": "Jump Limited Start Deck: Ace, Sabo & Luffy",
     "category": "One Piece TCG",
     "image": "/products/jump-limited-start-deck-ace-sabo-and-luffy.webp",
-    "price": null,
-    "url": "/products/jump-limited-start-deck-ace-sabo-and-luffy"
+    "price": 174.99,
+    "url": "/products/jump-limited-start-deck-ace-sabo-and-luffy",
+    "status": "preorder",
+    "cost": 120.54
   },
   {
     "id": "TK-0175",
@@ -24,7 +28,9 @@
     "category": "One Piece TCG",
     "image": "/products/the-world-s-strongest-warriors-case-ships-on-august-19.webp",
     "price": null,
-    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-19"
+    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-19",
+    "status": "preorder",
+    "cost": null
   },
   {
     "id": "TK-0189",
@@ -33,7 +39,9 @@
     "category": "One Piece TCG",
     "image": "/products/the-world-s-strongest-warriors-case-ships-on-august-20.webp",
     "price": null,
-    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-20"
+    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-20",
+    "status": "preorder",
+    "cost": null
   },
   {
     "id": "TK-0190",
@@ -42,7 +50,9 @@
     "category": "One Piece TCG",
     "image": "/products/the-world-s-strongest-warriors-case-ships-on-august-21.webp",
     "price": null,
-    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-21"
+    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-21",
+    "status": "preorder",
+    "cost": null
   },
   {
     "id": "TK-0154",
@@ -50,8 +60,10 @@
     "title": "The world’s Strongest Warriors [OP-17] (Case: Ships on August 24)",
     "category": "One Piece TCG",
     "image": "/products/the-world-s-strongest-warriors-case-ships-on-august-24.webp",
-    "price": null,
-    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-24"
+    "price": 3679.99,
+    "url": "/products/the-world-s-strongest-warriors-case-ships-on-august-24",
+    "status": "preorder",
+    "cost": 2537.6
   },
   {
     "id": "TK-0090",
@@ -59,8 +71,10 @@
     "title": "ONE PIECE Magazine 021 Promo Card (only card)",
     "category": "One Piece TCG",
     "image": "/products/one-piece-magazine-021-promo-card-only-card.webp",
-    "price": null,
-    "url": "/products/one-piece-magazine-021-promo-card-only-card"
+    "price": 47.99,
+    "url": "/products/one-piece-magazine-021-promo-card-only-card",
+    "status": "preorder",
+    "cost": 29.82
   },
   {
     "id": "TK-0174",
@@ -68,8 +82,10 @@
     "title": "ONE PIECE Magazine 021 Promo Card (with magazine)",
     "category": "One Piece TCG",
     "image": "/products/one-piece-magazine-021-promo-card-with-magazine.webp",
-    "price": null,
-    "url": "/products/one-piece-magazine-021-promo-card-with-magazine"
+    "price": 50.99,
+    "url": "/products/one-piece-magazine-021-promo-card-with-magazine",
+    "status": "preorder",
+    "cost": 31.72
   },
   {
     "id": "TK-0151",
@@ -78,7 +94,9 @@
     "category": "One Piece TCG",
     "image": "/products/premium-card-collection-live-action-edition-vol-2-baroque-works.webp",
     "price": null,
-    "url": "/products/premium-card-collection-live-action-edition-vol-2-baroque-works"
+    "url": "/products/premium-card-collection-live-action-edition-vol-2-baroque-works",
+    "status": "preorder",
+    "cost": null
   },
   {
     "id": "TK-0008",
@@ -86,8 +104,10 @@
     "title": "The Time of Battle [OP-16]",
     "category": "One Piece TCG",
     "image": "/products/the-time-of-battle.webp",
-    "price": null,
-    "url": "/products/the-time-of-battle"
+    "price": 133.99,
+    "url": "/products/the-time-of-battle",
+    "status": "instock",
+    "cost": 91.99
   },
   {
     "id": "TK-0009",
@@ -95,8 +115,10 @@
     "title": "Adventure on KAMI's Island [OP-15]",
     "category": "One Piece TCG",
     "image": "/products/adventure-on-kami-s-island.webp",
-    "price": null,
-    "url": "/products/adventure-on-kami-s-island"
+    "price": 147.99,
+    "url": "/products/adventure-on-kami-s-island",
+    "status": "instock",
+    "cost": 101.5
   },
   {
     "id": "TK-0010",
@@ -104,8 +126,10 @@
     "title": "Egghead Crisis [EB-04]",
     "category": "One Piece TCG",
     "image": "/products/egghead-crisis.webp",
-    "price": null,
-    "url": "/products/egghead-crisis"
+    "price": 147.99,
+    "url": "/products/egghead-crisis",
+    "status": "instock",
+    "cost": 101.5
   },
   {
     "id": "TK-0011",
@@ -113,8 +137,10 @@
     "title": "The Azure Sea's Seven [OP-14]",
     "category": "One Piece TCG",
     "image": "/products/the-azure-sea-s-seven.webp",
-    "price": null,
-    "url": "/products/the-azure-sea-s-seven"
+    "price": 160.99,
+    "url": "/products/the-azure-sea-s-seven",
+    "status": "instock",
+    "cost": 111.02
   },
   {
     "id": "TK-0012",
@@ -122,8 +148,10 @@
     "title": "Heroines Edition [EB-03]",
     "category": "One Piece TCG",
     "image": "/products/heroines-edition.webp",
-    "price": null,
-    "url": "/products/heroines-edition"
+    "price": 239.99,
+    "url": "/products/heroines-edition",
+    "status": "instock",
+    "cost": 164.94
   },
   {
     "id": "TK-0004",
@@ -131,8 +159,10 @@
     "title": "Carrying on His Will [OP-13]",
     "category": "One Piece TCG",
     "image": "/products/carrying-on-his-will.webp",
-    "price": null,
-    "url": "/products/carrying-on-his-will"
+    "price": 243.99,
+    "url": "/products/carrying-on-his-will",
+    "status": "instock",
+    "cost": 168.12
   },
   {
     "id": "TK-0076",
@@ -140,8 +170,10 @@
     "title": "ONE PIECE CARD THE BEST vol.2 [PRB-02]",
     "category": "One Piece TCG",
     "image": "/products/one-piece-card-the-best-vol-2.webp",
-    "price": null,
-    "url": "/products/one-piece-card-the-best-vol-2"
+    "price": 119.99,
+    "url": "/products/one-piece-card-the-best-vol-2",
+    "status": "instock",
+    "cost": 82.47
   },
   {
     "id": "TK-0077",
@@ -150,7 +182,9 @@
     "category": "One Piece TCG",
     "image": "/products/legacy-of-the-master.webp",
     "price": null,
-    "url": "/products/legacy-of-the-master"
+    "url": "/products/legacy-of-the-master",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0025",
@@ -158,8 +192,10 @@
     "title": "A Fist of Divine Speed [OP-11]",
     "category": "One Piece TCG",
     "image": "/products/a-fist-of-divine-speed.webp",
-    "price": null,
-    "url": "/products/a-fist-of-divine-speed"
+    "price": 384.99,
+    "url": "/products/a-fist-of-divine-speed",
+    "status": "instock",
+    "cost": 265.18
   },
   {
     "id": "TK-0078",
@@ -167,8 +203,10 @@
     "title": "Anime 25th Collection [EB-02]",
     "category": "One Piece TCG",
     "image": "/products/anime-25th-collection.webp",
-    "price": null,
-    "url": "/products/anime-25th-collection"
+    "price": 377.99,
+    "url": "/products/anime-25th-collection",
+    "status": "instock",
+    "cost": 260.1
   },
   {
     "id": "TK-0079",
@@ -176,8 +214,10 @@
     "title": "Royal Blood [OP-10]",
     "category": "One Piece TCG",
     "image": "/products/royal-blood.webp",
-    "price": null,
-    "url": "/products/royal-blood"
+    "price": 128.99,
+    "url": "/products/royal-blood",
+    "status": "instock",
+    "cost": 88.82
   },
   {
     "id": "TK-0080",
@@ -185,8 +225,10 @@
     "title": "Emperors in the New World [OP-09]",
     "category": "One Piece TCG",
     "image": "/products/emperors-in-the-new-world.webp",
-    "price": null,
-    "url": "/products/emperors-in-the-new-world"
+    "price": 229.99,
+    "url": "/products/emperors-in-the-new-world",
+    "status": "instock",
+    "cost": 158.6
   },
   {
     "id": "TK-0081",
@@ -194,8 +236,10 @@
     "title": "ONE PIECE CARD THE BEST [PRB-01]",
     "category": "One Piece TCG",
     "image": "/products/one-piece-card-the-best.webp",
-    "price": null,
-    "url": "/products/one-piece-card-the-best"
+    "price": 228.99,
+    "url": "/products/one-piece-card-the-best",
+    "status": "instock",
+    "cost": 157.33
   },
   {
     "id": "TK-0082",
@@ -203,8 +247,10 @@
     "title": "Two Legends [OP-08]",
     "category": "One Piece TCG",
     "image": "/products/two-legends.webp",
-    "price": null,
-    "url": "/products/two-legends"
+    "price": 128.99,
+    "url": "/products/two-legends",
+    "status": "instock",
+    "cost": 88.82
   },
   {
     "id": "TK-0024",
@@ -212,8 +258,10 @@
     "title": "500 Years in the Future [OP-07]",
     "category": "One Piece TCG",
     "image": "/products/500-years-in-the-future.webp",
-    "price": null,
-    "url": "/products/500-years-in-the-future"
+    "price": 206.99,
+    "url": "/products/500-years-in-the-future",
+    "status": "instock",
+    "cost": 142.74
   },
   {
     "id": "TK-0083",
@@ -221,8 +269,10 @@
     "title": "Memorial Collection [EB-01]",
     "category": "One Piece TCG",
     "image": "/products/memorial-collection.webp",
-    "price": null,
-    "url": "/products/memorial-collection"
+    "price": 220.99,
+    "url": "/products/memorial-collection",
+    "status": "instock",
+    "cost": 152.26
   },
   {
     "id": "TK-0084",
@@ -230,8 +280,10 @@
     "title": "Wings of the Captain [OP-06]",
     "category": "One Piece TCG",
     "image": "/products/wings-of-the-captain.webp",
-    "price": null,
-    "url": "/products/wings-of-the-captain"
+    "price": 237.99,
+    "url": "/products/wings-of-the-captain",
+    "status": "instock",
+    "cost": 163.68
   },
   {
     "id": "TK-0085",
@@ -240,7 +292,9 @@
     "category": "One Piece TCG",
     "image": "/products/awakening-of-the-new-era.webp",
     "price": null,
-    "url": "/products/awakening-of-the-new-era"
+    "url": "/products/awakening-of-the-new-era",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0086",
@@ -248,8 +302,10 @@
     "title": "Kingdoms of Intrigue [OP-04]",
     "category": "One Piece TCG",
     "image": "/products/kingdoms-of-intrigue.webp",
-    "price": null,
-    "url": "/products/kingdoms-of-intrigue"
+    "price": 225.99,
+    "url": "/products/kingdoms-of-intrigue",
+    "status": "instock",
+    "cost": 155.43
   },
   {
     "id": "TK-0087",
@@ -257,8 +313,10 @@
     "title": "Pillars of Strength [OP-03]",
     "category": "One Piece TCG",
     "image": "/products/pillars-of-strength.webp",
-    "price": null,
-    "url": "/products/pillars-of-strength"
+    "price": 257.99,
+    "url": "/products/pillars-of-strength",
+    "status": "instock",
+    "cost": 177.63
   },
   {
     "id": "TK-0088",
@@ -266,8 +324,10 @@
     "title": "Paramount War [OP-02]",
     "category": "One Piece TCG",
     "image": "/products/paramount-war.webp",
-    "price": null,
-    "url": "/products/paramount-war"
+    "price": 262.99,
+    "url": "/products/paramount-war",
+    "status": "instock",
+    "cost": 180.8
   },
   {
     "id": "TK-0089",
@@ -275,8 +335,10 @@
     "title": "Romance Dawn [OP-01]",
     "category": "One Piece TCG",
     "image": "/products/romance-dawn.webp",
-    "price": null,
-    "url": "/products/romance-dawn"
+    "price": 446.99,
+    "url": "/products/romance-dawn",
+    "status": "instock",
+    "cost": 307.68
   },
   {
     "id": "TK-0091",
@@ -284,8 +346,10 @@
     "title": "ONEPIECE The Ultimate Strongest pack",
     "category": "One Piece TCG",
     "image": "/products/onepiece-the-ultimate-strongest-pack.webp",
-    "price": null,
-    "url": "/products/onepiece-the-ultimate-strongest-pack"
+    "price": 91.99,
+    "url": "/products/onepiece-the-ultimate-strongest-pack",
+    "status": "instock",
+    "cost": 63.44
   },
   {
     "id": "TK-0152",
@@ -294,7 +358,9 @@
     "category": "One Piece TCG",
     "image": "/products/one-piece-card-game-premium-card-collection-live-action-edition-vol-2-straw-hat-crew.webp",
     "price": null,
-    "url": "/products/one-piece-card-game-premium-card-collection-live-action-edition-vol-2-straw-hat-crew"
+    "url": "/products/one-piece-card-game-premium-card-collection-live-action-edition-vol-2-straw-hat-crew",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0186",
@@ -302,8 +368,10 @@
     "title": "Round1 ONE PIECE Promo Pack",
     "category": "One Piece TCG",
     "image": "/products/round1-one-piece-promo-pack.webp",
-    "price": null,
-    "url": "/products/round1-one-piece-promo-pack"
+    "price": 50.99,
+    "url": "/products/round1-one-piece-promo-pack",
+    "status": "instock",
+    "cost": 31.72
   },
   {
     "id": "TK-0187",
@@ -311,8 +379,10 @@
     "title": "Shonen Jump #33 – Special Limited-Edition Luffy",
     "category": "One Piece TCG",
     "image": "/products/shonen-jump-33-special-limited-edition-luffy.webp",
-    "price": null,
-    "url": "/products/shonen-jump-33-special-limited-edition-luffy"
+    "price": 21.99,
+    "url": "/products/shonen-jump-33-special-limited-edition-luffy",
+    "status": "instock",
+    "cost": 13.32
   },
   {
     "id": "TK-0192",
@@ -320,8 +390,10 @@
     "title": "NatsuComi 2026 Metakira Card Monkey D. Luffy Promo",
     "category": "One Piece TCG",
     "image": "/products/natsucomi-2026-metakira-card-monkey-d-luffy-promo.webp",
-    "price": null,
-    "url": "/products/natsucomi-2026-metakira-card-monkey-d-luffy-promo"
+    "price": 40.99,
+    "url": "/products/natsucomi-2026-metakira-card-monkey-d-luffy-promo",
+    "status": "instock",
+    "cost": 25.38
   },
   {
     "id": "TK-0113",
@@ -329,8 +401,10 @@
     "title": "ONE PIECE CHOPPER’s 1",
     "category": "One Piece TCG",
     "image": "/products/one-piece-chopper-s-1.webp",
-    "price": null,
-    "url": "/products/one-piece-chopper-s-1"
+    "price": 28.99,
+    "url": "/products/one-piece-chopper-s-1",
+    "status": "instock",
+    "cost": 17.76
   },
   {
     "id": "TK-0092",
@@ -338,8 +412,10 @@
     "title": "Official 9 Pocket Binder vol.1",
     "category": "One Piece TCG",
     "image": "/products/official-9-pocket-binder-vol-1.webp",
-    "price": null,
-    "url": "/products/official-9-pocket-binder-vol-1"
+    "price": 50.99,
+    "url": "/products/official-9-pocket-binder-vol-1",
+    "status": "instock",
+    "cost": 31.72
   },
   {
     "id": "TK-0112",
@@ -347,8 +423,10 @@
     "title": "Premium Card Collection Kumamoto Special",
     "category": "One Piece TCG",
     "image": "/products/premium-card-collection-kumamoto-special.webp",
-    "price": null,
-    "url": "/products/premium-card-collection-kumamoto-special"
+    "price": 524.99,
+    "url": "/products/premium-card-collection-kumamoto-special",
+    "status": "instock",
+    "cost": 361.61
   },
   {
     "id": "TK-0093",
@@ -356,8 +434,10 @@
     "title": "BASE SHOP Limited Card Collection vol.1",
     "category": "One Piece TCG",
     "image": "/products/base-shop-limited-card-collection-vol-1.webp",
-    "price": null,
-    "url": "/products/base-shop-limited-card-collection-vol-1"
+    "price": 78.99,
+    "url": "/products/base-shop-limited-card-collection-vol-1",
+    "status": "instock",
+    "cost": 53.92
   },
   {
     "id": "TK-0094",
@@ -365,8 +445,10 @@
     "title": "ONE PIECE magazine 020 promo card",
     "category": "One Piece TCG",
     "image": "/products/one-piece-magazine-020-promo-card.webp",
-    "price": null,
-    "url": "/products/one-piece-magazine-020-promo-card"
+    "price": 252.99,
+    "url": "/products/one-piece-magazine-020-promo-card",
+    "status": "instock",
+    "cost": 174.46
   },
   {
     "id": "TK-0095",
@@ -374,8 +456,10 @@
     "title": "Premium Card Collection -ONE PIECE DAY'25-",
     "category": "One Piece TCG",
     "image": "/products/premium-card-collection-one-piece-day-25.webp",
-    "price": null,
-    "url": "/products/premium-card-collection-one-piece-day-25"
+    "price": 349.99,
+    "url": "/products/premium-card-collection-one-piece-day-25",
+    "status": "instock",
+    "cost": 241.07
   },
   {
     "id": "TK-0096",
@@ -383,7 +467,9 @@
     "title": "Premium Card Collection -ONE PIECE DAY'24-",
     "category": "One Piece TCG",
     "image": "/products/premium-card-collection-one-piece-day-24.webp",
-    "price": null,
-    "url": "/products/premium-card-collection-one-piece-day-24"
+    "price": 110.99,
+    "url": "/products/premium-card-collection-one-piece-day-24",
+    "status": "instock",
+    "cost": 76.13
   }
 ]

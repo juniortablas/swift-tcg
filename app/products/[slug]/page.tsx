@@ -9,17 +9,13 @@ import {
   getProductDescription,
   getRelatedProducts,
 } from "@/lib/catalog"
+import { formatUsdPrice } from "@/lib/pricing"
 import type { CatalogCategory, Product } from "@/types/product"
 
 const CATALOG_CATEGORIES: CatalogCategory[] = ["pokemon", "onepiece"]
 
 type PageProps = {
   params: Promise<{ slug: string }>
-}
-
-function formatPrice(price: number | null): string {
-  if (typeof price !== "number") return "Coming Soon"
-  return `¥${price.toLocaleString("en-US")}`
 }
 
 function findProductAcrossCatalogs(slug: string): {
@@ -64,7 +60,7 @@ function RelatedProductCard({ product }: { product: Product }) {
           {product.title}
         </h3>
         <p className="mt-2 text-sm font-semibold text-black">
-          {formatPrice(product.price)}
+          {formatUsdPrice(product.price)}
         </p>
       </div>
     </Link>
@@ -129,7 +125,7 @@ export default async function ProductPage({ params }: PageProps) {
             </p>
 
             <p className="mt-5 text-2xl font-semibold tracking-tight text-black">
-              {formatPrice(product.price)}
+              {formatUsdPrice(product.price)}
             </p>
 
             <Button

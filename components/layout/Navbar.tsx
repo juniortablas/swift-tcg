@@ -1,10 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, Search, ShoppingCart, X } from "lucide-react"
+import { Menu, Search, X } from "lucide-react"
 
+import CartButton from "@/components/cart/CartButton"
+import CartDrawer from "@/components/cart/CartDrawer"
 import SearchDialog from "@/components/search/SearchDialog"
 import { Button } from "@/components/ui/button"
+import { CartProvider } from "@/lib/cart/CartProvider"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
@@ -14,7 +17,7 @@ const NAV_LINKS = [
   { label: "About", href: "#about" },
 ] as const
 
-export default function Navbar() {
+function NavbarContent() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -53,13 +56,8 @@ export default function Navbar() {
               <Search />
             </Button>
 
-            <Button
-              size="sm"
-              className="ml-1 hidden gap-1.5 bg-green-600 text-white hover:bg-green-600/90 md:inline-flex"
-            >
-              <ShoppingCart />
-              Cart
-            </Button>
+            <CartButton className="hidden md:inline-flex" />
+            <CartButton iconOnly className="md:hidden" />
 
             <Button
               variant="ghost"
@@ -92,19 +90,24 @@ export default function Navbar() {
               </a>
             ))}
 
-            <Button
-              size="sm"
-              className="mt-3 gap-1.5 bg-green-600 text-white hover:bg-green-600/90"
-              onClick={() => setMobileOpen(false)}
-            >
-              <ShoppingCart />
-              Cart
-            </Button>
+            <CartButton
+              className="mt-3 w-full justify-center"
+              onOpen={() => setMobileOpen(false)}
+            />
           </nav>
         </div>
       </header>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      <CartDrawer />
     </>
+  )
+}
+
+export default function Navbar() {
+  return (
+    <CartProvider>
+      <NavbarContent />
+    </CartProvider>
   )
 }

@@ -12,21 +12,11 @@ import Navbar from "@/components/layout/Navbar"
 import Hero from "@/components/home/Hero"
 import ProductCarousel from "@/components/home/ProductCarousel"
 import TrustSection from "@/components/home/TrustSection"
-import pokemonCatalog from "@/data/pokemon.json"
-import type { Product } from "@/types/product"
-
-const products: Product[] = pokemonCatalog.slice(0, 5).map((product) => ({
-  id: product.id,
-  title: product.title,
-  category: product.category,
-  image: product.image,
-  price:
-    typeof product.price === "number"
-      ? `¥${product.price.toLocaleString("en-US")}`
-      : "—",
-}))
+import { getProducts } from "@/lib/catalog"
 
 export default function Home() {
+  const products = getProducts("pokemon").slice(0, 5)
+
   return (
     <>
       <AnnouncementBar />

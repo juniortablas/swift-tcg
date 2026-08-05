@@ -1,9 +1,15 @@
 /**
  * SORA CardShop multi-catalog importer
  *
- * Crawls configured game catalogs, extracts product metadata + availability
- * status, downloads images into public/products/, and writes one JSON file
- * per catalog under data/. Existing image files are never overwritten.
+ * Authenticates via Playwright (session cookies in playwright/.auth/sora.json),
+ * crawls configured game catalogs with wholesale prices unlocked, extracts
+ * product metadata + availability, prices via `@/lib/pricing` (cost + retail),
+ * downloads images into public/products/, and writes one JSON file per catalog
+ * under data/.
+ *
+ * Existing image files are never overwritten.
+ * Email/password are never stored — only browser storage state (cookies).
+ * Wholesale `cost` is stored in JSON but must never be shown in the UI.
  *
  * Usage: npx tsx scripts/import-sora.ts
  *
@@ -18,10 +24,16 @@ import { access, mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { pipeline } from "node:stream/promises"
 import { setTimeout as delay } from "node:timers/promises"
+import type { APIRequestContext } from "playwright"
 
 import type { ProductStatus } from "@/types/product"
+import { priceFromWholesaleJpy } from "@/lib/pricing"
+import {
+  createSoraRequest,
+  SORA_BASE_URL,
+} from "./sora-auth"
 
-const BASE_URL = "https://sora-cardshop.com"
+const BASE_URL = SORA_BASE_URL
 
 const ROOT = process.cwd()
 const PRODUCTS_DIR = path.join(ROOT, "public", "products")
@@ -52,6 +64,9 @@ export interface ImportedProduct {
   title: string
   category: string
   image: string
+  /** Wholesale USD cost (from Sora JPY). Null when unavailable. */
+  cost: number | null
+  /** Retail USD price. Null when there is no wholesale cost. */
   price: number | null
   url: string
   status: ProductStatus
@@ -63,7 +78,8 @@ interface ScrapedProduct {
   title: string
   category: string
   imageUrl: string
-  price: number | null
+  /** Wholesale JPY from Sora (`data-jpy`). */
+  wholesaleJpy: number | null
   status: ProductStatus
 }
 
@@ -147,13 +163,15 @@ function applyImageSlugs(
     const base = slugify(product.title) || slugify(product.id) || "product"
     const slug = uniqueSlug(base, usedSlugs)
     const filename = `${slug}${extensionFromUrl(product.imageUrl)}`
+    const { cost, price } = priceFromWholesaleJpy(product.wholesaleJpy)
     return {
       id: product.id,
       slug,
       title: product.title,
       category: product.category,
       image: `/products/${filename}`,
-      price: product.price,
+      cost,
+      price,
       url: `/products/${slug}`,
       status: product.status,
       imageUrl: product.imageUrl,
@@ -175,19 +193,57 @@ function dataFileForCatalog(slug: string): string {
   return path.join(DATA_DIR, `${slug}.json`)
 }
 
-/** Fetch a single catalog page as HTML. */
-async function fetchCatalog(slug: string, page = 1): Promise<string> {
+/**
+ * Debug dump for the first Pokémon catalog page (no scraping changes).
+ * Writes raw HTML and logs auth/parse diagnostics.
+ */
+async function dumpPokemonCatalogPageDebug(
+  response: { url: () => string; status: () => number },
+  html: string
+): Promise<void> {
+  const debugDir = path.join(ROOT, "debug")
+  const debugPath = path.join(debugDir, "pokemon-page.html")
+  await mkdir(debugDir, { recursive: true })
+  await writeFile(debugPath, html, "utf8")
+
+  const $ = cheerio.load(html)
+  const title = cleanText($("title").first().text())
+  const hasProductCard = $(".product-card").length > 0
+  const hasLoginForm =
+    $('form[action*="login"]').length > 0 ||
+    $('input[name="password"]').length > 0 ||
+    $('input[type="password"]').length > 0
+  const hasSignInOrLogin = /Sign In|Login/i.test(html)
+
+  console.log("\n  === DEBUG: pokemon catalog page 1 ===")
+  console.log(`  Final response URL: ${response.url()}`)
+  console.log(`  HTTP status: ${response.status()}`)
+  console.log(`  Page title: ${title || "(none)"}`)
+  console.log(`  .product-card exists: ${hasProductCard}`)
+  console.log(`  Login form present: ${hasLoginForm}`)
+  console.log(`  Contains "Sign In" or "Login": ${hasSignInOrLogin}`)
+  console.log(`  Saved HTML → ${debugPath}\n`)
+}
+
+/** Fetch a single catalog page as HTML (authenticated). */
+async function fetchCatalog(
+  api: APIRequestContext,
+  slug: string,
+  page = 1
+): Promise<string> {
   const url = catalogPageUrl(slug, page)
   console.log(`  Fetching page ${page}: ${url}`)
-  const response = await axios.get<string>(url, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "text/html,application/xhtml+xml",
-    },
-    responseType: "text",
-    timeout: 30_000,
-  })
-  return response.data
+  const response = await api.get(url, { timeout: 30_000 })
+  const html = await response.text()
+
+  if (slug === "pokemon" && page === 1) {
+    await dumpPokemonCatalogPageDebug(response, html)
+  }
+
+  if (!response.ok()) {
+    throw new Error(`HTTP ${response.status()} for ${url}`)
+  }
+  return html
 }
 
 function extractPrice($card: cheerio.Cheerio<Element>): number | null {
@@ -196,6 +252,7 @@ function extractPrice($card: cheerio.Cheerio<Element>): number | null {
   }
 
   const dataJpy =
+    $card.find(".price-jpy[data-jpy]").attr("data-jpy") ||
     $card.find("[data-jpy]").attr("data-jpy") ||
     $card.find("[data-price]").attr("data-price")
   if (dataJpy) {
@@ -204,7 +261,10 @@ function extractPrice($card: cheerio.Cheerio<Element>): number | null {
   }
 
   const priceText = cleanText(
-    $card.find(".product-price, .price, .price-value").first().text()
+    $card
+      .find(".price-jpy, .product-price, .price, .price-value")
+      .first()
+      .text()
   )
   if (priceText) {
     const match = priceText.replace(/,/g, "").match(/(\d+(?:\.\d+)?)/)
@@ -330,18 +390,19 @@ function extractStatusFromProductPage(html: string): ProductStatus {
   return "unknown"
 }
 
-async function fetchProductPage(id: string): Promise<string> {
+async function fetchProductPage(
+  api: APIRequestContext,
+  id: string
+): Promise<string> {
   const url = `${BASE_URL}/product/${id}`
-  const response = await axios.get<string>(url, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "text/html,application/xhtml+xml",
-      Referer: BASE_URL,
-    },
-    responseType: "text",
+  const response = await api.get(url, {
     timeout: 30_000,
+    headers: { Referer: BASE_URL },
   })
-  return response.data
+  if (!response.ok()) {
+    throw new Error(`HTTP ${response.status()} for ${url}`)
+  }
+  return response.text()
 }
 
 /**
@@ -349,6 +410,7 @@ async function fetchProductPage(id: string): Promise<string> {
  * Explicit catalog preorder/soldout/instock values are kept as-is.
  */
 async function enrichAvailabilityStatuses(
+  api: APIRequestContext,
   products: ScrapedProduct[]
 ): Promise<ScrapedProduct[]> {
   const enriched: ScrapedProduct[] = []
@@ -360,7 +422,7 @@ async function enrichAvailabilityStatuses(
     }
 
     try {
-      const html = await fetchProductPage(product.id)
+      const html = await fetchProductPage(api, product.id)
       const status = extractStatusFromProductPage(html)
       enriched.push({ ...product, status })
       console.log(`  Status ${product.id}: ${status}`)
@@ -385,11 +447,12 @@ function parseProducts(html: string, category: string): ScrapedProduct[] {
   const products: ScrapedProduct[] = []
   const seen = new Set<string>()
 
-  // htmlparser2 moves block content out of <a.product-card-link>,
-  // so we read .product-card and take the preceding link for the id.
+  // Authenticated HTML nests .product-card inside <a.product-card-link>.
+  // Unauthenticated/htmlparser2 may hoist the card and leave the link as a sibling.
   $(".product-card").each((_, card) => {
     const $card = $(card)
     const href =
+      $card.closest("a.product-card-link").attr("href") ??
       $card.prev("a.product-card-link").attr("href") ??
       $card.prevAll("a.product-card-link").first().attr("href") ??
       ""
@@ -416,7 +479,7 @@ function parseProducts(html: string, category: string): ScrapedProduct[] {
       title,
       category,
       imageUrl: absoluteUrl(src),
-      price: extractPrice($card),
+      wholesaleJpy: extractPrice($card),
       status: extractStatusFromCard($card),
     })
   })
@@ -446,6 +509,7 @@ function detectMaxPage(html: string): number | null {
 
 /** Crawl every page for a catalog slug and return deduped products. */
 async function fetchAllProducts(
+  api: APIRequestContext,
   catalog: CatalogConfig
 ): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = []
@@ -458,11 +522,17 @@ async function fetchAllProducts(
 
     let html: string
     try {
-      html = await fetchCatalog(catalog.slug, page)
+      html = await fetchCatalog(api, catalog.slug, page)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       console.error(`  Failed to fetch page ${page}: ${message}`)
       break
+    }
+
+    if (html.includes("price-locked") && page === 1) {
+      console.warn(
+        "  Warning: catalog still shows locked prices — session may have expired"
+      )
     }
 
     if (page === 1) {
@@ -486,8 +556,9 @@ async function fetchAllProducts(
       newCount += 1
     }
 
+    const priced = pageProducts.filter((p) => p.wholesaleJpy !== null).length
     console.log(
-      `  Page ${page}: ${pageProducts.length} products (${newCount} new)`
+      `  Page ${page}: ${pageProducts.length} products (${newCount} new, ${priced} priced)`
     )
 
     if (newCount === 0) {
@@ -498,7 +569,7 @@ async function fetchAllProducts(
     // Probe page 2 when the site exposes no pagination links.
     if (knownMaxPage === null && page === 1) {
       try {
-        const probeHtml = await fetchCatalog(catalog.slug, 2)
+        const probeHtml = await fetchCatalog(api, catalog.slug, 2)
         const probeProducts = parseProducts(probeHtml, catalog.category)
         const probeNew = probeProducts.filter((p) => !seen.has(p.id)).length
         if (probeNew === 0) {
@@ -596,6 +667,7 @@ function toJsonProduct(product: CatalogProduct): ImportedProduct {
     title: product.title,
     category: product.category,
     image: product.image,
+    cost: product.cost,
     price: product.price,
     url: product.url,
     status: product.status,
@@ -624,19 +696,23 @@ function printCatalogSummary(summary: CatalogSummary) {
 }
 
 async function importCatalog(
+  api: APIRequestContext,
   catalog: CatalogConfig,
   usedSlugs: Set<string>
 ): Promise<CatalogSummary> {
   console.log(`\n=== Importing ${catalog.category} [${catalog.slug}] ===`)
 
-  const parsed = await fetchAllProducts(catalog)
+  const parsed = await fetchAllProducts(api, catalog)
   console.log(`  Parsed ${parsed.length} products`)
+
+  const pricedCount = parsed.filter((p) => p.wholesaleJpy !== null).length
+  console.log(`  Wholesale JPY found: ${pricedCount}/${parsed.length}`)
 
   const unknownCount = parsed.filter((p) => p.status === "unknown").length
   console.log(
     `  Resolving availability (${unknownCount} unknown via product pages)…`
   )
-  const withStatus = await enrichAvailabilityStatuses(parsed)
+  const withStatus = await enrichAvailabilityStatuses(api, parsed)
 
   const statusCounts = withStatus.reduce(
     (acc, p) => {
@@ -667,29 +743,36 @@ async function main() {
   await mkdir(PRODUCTS_DIR, { recursive: true })
   await mkdir(DATA_DIR, { recursive: true })
 
+  console.log("=== Authenticating with SORA ===")
+  const api = await createSoraRequest()
+
   const summaries: CatalogSummary[] = []
   const usedSlugs = new Set<string>()
 
-  for (const catalog of CATALOGS) {
-    try {
-      const summary = await importCatalog(catalog, usedSlugs)
-      summaries.push(summary)
-      printCatalogSummary(summary)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      console.error(
-        `\nCatalog ${catalog.slug} failed — continuing. ${message}`
-      )
-      summaries.push({
-        slug: catalog.slug,
-        category: catalog.category,
-        products: 0,
-        downloaded: 0,
-        skipped: 0,
-        failed: 0,
-        jsonPath: dataFileForCatalog(catalog.slug),
-      })
+  try {
+    for (const catalog of CATALOGS) {
+      try {
+        const summary = await importCatalog(api, catalog, usedSlugs)
+        summaries.push(summary)
+        printCatalogSummary(summary)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        console.error(
+          `\nCatalog ${catalog.slug} failed — continuing. ${message}`
+        )
+        summaries.push({
+          slug: catalog.slug,
+          category: catalog.category,
+          products: 0,
+          downloaded: 0,
+          skipped: 0,
+          failed: 0,
+          jsonPath: dataFileForCatalog(catalog.slug),
+        })
+      }
     }
+  } finally {
+    await api.dispose()
   }
 
   console.log("\n========== Import complete ==========")

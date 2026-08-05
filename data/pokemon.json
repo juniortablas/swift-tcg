@@ -5,8 +5,10 @@
     "title": "30th CELEBRATION Card Set (Bulbasaur, Charmander, Squirtle)",
     "category": "Pokémon TCG",
     "image": "/products/30th-celebration-card-set-bulbasaur-charmander-squirtle.webp",
-    "price": null,
-    "url": "/products/30th-celebration-card-set-bulbasaur-charmander-squirtle"
+    "price": 165.99,
+    "url": "/products/30th-celebration-card-set-bulbasaur-charmander-squirtle",
+    "status": "preorder",
+    "cost": 114.19
   },
   {
     "id": "TK-0166",
@@ -15,7 +17,9 @@
     "category": "Pokémon TCG",
     "image": "/products/30th-celebration-futuristic-box.webp",
     "price": null,
-    "url": "/products/30th-celebration-futuristic-box"
+    "url": "/products/30th-celebration-futuristic-box",
+    "status": "preorder",
+    "cost": null
   },
   {
     "id": "TK-0165",
@@ -24,7 +28,9 @@
     "category": "Pokémon TCG",
     "image": "/products/30th-celebration-premium-deck-set-espeon-umbreon.webp",
     "price": null,
-    "url": "/products/30th-celebration-premium-deck-set-espeon-umbreon"
+    "url": "/products/30th-celebration-premium-deck-set-espeon-umbreon",
+    "status": "preorder",
+    "cost": null
   },
   {
     "id": "TK-0164",
@@ -32,8 +38,10 @@
     "title": "30th CELEBRATION",
     "category": "Pokémon TCG",
     "image": "/products/30th-celebration.webp",
-    "price": null,
-    "url": "/products/30th-celebration"
+    "price": 367.99,
+    "url": "/products/30th-celebration",
+    "status": "preorder",
+    "cost": 253.76
   },
   {
     "id": "TK-0176",
@@ -41,8 +49,10 @@
     "title": "Storm Emeralda [M6]",
     "category": "Pokémon TCG",
     "image": "/products/storm-emeralda.webp",
-    "price": null,
-    "url": "/products/storm-emeralda"
+    "price": 206.99,
+    "url": "/products/storm-emeralda",
+    "status": "instock",
+    "cost": 142.74
   },
   {
     "id": "TK-0193",
@@ -51,7 +61,9 @@
     "category": "Pokémon TCG",
     "image": "/products/3-starter-set-ex-set.webp",
     "price": null,
-    "url": "/products/3-starter-set-ex-set"
+    "url": "/products/3-starter-set-ex-set",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0182",
@@ -60,7 +72,9 @@
     "category": "Pokémon TCG",
     "image": "/products/starter-set-ex-eevee-ex.webp",
     "price": null,
-    "url": "/products/starter-set-ex-eevee-ex"
+    "url": "/products/starter-set-ex-eevee-ex",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0183",
@@ -69,7 +83,9 @@
     "category": "Pokémon TCG",
     "image": "/products/starter-set-ex-zorua-and-zoroark-ex.webp",
     "price": null,
-    "url": "/products/starter-set-ex-zorua-and-zoroark-ex"
+    "url": "/products/starter-set-ex-zorua-and-zoroark-ex",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0184",
@@ -78,7 +94,9 @@
     "category": "Pokémon TCG",
     "image": "/products/starter-set-ex-sprigatito-and-meowscarada-ex.webp",
     "price": null,
-    "url": "/products/starter-set-ex-sprigatito-and-meowscarada-ex"
+    "url": "/products/starter-set-ex-sprigatito-and-meowscarada-ex",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0006",
@@ -86,8 +104,10 @@
     "title": "Abyss Eye [M5]",
     "category": "Pokémon TCG",
     "image": "/products/abyss-eye.webp",
-    "price": null,
-    "url": "/products/abyss-eye"
+    "price": 88.99,
+    "url": "/products/abyss-eye",
+    "status": "instock",
+    "cost": 60.9
   },
   {
     "id": "TK-0002",
@@ -95,8 +115,10 @@
     "title": "Ninja Spinner [M4]",
     "category": "Pokémon TCG",
     "image": "/products/ninja-spinner.webp",
-    "price": null,
-    "url": "/products/ninja-spinner"
+    "price": 105.99,
+    "url": "/products/ninja-spinner",
+    "status": "instock",
+    "cost": 72.96
   },
   {
     "id": "TK-0007",
@@ -104,8 +126,10 @@
     "title": "Munikis Zero [M3]",
     "category": "Pokémon TCG",
     "image": "/products/munikis-zero.webp",
-    "price": null,
-    "url": "/products/munikis-zero"
+    "price": 84.99,
+    "url": "/products/munikis-zero",
+    "status": "instock",
+    "cost": 58.36
   },
   {
     "id": "TK-0001",
@@ -113,8 +137,10 @@
     "title": "Mega Dream ex [M2a]",
     "category": "Pokémon TCG",
     "image": "/products/mega-dream-ex.webp",
-    "price": null,
-    "url": "/products/mega-dream-ex"
+    "price": 133.99,
+    "url": "/products/mega-dream-ex",
+    "status": "instock",
+    "cost": 91.99
   },
   {
     "id": "TK-0003",
@@ -122,8 +148,10 @@
     "title": "Inferno X [M2]",
     "category": "Pokémon TCG",
     "image": "/products/inferno-x.webp",
-    "price": null,
-    "url": "/products/inferno-x"
+    "price": 211.99,
+    "url": "/products/inferno-x",
+    "status": "instock",
+    "cost": 145.91
   },
   {
     "id": "TK-0027",
@@ -131,8 +159,10 @@
     "title": "Mega Symphonia [M1S]",
     "category": "Pokémon TCG",
     "image": "/products/mega-symphonia.webp",
-    "price": null,
-    "url": "/products/mega-symphonia"
+    "price": 108.99,
+    "url": "/products/mega-symphonia",
+    "status": "instock",
+    "cost": 74.86
   },
   {
     "id": "TK-0026",
@@ -140,8 +170,10 @@
     "title": "Mega Brave [M1L]",
     "category": "Pokémon TCG",
     "image": "/products/mega-brave.webp",
-    "price": null,
-    "url": "/products/mega-brave"
+    "price": 117.99,
+    "url": "/products/mega-brave",
+    "status": "instock",
+    "cost": 81.2
   },
   {
     "id": "TK-0029",
@@ -149,8 +181,10 @@
     "title": "White Flare [sv11W]",
     "category": "Pokémon TCG",
     "image": "/products/white-flare.webp",
-    "price": null,
-    "url": "/products/white-flare"
+    "price": 225.99,
+    "url": "/products/white-flare",
+    "status": "instock",
+    "cost": 155.43
   },
   {
     "id": "TK-0028",
@@ -158,8 +192,10 @@
     "title": "Black Bolt [sv11B]",
     "category": "Pokémon TCG",
     "image": "/products/black-bolt.webp",
-    "price": null,
-    "url": "/products/black-bolt"
+    "price": 248.99,
+    "url": "/products/black-bolt",
+    "status": "instock",
+    "cost": 171.29
   },
   {
     "id": "TK-0030",
@@ -167,8 +203,10 @@
     "title": "Glory of Team Rocket [sv10]",
     "category": "Pokémon TCG",
     "image": "/products/glory-of-team-rocket.webp",
-    "price": null,
-    "url": "/products/glory-of-team-rocket"
+    "price": 252.99,
+    "url": "/products/glory-of-team-rocket",
+    "status": "instock",
+    "cost": 174.46
   },
   {
     "id": "TK-0031",
@@ -176,8 +214,10 @@
     "title": "Heat Wave Arena [sv9a]",
     "category": "Pokémon TCG",
     "image": "/products/heat-wave-arena.webp",
-    "price": null,
-    "url": "/products/heat-wave-arena"
+    "price": 197.99,
+    "url": "/products/heat-wave-arena",
+    "status": "instock",
+    "cost": 136.4
   },
   {
     "id": "TK-0032",
@@ -185,8 +225,10 @@
     "title": "Battle Partners [sv9]",
     "category": "Pokémon TCG",
     "image": "/products/battle-partners.webp",
-    "price": null,
-    "url": "/products/battle-partners"
+    "price": 110.99,
+    "url": "/products/battle-partners",
+    "status": "instock",
+    "cost": 76.13
   },
   {
     "id": "TK-0005",
@@ -194,8 +236,10 @@
     "title": "Terastal Festival ex [sv8a]",
     "category": "Pokémon TCG",
     "image": "/products/terastal-festival-ex.webp",
-    "price": null,
-    "url": "/products/terastal-festival-ex"
+    "price": 193.99,
+    "url": "/products/terastal-festival-ex",
+    "status": "instock",
+    "cost": 133.22
   },
   {
     "id": "TK-0033",
@@ -203,8 +247,10 @@
     "title": "Super Electric Breaker [sv8]",
     "category": "Pokémon TCG",
     "image": "/products/super-electric-breaker.webp",
-    "price": null,
-    "url": "/products/super-electric-breaker"
+    "price": 308.99,
+    "url": "/products/super-electric-breaker",
+    "status": "instock",
+    "cost": 212.52
   },
   {
     "id": "TK-0034",
@@ -212,8 +258,10 @@
     "title": "Paradise Dragona [sv7a]",
     "category": "Pokémon TCG",
     "image": "/products/paradise-dragona.webp",
-    "price": null,
-    "url": "/products/paradise-dragona"
+    "price": 159.99,
+    "url": "/products/paradise-dragona",
+    "status": "instock",
+    "cost": 109.75
   },
   {
     "id": "TK-0035",
@@ -221,8 +269,10 @@
     "title": "Stellar Miracle [sv7]",
     "category": "Pokémon TCG",
     "image": "/products/stellar-miracle.webp",
-    "price": null,
-    "url": "/products/stellar-miracle"
+    "price": 136.99,
+    "url": "/products/stellar-miracle",
+    "status": "instock",
+    "cost": 93.89
   },
   {
     "id": "TK-0036",
@@ -230,8 +280,10 @@
     "title": "Night Wanderer [sv6a]",
     "category": "Pokémon TCG",
     "image": "/products/night-wanderer.webp",
-    "price": null,
-    "url": "/products/night-wanderer"
+    "price": 137.99,
+    "url": "/products/night-wanderer",
+    "status": "instock",
+    "cost": 95.16
   },
   {
     "id": "TK-0037",
@@ -239,8 +291,10 @@
     "title": "Mask of Change [sv6]",
     "category": "Pokémon TCG",
     "image": "/products/mask-of-change.webp",
-    "price": null,
-    "url": "/products/mask-of-change"
+    "price": 165.99,
+    "url": "/products/mask-of-change",
+    "status": "instock",
+    "cost": 114.19
   },
   {
     "id": "TK-0038",
@@ -248,8 +302,10 @@
     "title": "Crimson Haze [sv5a]",
     "category": "Pokémon TCG",
     "image": "/products/crimson-haze.webp",
-    "price": null,
-    "url": "/products/crimson-haze"
+    "price": 142.99,
+    "url": "/products/crimson-haze",
+    "status": "instock",
+    "cost": 98.33
   },
   {
     "id": "TK-0040",
@@ -257,8 +313,10 @@
     "title": "Cyber Judge [sv5M]",
     "category": "Pokémon TCG",
     "image": "/products/cyber-judge.webp",
-    "price": null,
-    "url": "/products/cyber-judge"
+    "price": 142.99,
+    "url": "/products/cyber-judge",
+    "status": "instock",
+    "cost": 98.33
   },
   {
     "id": "TK-0039",
@@ -266,8 +324,10 @@
     "title": "Wild Force [sv5K]",
     "category": "Pokémon TCG",
     "image": "/products/wild-force.webp",
-    "price": null,
-    "url": "/products/wild-force"
+    "price": 137.99,
+    "url": "/products/wild-force",
+    "status": "instock",
+    "cost": 94.53
   },
   {
     "id": "TK-0041",
@@ -275,8 +335,10 @@
     "title": "Shiny Treasure Ex [sv4a]",
     "category": "Pokémon TCG",
     "image": "/products/shiny-treasure-ex.webp",
-    "price": null,
-    "url": "/products/shiny-treasure-ex"
+    "price": 193.99,
+    "url": "/products/shiny-treasure-ex",
+    "status": "instock",
+    "cost": 133.22
   },
   {
     "id": "TK-0043",
@@ -284,8 +346,10 @@
     "title": "Future Flash [sv4M]",
     "category": "Pokémon TCG",
     "image": "/products/future-flash.webp",
-    "price": null,
-    "url": "/products/future-flash"
+    "price": 133.99,
+    "url": "/products/future-flash",
+    "status": "instock",
+    "cost": 91.99
   },
   {
     "id": "TK-0042",
@@ -293,8 +357,10 @@
     "title": "Ancient Roar [sv4K]",
     "category": "Pokémon TCG",
     "image": "/products/ancient-roar.webp",
-    "price": null,
-    "url": "/products/ancient-roar"
+    "price": 136.99,
+    "url": "/products/ancient-roar",
+    "status": "instock",
+    "cost": 93.89
   },
   {
     "id": "TK-0044",
@@ -302,8 +368,10 @@
     "title": "Raging Surf [sv3a]",
     "category": "Pokémon TCG",
     "image": "/products/raging-surf.webp",
-    "price": null,
-    "url": "/products/raging-surf"
+    "price": 160.99,
+    "url": "/products/raging-surf",
+    "status": "instock",
+    "cost": 111.02
   },
   {
     "id": "TK-0045",
@@ -311,8 +379,10 @@
     "title": "Ruler of the Black Flame [sv3]",
     "category": "Pokémon TCG",
     "image": "/products/ruler-of-the-black-flame.webp",
-    "price": null,
-    "url": "/products/ruler-of-the-black-flame"
+    "price": 193.99,
+    "url": "/products/ruler-of-the-black-flame",
+    "status": "instock",
+    "cost": 133.22
   },
   {
     "id": "TK-0046",
@@ -320,8 +390,10 @@
     "title": "Pokemon Card 151 [sv2a]",
     "category": "Pokémon TCG",
     "image": "/products/pokemon-card-151.webp",
-    "price": null,
-    "url": "/products/pokemon-card-151"
+    "price": 561.99,
+    "url": "/products/pokemon-card-151",
+    "status": "instock",
+    "cost": 386.98
   },
   {
     "id": "TK-0047",
@@ -329,8 +401,10 @@
     "title": "Clay Burst [sv2D]",
     "category": "Pokémon TCG",
     "image": "/products/clay-burst.webp",
-    "price": null,
-    "url": "/products/clay-burst"
+    "price": 124.99,
+    "url": "/products/clay-burst",
+    "status": "instock",
+    "cost": 85.64
   },
   {
     "id": "TK-0048",
@@ -338,8 +412,10 @@
     "title": "Snow Hazard [sv2P]",
     "category": "Pokémon TCG",
     "image": "/products/snow-hazard.webp",
-    "price": null,
-    "url": "/products/snow-hazard"
+    "price": 128.99,
+    "url": "/products/snow-hazard",
+    "status": "instock",
+    "cost": 88.82
   },
   {
     "id": "TK-0049",
@@ -347,8 +423,10 @@
     "title": "Triplet Beat [sv1a]",
     "category": "Pokémon TCG",
     "image": "/products/triplet-beat.webp",
-    "price": null,
-    "url": "/products/triplet-beat"
+    "price": 183.99,
+    "url": "/products/triplet-beat",
+    "status": "instock",
+    "cost": 126.88
   },
   {
     "id": "TK-0050",
@@ -356,8 +434,10 @@
     "title": "Violet ex [sv1V]",
     "category": "Pokémon TCG",
     "image": "/products/violet-ex.webp",
-    "price": null,
-    "url": "/products/violet-ex"
+    "price": 122.99,
+    "url": "/products/violet-ex",
+    "status": "instock",
+    "cost": 84.38
   },
   {
     "id": "TK-0051",
@@ -365,8 +445,10 @@
     "title": "Scarlet ex [sv1S]",
     "category": "Pokémon TCG",
     "image": "/products/scarlet-ex.webp",
-    "price": null,
-    "url": "/products/scarlet-ex"
+    "price": 151.99,
+    "url": "/products/scarlet-ex",
+    "status": "instock",
+    "cost": 104.68
   },
   {
     "id": "TK-0052",
@@ -374,8 +456,10 @@
     "title": "Vstar Universe [s12a]",
     "category": "Pokémon TCG",
     "image": "/products/vstar-universe.webp",
-    "price": null,
-    "url": "/products/vstar-universe"
+    "price": 298.99,
+    "url": "/products/vstar-universe",
+    "status": "instock",
+    "cost": 206.18
   },
   {
     "id": "TK-0053",
@@ -383,8 +467,10 @@
     "title": "Paradigm Trigger [s12]",
     "category": "Pokémon TCG",
     "image": "/products/paradigm-trigger.webp",
-    "price": null,
-    "url": "/products/paradigm-trigger"
+    "price": 225.99,
+    "url": "/products/paradigm-trigger",
+    "status": "instock",
+    "cost": 155.43
   },
   {
     "id": "TK-0054",
@@ -392,8 +478,10 @@
     "title": "Incandescent Arcana [s11a]",
     "category": "Pokémon TCG",
     "image": "/products/incandescent-arcana.webp",
-    "price": null,
-    "url": "/products/incandescent-arcana"
+    "price": 133.99,
+    "url": "/products/incandescent-arcana",
+    "status": "instock",
+    "cost": 91.99
   },
   {
     "id": "TK-0055",
@@ -401,8 +489,10 @@
     "title": "Lost Abyss [s11]",
     "category": "Pokémon TCG",
     "image": "/products/lost-abyss.webp",
-    "price": null,
-    "url": "/products/lost-abyss"
+    "price": 588.99,
+    "url": "/products/lost-abyss",
+    "status": "instock",
+    "cost": 406.02
   },
   {
     "id": "TK-0056",
@@ -410,8 +500,10 @@
     "title": "Pokemon Go [s10b]",
     "category": "Pokémon TCG",
     "image": "/products/pokemon-go.webp",
-    "price": null,
-    "url": "/products/pokemon-go"
+    "price": 303.99,
+    "url": "/products/pokemon-go",
+    "status": "instock",
+    "cost": 209.35
   },
   {
     "id": "TK-0057",
@@ -419,8 +511,10 @@
     "title": "Dark Phantasma [s10a]",
     "category": "Pokémon TCG",
     "image": "/products/dark-phantasma.webp",
-    "price": null,
-    "url": "/products/dark-phantasma"
+    "price": 285.99,
+    "url": "/products/dark-phantasma",
+    "status": "instock",
+    "cost": 196.66
   },
   {
     "id": "TK-0058",
@@ -428,8 +522,10 @@
     "title": "Space Juggler [s10P]",
     "category": "Pokémon TCG",
     "image": "/products/space-juggler.webp",
-    "price": null,
-    "url": "/products/space-juggler"
+    "price": 153.99,
+    "url": "/products/space-juggler",
+    "status": "instock",
+    "cost": 105.94
   },
   {
     "id": "TK-0059",
@@ -437,8 +533,10 @@
     "title": "Time Gazer [s10D]",
     "category": "Pokémon TCG",
     "image": "/products/time-gazer.webp",
-    "price": null,
-    "url": "/products/time-gazer"
+    "price": 156.99,
+    "url": "/products/time-gazer",
+    "status": "instock",
+    "cost": 107.85
   },
   {
     "id": "TK-0060",
@@ -446,8 +544,10 @@
     "title": "Battle Region [s9a]",
     "category": "Pokémon TCG",
     "image": "/products/battle-region.webp",
-    "price": null,
-    "url": "/products/battle-region"
+    "price": 137.99,
+    "url": "/products/battle-region",
+    "status": "instock",
+    "cost": 95.16
   },
   {
     "id": "TK-0061",
@@ -455,8 +555,10 @@
     "title": "Star Birth [s9]",
     "category": "Pokémon TCG",
     "image": "/products/star-birth.webp",
-    "price": null,
-    "url": "/products/star-birth"
+    "price": 206.99,
+    "url": "/products/star-birth",
+    "status": "instock",
+    "cost": 142.74
   },
   {
     "id": "TK-0062",
@@ -464,8 +566,10 @@
     "title": "VMAX Climax [s8b]",
     "category": "Pokémon TCG",
     "image": "/products/vmax-climax.webp",
-    "price": null,
-    "url": "/products/vmax-climax"
+    "price": 354.99,
+    "url": "/products/vmax-climax",
+    "status": "instock",
+    "cost": 244.24
   },
   {
     "id": "TK-0023",
@@ -473,8 +577,10 @@
     "title": "25th Anniversary Collection [s8a]",
     "category": "Pokémon TCG",
     "image": "/products/25th-anniversary-collection.webp",
-    "price": null,
-    "url": "/products/25th-anniversary-collection"
+    "price": 689.99,
+    "url": "/products/25th-anniversary-collection",
+    "status": "instock",
+    "cost": 475.8
   },
   {
     "id": "TK-0063",
@@ -482,8 +588,10 @@
     "title": "Fusion Arts [s8]",
     "category": "Pokémon TCG",
     "image": "/products/fusion-arts.webp",
-    "price": null,
-    "url": "/products/fusion-arts"
+    "price": 524.99,
+    "url": "/products/fusion-arts",
+    "status": "instock",
+    "cost": 361.61
   },
   {
     "id": "TK-0064",
@@ -491,8 +599,10 @@
     "title": "Eevee Heroes [s6a]",
     "category": "Pokémon TCG",
     "image": "/products/eevee-heroes.webp",
-    "price": null,
-    "url": "/products/eevee-heroes"
+    "price": 1379.99,
+    "url": "/products/eevee-heroes",
+    "status": "instock",
+    "cost": 951.6
   },
   {
     "id": "TK-0065",
@@ -500,8 +610,10 @@
     "title": "Shiny Star V [s4a]",
     "category": "Pokémon TCG",
     "image": "/products/shiny-star-v.webp",
-    "price": null,
-    "url": "/products/shiny-star-v"
+    "price": 211.99,
+    "url": "/products/shiny-star-v",
+    "status": "instock",
+    "cost": 145.91
   },
   {
     "id": "TK-0066",
@@ -510,7 +622,9 @@
     "category": "Pokémon TCG",
     "image": "/products/mega-gallade-ex-special-card-set.webp",
     "price": null,
-    "url": "/products/mega-gallade-ex-special-card-set"
+    "url": "/products/mega-gallade-ex-special-card-set",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0067",
@@ -518,8 +632,10 @@
     "title": "MEGA Start Deck 100 Battle Collection",
     "category": "Pokémon TCG",
     "image": "/products/mega-start-deck-100-battle-collection.webp",
-    "price": null,
-    "url": "/products/mega-start-deck-100-battle-collection"
+    "price": 25.99,
+    "url": "/products/mega-start-deck-100-battle-collection",
+    "status": "instock",
+    "cost": 15.86
   },
   {
     "id": "TK-0068",
@@ -527,8 +643,10 @@
     "title": "Special BOX Pokemon Center Fukuoka",
     "category": "Pokémon TCG",
     "image": "/products/special-box-pokemon-center-fukuoka.webp",
-    "price": null,
-    "url": "/products/special-box-pokemon-center-fukuoka"
+    "price": 170.99,
+    "url": "/products/special-box-pokemon-center-fukuoka",
+    "status": "instock",
+    "cost": 117.36
   },
   {
     "id": "TK-0069",
@@ -536,8 +654,10 @@
     "title": "Special BOX Pokemon Center Hiroshima",
     "category": "Pokémon TCG",
     "image": "/products/special-box-pokemon-center-hiroshima.webp",
-    "price": null,
-    "url": "/products/special-box-pokemon-center-hiroshima"
+    "price": 202.99,
+    "url": "/products/special-box-pokemon-center-hiroshima",
+    "status": "instock",
+    "cost": 139.57
   },
   {
     "id": "TK-0070",
@@ -545,8 +665,10 @@
     "title": "Special BOX Pokemon Center Tohoku",
     "category": "Pokémon TCG",
     "image": "/products/special-box-pokemon-center-tohoku.webp",
-    "price": null,
-    "url": "/products/special-box-pokemon-center-tohoku"
+    "price": 156.99,
+    "url": "/products/special-box-pokemon-center-tohoku",
+    "status": "instock",
+    "cost": 107.85
   },
   {
     "id": "TK-0071",
@@ -554,8 +676,10 @@
     "title": "McDonald's Happy Set 2025 Promo Card Pack",
     "category": "Pokémon TCG",
     "image": "/products/mcdonald-s-happy-set-2025-promo-card-pack.webp",
-    "price": null,
-    "url": "/products/mcdonald-s-happy-set-2025-promo-card-pack"
+    "price": 53.99,
+    "url": "/products/mcdonald-s-happy-set-2025-promo-card-pack",
+    "status": "instock",
+    "cost": 33.62
   },
   {
     "id": "TK-0073",
@@ -564,7 +688,9 @@
     "category": "Pokémon TCG",
     "image": "/products/mega-symphonia-pokemon-center-set.webp",
     "price": null,
-    "url": "/products/mega-symphonia-pokemon-center-set"
+    "url": "/products/mega-symphonia-pokemon-center-set",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0072",
@@ -573,7 +699,9 @@
     "category": "Pokémon TCG",
     "image": "/products/mega-brave-pokemon-center-set.webp",
     "price": null,
-    "url": "/products/mega-brave-pokemon-center-set"
+    "url": "/products/mega-brave-pokemon-center-set",
+    "status": "instock",
+    "cost": null
   },
   {
     "id": "TK-0074",
@@ -581,8 +709,10 @@
     "title": "Black Bolt & White Flare Cardfile Set",
     "category": "Pokémon TCG",
     "image": "/products/black-bolt-and-white-flare-cardfile-set.webp",
-    "price": null,
-    "url": "/products/black-bolt-and-white-flare-cardfile-set"
+    "price": 87.99,
+    "url": "/products/black-bolt-and-white-flare-cardfile-set",
+    "status": "instock",
+    "cost": 60.27
   },
   {
     "id": "TK-0075",
@@ -591,6 +721,8 @@
     "category": "Pokémon TCG",
     "image": "/products/glory-of-team-rocket-attache-case-set.webp",
     "price": null,
-    "url": "/products/glory-of-team-rocket-attache-case-set"
+    "url": "/products/glory-of-team-rocket-attache-case-set",
+    "status": "instock",
+    "cost": null
   }
 ]

@@ -2,16 +2,11 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Sparkles } from "lucide-react"
 
+import { formatUsdPrice } from "@/lib/pricing"
 import type { Product } from "@/types/product"
 
 interface ProductCarouselProps {
   products: Product[]
-}
-
-function formatPrice(price: Product["price"] | string): string {
-  if (typeof price === "string") return price
-  if (typeof price === "number") return `¥${price.toLocaleString("en-US")}`
-  return "—"
 }
 
 /** Prefer product.url; fall back so Link never receives an empty href. */
@@ -90,7 +85,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
                     {product.title}
                   </h3>
                   <p className="mt-2 text-sm font-semibold text-black">
-                    {formatPrice(product.price)}
+                    {formatUsdPrice(product.price)}
                   </p>
                 </div>
               </Link>
