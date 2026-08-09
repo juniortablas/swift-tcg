@@ -1,0 +1,110 @@
+[
+  {
+    "id": "TK-0156",
+    "slug": "blooming-legends-booster-box",
+    "title": "Blooming Legends Booster Box",
+    "category": "Pokémon TCG",
+    "image": "/products/blooming-legends-booster-box.webp",
+    "cost": 95.16,
+    "price": 137.99,
+    "url": "/products/blooming-legends-booster-box",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0157",
+    "slug": "blooming-legends-eevee-and-friends-gift-box",
+    "title": "Blooming Legends 'Eevee & Friends' Gift Box",
+    "category": "Pokémon TCG",
+    "image": "/products/blooming-legends-eevee-and-friends-gift-box.webp",
+    "cost": null,
+    "price": null,
+    "url": "/products/blooming-legends-eevee-and-friends-gift-box",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0162",
+    "slug": "blooming-legends-eevee-and-friends-binder-gift-box",
+    "title": "Blooming Legends 'Eevee & Friends' Binder Gift Box",
+    "category": "Pokémon TCG",
+    "image": "/products/blooming-legends-eevee-and-friends-binder-gift-box.webp",
+    "cost": null,
+    "price": null,
+    "url": "/products/blooming-legends-eevee-and-friends-binder-gift-box",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0158",
+    "slug": "blooming-legends-eevee-and-friends-coin-set",
+    "title": "Blooming Legends 'Eevee & Friends' Coin Set",
+    "category": "Pokémon TCG",
+    "image": "/products/blooming-legends-eevee-and-friends-coin-set.webp",
+    "cost": null,
+    "price": null,
+    "url": "/products/blooming-legends-eevee-and-friends-coin-set",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0159",
+    "slug": "blooming-legends-eevee-and-friends-magnet-gift-box",
+    "title": "Blooming Legends 'Eevee & Friends' Magnet Gift Box",
+    "category": "Pokémon TCG",
+    "image": "/products/blooming-legends-eevee-and-friends-magnet-gift-box.webp",
+    "cost": null,
+    "price": null,
+    "url": "/products/blooming-legends-eevee-and-friends-magnet-gift-box",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0160",
+    "slug": "blooming-legends-eevee-and-friends-quicksand-card-display-charm-gift-box",
+    "title": "Blooming Legends 'Eevee & Friends' QuickSand Card Display Charm Gift Box",
+    "category": "Pokémon TCG",
+    "image": "/products/blooming-legends-eevee-and-friends-quicksand-card-display-charm-gift-box.webp",
+    "cost": null,
+    "price": null,
+    "url": "/products/blooming-legends-eevee-and-friends-quicksand-card-display-charm-gift-box",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0161",
+    "slug": "blooming-legends-eevee-and-frieands-badge-set",
+    "title": "Blooming Legends 'Eevee & Frieands' Badge Set",
+    "category": "Pokémon TCG",
+    "image": "/products/blooming-legends-eevee-and-frieands-badge-set.webp",
+    "cost": null,
+    "price": null,
+    "url": "/products/blooming-legends-eevee-and-frieands-badge-set",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0111",
+    "slug": "gem-pack-vol-5",
+    "title": "Gem Pack vol.5",
+    "category": "Pokémon TCG",
+    "image": "/products/gem-pack-vol-5.webp",
+    "cost": 57.1,
+    "price": 82.99,
+    "url": "/products/gem-pack-vol-5",
+    "status": "instock",
+    "language": "chinese"
+  },
+  {
+    "id": "TK-0110",
+    "slug": "gem-pack-vol-4",
+    "title": "Gem Pack vol.4",
+    "category": "Pokémon TCG",
+    "image": "/products/gem-pack-vol-4.webp",
+    "cost": 50.75,
+    "price": 73.99,
+    "url": "/products/gem-pack-vol-4",
+    "status": "instock",
+    "language": "chinese"
+  }
+]

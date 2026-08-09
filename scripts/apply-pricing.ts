@@ -17,7 +17,7 @@ import {
 } from "@/lib/pricing"
 
 const ROOT = process.cwd()
-const CATALOGS = ["pokemon", "onepiece"] as const
+const CATALOGS = ["pokemon", "pokemon_cn", "pokemon_kr", "onepiece"] as const
 
 type RawRow = {
   id: string
@@ -53,6 +53,13 @@ function repriceRow(product: RawRow): RawRow {
 
 async function repriceFile(slug: string): Promise<void> {
   const filePath = path.join(ROOT, "data", `${slug}.json`)
+  try {
+    await readFile(filePath, "utf8")
+  } catch {
+    console.log(`${slug}: skipped (no ${filePath})`)
+    return
+  }
+
   const products = JSON.parse(await readFile(filePath, "utf8")) as RawRow[]
 
   let withPrice = 0

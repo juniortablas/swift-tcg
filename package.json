@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "import:sora": "tsx scripts/import-sora.ts"
+    "import:sora": "tsx scripts/import-sora.ts",
+    "shopify:test": "tsx scripts/test-shopify.ts",
+    "shopify:test-content": "tsx scripts/test-shopify-content.ts",
+    "shopify:seed-content": "tsx scripts/seed-shopify-content.ts",
+    "shopify:verify-accounts": "tsx scripts/verify-customer-accounts.ts",
+    "setup:cms": "tsx scripts/setup-storefront-cms.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

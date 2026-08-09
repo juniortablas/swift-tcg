@@ -1,47 +1,85 @@
 /**
- * Storefront-agnostic cart types.
+ * Storefront cart types.
  *
- * Cart UI and state depend only on this shape. When Shopify is wired later,
- * map Storefront API line items into `CartItem` — no consumer changes required.
+ * Cart UI depends on this shape. Shopify Cart API lines are mapped into
+ * `CartItem` by `lib/shopify/cart.ts`.
  */
 
+/** Purchase kind used to enforce preorder / in-stock cart separation. */
+export type CartItemKind = "instock" | "preorder"
+
 export type CartItem = {
+  /** Shopify cart line id — used for remove / update quantity. */
   id: string
+  /** Shopify product GID — used for mixed-cart / same-product matching. */
+  productId: string
+  /** Shopify variant GID (merchandiseId). */
+  merchandiseId?: string
   title: string
   image: string
-  /** Unit price in JPY. Null when price is unavailable. */
+  /** Unit price. Null when price is unavailable. */
   price: number | null
   quantity: number
+  /** Whether this line is a preorder or in-stock purchase. */
+  status: CartItemKind
+  /** Tracked inventory remaining; null when untracked / CONTINUE at 0. */
+  quantityAvailable?: number | null
   slug?: string
   url?: string
 }
 
 export type CartState = {
   items: CartItem[]
+  checkoutUrl?: string | null
+  cartId?: string | null
 }
 
-export type AddItemInput = Omit<CartItem, "quantity"> & {
+/**
+ * Input from product UI. `id` is the Shopify **product** GID;
+ * the cart API resolves the variant server-side.
+ */
+export type AddItemInput = {
+  id: string
+  title: string
+  image: string
+  price: number | null
+  status: CartItemKind
   quantity?: number
+  slug?: string
+  url?: string
 }
 
 export type CartAction =
-  | { type: "ADD_ITEM"; payload: AddItemInput }
-  | { type: "REMOVE_ITEM"; payload: { id: string } }
-  | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
-  | { type: "CLEAR_CART" }
   | { type: "HYDRATE"; payload: CartState }
+  | { type: "SET_CHECKOUT_URL"; payload: string | null }
 
 export type CartContextValue = {
   items: CartItem[]
   itemCount: number
   subtotal: number
+  checkoutUrl: string | null
   isOpen: boolean
   isHydrated: boolean
-  addItem: (item: AddItemInput) => void
+  /**
+   * Adds an item when allowed. Returns `true` if the add was accepted locally
+   * (Shopify sync runs async). Returns `false` if blocked by sold-out or
+   * mixed-cart rules (conflict dialog is shown for mixed cart).
+   */
+  addItem: (item: AddItemInput) => boolean
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
   openCart: () => void
   closeCart: () => void
   toggleCart: () => void
+}
+
+/** Shape returned by `/api/cart` — safe for client consumption. */
+export type CartApiResponse = {
+  cartId: string | null
+  checkoutUrl: string | null
+  items: CartItem[]
+  itemCount: number
+  subtotal: number
+  error?: { code?: string; message?: string }
 }

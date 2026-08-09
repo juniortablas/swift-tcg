@@ -1,19 +1,45 @@
 /**
- * Catalog data layer
+ * Catalog helpers for storefront presentation.
  *
- * Temporary JSON-backed product access. Replace these helpers with Shopify
- * Storefront API queries later — call sites should keep importing from here.
+ * Product data is loaded from Shopify (`@/lib/shopify`). This module exports
+ * derived UI helpers (descriptions, filters, collection page config) that
+ * operate on the shared `Product` model.
  */
 
-export {
-  CatalogRepository,
-  catalogRepository,
-  normalizeProduct,
-} from "./CatalogRepository"
-export { getProducts } from "./getProducts"
-export { getProductBySlug } from "./getProductBySlug"
-export { getRelatedProducts } from "./getRelatedProducts"
 export {
   getProductDescription,
   type ProductDescription,
 } from "./getProductDescription"
+export {
+  getProductSpecs,
+  getProductImages,
+  type ProductSpec,
+} from "./getProductSpecs"
+export { getProductReleaseDate } from "./homepage"
+export { COLLECTIONS, type CollectionConfig, type CollectionId, type CollectionPresentation } from "./collections"
+export {
+  getProductBrand,
+  getProductTypeLabel,
+  getProductTypeFilter,
+  getTypeFilterLabel,
+  getAvailability,
+  getReleaseYear,
+  getPurchaseCtaLabel,
+  isProductTypeLabel,
+  isPurchasable,
+  type AvailabilityFilter,
+  type ProductTypeFilter,
+  type PurchaseCtaVariant,
+} from "./productMeta"
+export {
+  DEFAULT_FILTERS,
+  PAGE_SIZE,
+  filterProducts,
+  getAvailableTypes,
+  getAvailableYears,
+  getPriceBounds,
+  searchProducts,
+  sortProducts,
+  type CollectionFiltersState,
+  type SortOption,
+} from "./collectionFilters"

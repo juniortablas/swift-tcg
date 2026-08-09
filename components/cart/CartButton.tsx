@@ -1,6 +1,6 @@
 "use client"
 
-import { ShoppingBag } from "lucide-react"
+import { ShoppingCart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart/useCart"
@@ -39,12 +39,10 @@ export default function CartButton({
         className={cn("relative text-black/70 hover:text-black", className)}
         onClick={handleOpen}
       >
-        <ShoppingBag />
-        {count > 0 ? (
-          <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-green-600 px-1 text-[10px] font-semibold text-white tabular-nums">
-            {count > 99 ? "99+" : count}
-          </span>
-        ) : null}
+        <ShoppingCart />
+        <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-green-600 px-1 text-[10px] font-semibold text-white tabular-nums">
+          {count > 99 ? "99+" : count}
+        </span>
       </Button>
     )
   }
@@ -52,21 +50,18 @@ export default function CartButton({
   return (
     <Button
       type="button"
-      size="sm"
       aria-label={label}
       className={cn(
-        "relative ml-1 gap-1.5 bg-green-600 text-white hover:bg-green-600/90",
+        "relative ml-1 h-10 gap-2 rounded-full bg-green-600 px-4 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(22,163,74,0.55)] transition-transform duration-200 hover:scale-[1.03] hover:bg-green-600/90",
         className
       )}
       onClick={handleOpen}
     >
-      <ShoppingBag />
+      <ShoppingCart className="size-4" />
       Cart
-      {count > 0 ? (
-        <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1.5 text-[11px] font-semibold tabular-nums">
-          {count > 99 ? "99+" : count}
-        </span>
-      ) : null}
+      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-bold text-green-700 tabular-nums">
+        {count > 99 ? "99+" : count}
+      </span>
     </Button>
   )
 }

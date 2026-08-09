@@ -4,22 +4,33 @@
  * Authenticates via Playwright (session cookies in playwright/.auth/sora.json),
  * crawls configured game catalogs with wholesale prices unlocked, extracts
  * product metadata + availability, prices via `@/lib/pricing` (cost + retail),
- * downloads images into public/products/, and writes one JSON file per catalog
- * under data/.
+ * downloads images into public/products/, writes one JSON file per catalog
+ * under data/, then syncs products to Shopify Admin (create/update by handle).
+ *
+ * Shopify is the source of truth after sync. JSON under data/ is an offline
+ * import artifact for scripts only — not read by the storefront.
+ * Collection assignment uses `assignProductToStandardCollections` (match by
+ * handle/name, creating missing standard collections automatically; never
+ * duplicates memberships).
  *
  * Existing image files are never overwritten.
  * Email/password are never stored — only browser storage state (cookies).
  * Wholesale `cost` is stored in JSON but must never be shown in the UI.
  *
- * Usage: npx tsx scripts/import-sora.ts
+ * Usage:
+ *   npm run import:sora
+ *   DRY_RUN=1 npm run import:sora
+ *   npm run import:sora -- --dry-run
  *
- * To support another game, add one entry to CATALOGS.
+ * To support another catalog, add one entry to CATALOGS.
+ * Language-specific catalogs set `language` so Shopify assignment uses the
+ * matching language collection (e.g. pokemon-chinese) without title markers.
  */
 
 import axios from "axios"
 import * as cheerio from "cheerio"
 import type { Element } from "domhandler"
-import { createWriteStream } from "node:fs"
+import { createWriteStream, existsSync, readFileSync } from "node:fs"
 import { access, mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { pipeline } from "node:stream/promises"
@@ -28,10 +39,46 @@ import type { APIRequestContext } from "playwright"
 
 import type { ProductStatus } from "@/types/product"
 import { priceFromWholesaleJpy } from "@/lib/pricing"
+import { getShopifyAdminConfig, verifyShopifyAdminAuth } from "@/lib/shopify/admin"
+import {
+  isShopifyDryRun,
+  printSyncSummary,
+  syncProducts,
+  type ProductLanguage,
+  type SyncProductsSummary,
+} from "@/lib/shopify/sync"
 import {
   createSoraRequest,
   SORA_BASE_URL,
 } from "./sora-auth"
+
+/** Load `.env.local` / `.env` into process.env (does not override existing keys). */
+function loadEnvFile(filename: string): void {
+  const filePath = path.resolve(process.cwd(), filename)
+  if (!existsSync(filePath)) return
+
+  for (const line of readFileSync(filePath, "utf8").split("\n")) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith("#")) continue
+
+    const eq = trimmed.indexOf("=")
+    if (eq === -1) continue
+
+    const key = trimmed.slice(0, eq).trim()
+    let value = trimmed.slice(eq + 1).trim()
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+
+    if (process.env[key] === undefined) {
+      process.env[key] = value
+    }
+  }
+}
 
 const BASE_URL = SORA_BASE_URL
 
@@ -51,12 +98,27 @@ const CATALOGS = [
     category: "Pokémon TCG",
   },
   {
+    /** SORA handle: /catalog/pokemon_cn */
+    slug: "pokemon_cn",
+    category: "Pokémon TCG",
+    language: "chinese" as ProductLanguage,
+  },
+  {
+    /** SORA handle: /catalog/pokemon_kr */
+    slug: "pokemon_kr",
+    category: "Pokémon TCG",
+    language: "korean" as ProductLanguage,
+  },
+  {
     slug: "onepiece",
     category: "One Piece TCG",
   },
 ] as const
 
-type CatalogConfig = (typeof CATALOGS)[number]
+type CatalogConfig = (typeof CATALOGS)[number] & {
+  /** When set, overrides title-based language detection for Shopify collections. */
+  language?: ProductLanguage
+}
 
 export interface ImportedProduct {
   id: string
@@ -70,6 +132,8 @@ export interface ImportedProduct {
   price: number | null
   url: string
   status: ProductStatus
+  /** Catalog language hint for Shopify collection assignment. */
+  language?: ProductLanguage
 }
 
 /** Internal product with remote image URL used only during download. */
@@ -81,6 +145,7 @@ interface ScrapedProduct {
   /** Wholesale JPY from Sora (`data-jpy`). */
   wholesaleJpy: number | null
   status: ProductStatus
+  language?: ProductLanguage
 }
 
 interface CatalogProduct extends ImportedProduct {
@@ -95,6 +160,37 @@ interface CatalogSummary {
   skipped: number
   failed: number
   jsonPath: string
+  shopify?: SyncProductsSummary
+}
+
+function emptySyncSummary(dryRun: boolean): SyncProductsSummary {
+  return {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    failed: 0,
+    durationMs: 0,
+    dryRun,
+    results: [],
+  }
+}
+
+function mergeSyncSummaries(
+  summaries: SyncProductsSummary[],
+  dryRun: boolean
+): SyncProductsSummary {
+  return summaries.reduce<SyncProductsSummary>(
+    (acc, s) => ({
+      created: acc.created + s.created,
+      updated: acc.updated + s.updated,
+      skipped: acc.skipped + s.skipped,
+      failed: acc.failed + s.failed,
+      durationMs: acc.durationMs + s.durationMs,
+      dryRun: acc.dryRun || s.dryRun,
+      results: [...acc.results, ...s.results],
+    }),
+    emptySyncSummary(dryRun)
+  )
 }
 
 async function fileExists(filePath: string): Promise<boolean> {
@@ -174,6 +270,7 @@ function applyImageSlugs(
       price,
       url: `/products/${slug}`,
       status: product.status,
+      language: product.language,
       imageUrl: product.imageUrl,
     }
   })
@@ -440,9 +537,14 @@ async function enrichAvailabilityStatuses(
 
 /**
  * Parse product cards from a catalog HTML page.
- * Category comes from the CATALOGS config so new games only need an array entry.
+ * Category / language come from the CATALOGS config so new catalogs only need
+ * an array entry.
  */
-function parseProducts(html: string, category: string): ScrapedProduct[] {
+function parseProducts(
+  html: string,
+  category: string,
+  language?: ProductLanguage
+): ScrapedProduct[] {
   const $ = cheerio.load(html)
   const products: ScrapedProduct[] = []
   const seen = new Set<string>()
@@ -481,6 +583,7 @@ function parseProducts(html: string, category: string): ScrapedProduct[] {
       imageUrl: absoluteUrl(src),
       wholesaleJpy: extractPrice($card),
       status: extractStatusFromCard($card),
+      language,
     })
   })
 
@@ -542,7 +645,11 @@ async function fetchAllProducts(
       }
     }
 
-    const pageProducts = parseProducts(html, catalog.category)
+    const pageProducts = parseProducts(
+      html,
+      catalog.category,
+      catalog.language
+    )
     if (pageProducts.length === 0) {
       console.log(`  Page ${page} returned no products — stopping`)
       break
@@ -570,7 +677,11 @@ async function fetchAllProducts(
     if (knownMaxPage === null && page === 1) {
       try {
         const probeHtml = await fetchCatalog(api, catalog.slug, 2)
-        const probeProducts = parseProducts(probeHtml, catalog.category)
+        const probeProducts = parseProducts(
+          probeHtml,
+          catalog.category,
+          catalog.language
+        )
         const probeNew = probeProducts.filter((p) => !seen.has(p.id)).length
         if (probeNew === 0) {
           console.log("  Page 2 has no new products — single-page catalog")
@@ -671,6 +782,7 @@ function toJsonProduct(product: CatalogProduct): ImportedProduct {
     price: product.price,
     url: product.url,
     status: product.status,
+    ...(product.language ? { language: product.language } : {}),
   }
 }
 
@@ -693,14 +805,26 @@ function printCatalogSummary(summary: CatalogSummary) {
   console.log(`  Skipped:    ${summary.skipped}`)
   console.log(`  Failed:     ${summary.failed}`)
   console.log(`  JSON:       ${summary.jsonPath}`)
+  if (summary.shopify) {
+    console.log(
+      `  Shopify:    +${summary.shopify.created} created, ` +
+        `${summary.shopify.updated} updated, ` +
+        `${summary.shopify.skipped} skipped, ` +
+        `${summary.shopify.failed} failed`
+    )
+  }
 }
 
 async function importCatalog(
   api: APIRequestContext,
   catalog: CatalogConfig,
-  usedSlugs: Set<string>
+  usedSlugs: Set<string>,
+  collectionCache: Map<string, string | null>
 ): Promise<CatalogSummary> {
   console.log(`\n=== Importing ${catalog.category} [${catalog.slug}] ===`)
+  if (catalog.language) {
+    console.log(`  Language override: ${catalog.language}`)
+  }
 
   const parsed = await fetchAllProducts(api, catalog)
   console.log(`  Parsed ${parsed.length} products`)
@@ -728,6 +852,28 @@ async function importCatalog(
   const { downloaded, skipped, failed } = await downloadImages(products)
   const jsonPath = await writeJson(catalog.slug, products)
 
+  let shopify: SyncProductsSummary | undefined
+  try {
+    shopify = await syncProducts(products, {
+      dryRun: isShopifyDryRun(),
+      cache: collectionCache,
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(`  Shopify sync failed for ${catalog.slug}: ${message}`)
+    shopify = {
+      ...emptySyncSummary(isShopifyDryRun()),
+      failed: products.length,
+      results: products.map((product) => ({
+        action: "failed" as const,
+        handle: product.slug,
+        title: product.title,
+        error: message,
+        dryRun: isShopifyDryRun(),
+      })),
+    }
+  }
+
   return {
     slug: catalog.slug,
     category: catalog.category,
@@ -736,23 +882,55 @@ async function importCatalog(
     skipped,
     failed,
     jsonPath,
+    shopify,
   }
 }
 
 async function main() {
+  loadEnvFile(".env.local")
+  loadEnvFile(".env")
+
+  const importStarted = Date.now()
+  const dryRun = isShopifyDryRun()
+
   await mkdir(PRODUCTS_DIR, { recursive: true })
   await mkdir(DATA_DIR, { recursive: true })
+
+  if (dryRun) {
+    console.log("=== DRY_RUN enabled — Shopify mutations will be skipped ===")
+  }
+
+  try {
+    const admin = getShopifyAdminConfig()
+    console.log(
+      `=== Shopify Admin: ${admin.storeDomain} (API ${admin.apiVersion}) ===`
+    )
+    await verifyShopifyAdminAuth(admin)
+    console.log("=== Shopify Admin auth OK ===")
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(`\nShopify Admin credentials required for product sync.\n${message}`)
+    console.error(
+      "JSON import can still run, but Shopify sync will mark products as Failed."
+    )
+  }
 
   console.log("=== Authenticating with SORA ===")
   const api = await createSoraRequest()
 
   const summaries: CatalogSummary[] = []
   const usedSlugs = new Set<string>()
+  const collectionCache = new Map<string, string | null>()
 
   try {
     for (const catalog of CATALOGS) {
       try {
-        const summary = await importCatalog(api, catalog, usedSlugs)
+        const summary = await importCatalog(
+          api,
+          catalog,
+          usedSlugs,
+          collectionCache
+        )
         summaries.push(summary)
         printCatalogSummary(summary)
       } catch (error) {
@@ -779,6 +957,16 @@ async function main() {
   for (const summary of summaries) {
     printCatalogSummary(summary)
   }
+
+  const shopifyTotals = mergeSyncSummaries(
+    summaries
+      .map((s) => s.shopify)
+      .filter((s): s is SyncProductsSummary => s != null),
+    dryRun
+  )
+  // Prefer wall-clock import duration for the final Shopify rollup line.
+  shopifyTotals.durationMs = Date.now() - importStarted
+  printSyncSummary(shopifyTotals)
 }
 
 main().catch((error) => {

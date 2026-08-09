@@ -24,12 +24,18 @@ export default function CartDrawer() {
     items,
     itemCount,
     subtotal,
+    checkoutUrl,
     isOpen,
     closeCart,
     removeItem,
     updateQuantity,
     clearCart,
   } = useCart()
+
+  function handleCheckout() {
+    if (!checkoutUrl) return
+    window.location.assign(checkoutUrl)
+  }
 
   return (
     <div
@@ -59,7 +65,7 @@ export default function CartDrawer() {
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <header className="flex items-center justify-between border-b border-black/5 px-5 py-4 sm:px-6">
+        <header className="flex items-center justify-between border-b border-black/5 px-4 py-3 sm:px-6 sm:py-4">
           <div>
             <h2 className="text-[17px] font-semibold tracking-tight text-black">
               Bag
@@ -76,7 +82,7 @@ export default function CartDrawer() {
             variant="ghost"
             size="icon"
             aria-label="Close cart"
-            className="text-black/50 hover:text-black"
+            className="size-11 text-black/50 hover:text-black sm:size-8"
             onClick={closeCart}
             tabIndex={isOpen ? 0 : -1}
           >
@@ -85,7 +91,7 @@ export default function CartDrawer() {
         </header>
 
         {items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center px-6 text-center sm:px-8">
             <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-neutral-100">
               <ShoppingBag className="size-6 text-black/35" strokeWidth={1.5} />
             </div>
@@ -99,7 +105,7 @@ export default function CartDrawer() {
             <Button
               type="button"
               size="sm"
-              className="mt-6 bg-green-600 text-white hover:bg-green-600/90"
+              className="mt-6 h-11 bg-green-600 px-5 text-white hover:bg-green-600/90"
               onClick={closeCart}
               tabIndex={isOpen ? 0 : -1}
             >
@@ -108,10 +114,10 @@ export default function CartDrawer() {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-end px-5 pt-3 sm:px-6">
+            <div className="flex items-center justify-end px-4 pt-3 sm:px-6">
               <button
                 type="button"
-                className="text-xs font-medium text-black/40 transition-colors hover:text-black/70"
+                className="min-h-10 px-1 text-xs font-medium text-black/40 transition-colors hover:text-black/70"
                 onClick={clearCart}
                 tabIndex={isOpen ? 0 : -1}
               >
@@ -119,13 +125,13 @@ export default function CartDrawer() {
               </button>
             </div>
 
-            <ul className="flex-1 overflow-y-auto px-5 py-3 sm:px-6">
+            <ul className="flex-1 overflow-y-auto px-4 py-2 sm:px-6 sm:py-3">
               {items.map((item) => (
                 <li
                   key={item.id}
-                  className="flex gap-4 border-b border-black/[0.04] py-5 last:border-b-0"
+                  className="flex gap-3 border-b border-black/[0.04] py-3 last:border-b-0 sm:gap-4 sm:py-5"
                 >
-                  <div className="relative flex size-[72px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-50 to-neutral-100/80">
+                  <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-50 to-neutral-100/80 sm:size-[72px]">
                     {item.image ? (
                       <Image
                         src={item.image}
@@ -154,12 +160,12 @@ export default function CartDrawer() {
                       </p>
                     ) : null}
 
-                    <div className="mt-auto flex items-center justify-between pt-3">
+                    <div className="mt-auto flex items-center justify-between pt-2.5 sm:pt-3">
                       <div className="inline-flex items-center rounded-full border border-black/8 bg-neutral-50/80">
                         <button
                           type="button"
                           aria-label={`Decrease quantity of ${item.title}`}
-                          className="flex size-8 items-center justify-center text-black/55 transition-colors hover:text-black disabled:opacity-30"
+                          className="flex size-10 items-center justify-center text-black/55 transition-colors hover:text-black disabled:opacity-30 sm:size-8"
                           onClick={() =>
                             updateQuantity(item.id, item.quantity - 1)
                           }
@@ -173,9 +179,14 @@ export default function CartDrawer() {
                         <button
                           type="button"
                           aria-label={`Increase quantity of ${item.title}`}
-                          className="flex size-8 items-center justify-center text-black/55 transition-colors hover:text-black"
+                          className="flex size-10 items-center justify-center text-black/55 transition-colors hover:text-black disabled:opacity-30 sm:size-8"
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
+                          }
+                          disabled={
+                            item.quantityAvailable != null &&
+                            item.quantityAvailable > 0 &&
+                            item.quantity >= item.quantityAvailable
                           }
                           tabIndex={isOpen ? 0 : -1}
                         >
@@ -186,7 +197,7 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         aria-label={`Remove ${item.title}`}
-                        className="flex size-8 items-center justify-center rounded-full text-black/30 transition-colors hover:bg-black/5 hover:text-black/60"
+                        className="flex size-10 items-center justify-center rounded-full text-black/30 transition-colors hover:bg-black/5 hover:text-black/60 sm:size-8"
                         onClick={() => removeItem(item.id)}
                         tabIndex={isOpen ? 0 : -1}
                       >
@@ -198,7 +209,7 @@ export default function CartDrawer() {
               ))}
             </ul>
 
-            <footer className="border-t border-black/5 bg-white/90 px-5 pt-4 pb-5 backdrop-blur-md sm:px-6 sm:pb-6">
+            <footer className="border-t border-black/5 bg-white/90 px-4 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-md sm:px-6 sm:pb-6">
               <div className="flex items-baseline justify-between">
                 <span className="text-sm text-black/50">Subtotal</span>
                 <span className="text-lg font-semibold tracking-tight tabular-nums text-black">
@@ -212,7 +223,9 @@ export default function CartDrawer() {
               <Button
                 type="button"
                 size="lg"
-                className="mt-4 h-11 w-full rounded-xl bg-green-600 text-[15px] font-semibold text-white hover:bg-green-600/90"
+                className="mt-4 h-12 w-full rounded-xl bg-green-600 text-[15px] font-semibold text-white hover:bg-green-600/90 disabled:opacity-40"
+                onClick={handleCheckout}
+                disabled={!checkoutUrl}
                 tabIndex={isOpen ? 0 : -1}
               >
                 Checkout

@@ -3,10 +3,7 @@ export type CatalogCategory = "pokemon" | "onepiece"
 export type ProductStatus = "instock" | "preorder" | "soldout" | "unknown"
 
 /**
- * Storefront product record.
- *
- * Mirrors the shape produced by `scripts/import-sora.ts`.
- * Swap the catalog loaders for Shopify later without changing consumers.
+ * Storefront product record mapped from Shopify.
  */
 export interface Product {
   id: string
@@ -17,6 +14,10 @@ export interface Product {
   price: number | null
   url: string
   status: ProductStatus
-  /** Optional UI flag — not present in catalog JSON. */
-  isNew?: boolean
+  /** Shopify vendor — manufacturer / brand when set. */
+  vendor?: string | null
+  /** Shopify tags — used for language facets and status. */
+  tags?: string[]
+  /** ISO date (YYYY-MM-DD) from Shopify `custom.release_date` when set. */
+  releaseDate?: string | null
 }

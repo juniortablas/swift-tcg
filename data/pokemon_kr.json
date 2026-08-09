@@ -1,0 +1,86 @@
+[
+  {
+    "id": "TK-0163",
+    "slug": "ninja-spinner-kr",
+    "title": "Ninja Spinner (KR)",
+    "category": "Pokémon TCG",
+    "image": "/products/ninja-spinner-kr.webp",
+    "cost": 49.48,
+    "price": 79.99,
+    "url": "/products/ninja-spinner-kr",
+    "status": "instock",
+    "language": "korean"
+  },
+  {
+    "id": "TK-0168",
+    "slug": "inferno-x-kr",
+    "title": "Inferno X (KR)",
+    "category": "Pokémon TCG",
+    "image": "/products/inferno-x-kr.webp",
+    "cost": 82.47,
+    "price": 119.99,
+    "url": "/products/inferno-x-kr",
+    "status": "instock",
+    "language": "korean"
+  },
+  {
+    "id": "TK-0169",
+    "slug": "black-bolt-kr",
+    "title": "Black bolt (KR)",
+    "category": "Pokémon TCG",
+    "image": "/products/black-bolt-kr.webp",
+    "cost": 69.78,
+    "price": 101.99,
+    "url": "/products/black-bolt-kr",
+    "status": "instock",
+    "language": "korean"
+  },
+  {
+    "id": "TK-0170",
+    "slug": "white-flare-kr",
+    "title": "White Flare (KR)",
+    "category": "Pokémon TCG",
+    "image": "/products/white-flare-kr.webp",
+    "cost": 74.86,
+    "price": 108.99,
+    "url": "/products/white-flare-kr",
+    "status": "instock",
+    "language": "korean"
+  },
+  {
+    "id": "TK-0171",
+    "slug": "glory-of-team-rocket-kr",
+    "title": "Glory of team rocket (KR)",
+    "category": "Pokémon TCG",
+    "image": "/products/glory-of-team-rocket-kr.webp",
+    "cost": 73.59,
+    "price": 106.99,
+    "url": "/products/glory-of-team-rocket-kr",
+    "status": "instock",
+    "language": "korean"
+  },
+  {
+    "id": "TK-0173",
+    "slug": "blue-sky-stream-kr",
+    "title": "Blue Sky Stream (KR)",
+    "category": "Pokémon TCG",
+    "image": "/products/blue-sky-stream-kr.webp",
+    "cost": 155.43,
+    "price": 225.99,
+    "url": "/products/blue-sky-stream-kr",
+    "status": "instock",
+    "language": "korean"
+  },
+  {
+    "id": "TK-0172",
+    "slug": "eevee-eeroes-kr",
+    "title": "Eevee Eeroes (Kr)",
+    "category": "Pokémon TCG",
+    "image": "/products/eevee-eeroes-kr.webp",
+    "cost": 228.38,
+    "price": 331.99,
+    "url": "/products/eevee-eeroes-kr",
+    "status": "instock",
+    "language": "korean"
+  }
+]

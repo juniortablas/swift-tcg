@@ -1,69 +1,40 @@
-import type { CartAction, CartState } from "./types"
+import { normalizeCartItemKind } from "./mixedCart"
+import type { CartAction, CartItem, CartState } from "./types"
 
 export const initialCartState: CartState = {
   items: [],
+  checkoutUrl: null,
+  cartId: null,
 }
 
+function normalizeCartItem(item: CartItem): CartItem {
+  return {
+    ...item,
+    productId: item.productId || item.id,
+    status: normalizeCartItemKind(item.status),
+    quantity: Math.max(1, Math.floor(item.quantity) || 1),
+  }
+}
+
+/**
+ * Cart line state is owned by Shopify. The reducer only hydrates from
+ * API responses (and clears locally when needed).
+ */
 export function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "HYDRATE":
       return {
-        items: Array.isArray(action.payload.items) ? action.payload.items : [],
+        items: Array.isArray(action.payload.items)
+          ? action.payload.items.map((item) =>
+              normalizeCartItem(item as CartItem)
+            )
+          : [],
+        checkoutUrl: action.payload.checkoutUrl ?? null,
+        cartId: action.payload.cartId ?? null,
       }
 
-    case "ADD_ITEM": {
-      const quantity = Math.max(1, action.payload.quantity ?? 1)
-      const existing = state.items.find((item) => item.id === action.payload.id)
-
-      if (existing) {
-        return {
-          items: state.items.map((item) =>
-            item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
-          ),
-        }
-      }
-
-      return {
-        items: [
-          ...state.items,
-          {
-            id: action.payload.id,
-            title: action.payload.title,
-            image: action.payload.image,
-            price: action.payload.price,
-            quantity,
-            slug: action.payload.slug,
-            url: action.payload.url,
-          },
-        ],
-      }
-    }
-
-    case "REMOVE_ITEM":
-      return {
-        items: state.items.filter((item) => item.id !== action.payload.id),
-      }
-
-    case "UPDATE_QUANTITY": {
-      const quantity = Math.floor(action.payload.quantity)
-
-      if (quantity <= 0) {
-        return {
-          items: state.items.filter((item) => item.id !== action.payload.id),
-        }
-      }
-
-      return {
-        items: state.items.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity } : item
-        ),
-      }
-    }
-
-    case "CLEAR_CART":
-      return initialCartState
+    case "SET_CHECKOUT_URL":
+      return { ...state, checkoutUrl: action.payload }
 
     default:
       return state

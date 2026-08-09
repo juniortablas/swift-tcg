@@ -1,14 +1,64 @@
 /**
- * Cart mutations
+ * Storefront Cart API mutation documents.
  *
- * Future home for Storefront API write operations, especially cart flows:
- * - cartCreate
- * - cartLinesAdd / cartLinesUpdate / cartLinesRemove
- * - Buyer identity and checkout-related mutations
- *
- * Keep mutation documents here; keep execution in the client layer.
- *
- * Do not add real Shopify GraphQL yet.
+ * Keep documents here; execute through `shopifyFetch` in `client.ts`
+ * (or helpers in `cart.ts`).
  */
 
-export {};
+import { CART_FIELDS } from "./cartFields"
+
+export const CART_CREATE = `
+  mutation CartCreate($input: CartInput!) {
+    cartCreate(input: $input) {
+      cart {
+        ${CART_FIELDS}
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`
+
+export const CART_LINES_ADD = `
+  mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
+    cartLinesAdd(cartId: $cartId, lines: $lines) {
+      cart {
+        ${CART_FIELDS}
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`
+
+export const CART_LINES_UPDATE = `
+  mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+    cartLinesUpdate(cartId: $cartId, lines: $lines) {
+      cart {
+        ${CART_FIELDS}
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`
+
+export const CART_LINES_REMOVE = `
+  mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+      cart {
+        ${CART_FIELDS}
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`

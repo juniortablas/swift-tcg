@@ -6,13 +6,11 @@ import {
   useCallback,
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
 } from "react"
 import { Search } from "lucide-react"
 
-import { getProducts } from "@/lib/catalog"
 import type { Product } from "@/types/product"
 import { cn } from "@/lib/utils"
 
@@ -27,35 +25,18 @@ function productHref(product: Product): string {
   return "/products"
 }
 
-function matchesQuery(product: Product, query: string): boolean {
-  const q = query.trim().toLowerCase()
-  if (!q) return false
-
-  return [product.title, product.slug, product.category]
-    .filter(Boolean)
-    .some((value) => value.toLowerCase().includes(q))
-}
-
 export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const listId = useId()
   const [query, setQuery] = useState("")
+  const [results, setResults] = useState<Product[]>([])
   const [activeIndex, setActiveIndex] = useState(0)
-
-  const catalog = useMemo(
-    () => [...getProducts("pokemon"), ...getProducts("onepiece")],
-    []
-  )
-
-  const results = useMemo(() => {
-    if (!query.trim()) return []
-    return catalog.filter((product) => matchesQuery(product, query)).slice(0, 12)
-  }, [catalog, query])
 
   const close = useCallback(() => {
     onOpenChange(false)
     setQuery("")
+    setResults([])
     setActiveIndex(0)
   }, [onOpenChange])
 
@@ -101,8 +82,45 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
   }, [open, close])
 
   useEffect(() => {
-    setActiveIndex(0)
+    const trimmed = query.trim()
+    if (!trimmed) return
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(trimmed)}&limit=12`,
+          { signal: controller.signal }
+        )
+        if (!response.ok) {
+          setResults([])
+          setActiveIndex(0)
+          return
+        }
+        const data = (await response.json()) as { products?: Product[] }
+        setResults(Array.isArray(data.products) ? data.products : [])
+        setActiveIndex(0)
+      } catch (error) {
+        if (controller.signal.aborted) return
+        console.error("Search request failed.", error)
+        setResults([])
+        setActiveIndex(0)
+      }
+    }, 200)
+
+    return () => {
+      controller.abort()
+      window.clearTimeout(timer)
+    }
   }, [query])
+
+  function handleQueryChange(value: string) {
+    setQuery(value)
+    setActiveIndex(0)
+    if (!value.trim()) {
+      setResults([])
+    }
+  }
 
   if (!open) return null
 
@@ -119,19 +137,19 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
         role="dialog"
         aria-modal="true"
         aria-label="Search products"
-        className="relative mx-auto mt-[12vh] w-[min(100%-2rem,36rem)] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.35)]"
+        className="relative mx-auto mt-3 w-[min(100%-1rem,36rem)] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.35)] sm:mt-[12vh]"
       >
-        <div className="flex items-center gap-3 border-b border-black/5 px-4">
+        <div className="flex items-center gap-3 border-b border-black/5 px-3 sm:px-4">
           <Search className="size-4 shrink-0 text-black/35" aria-hidden="true" />
           <input
             ref={inputRef}
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => handleQueryChange(event.target.value)}
             placeholder="Search Pokémon, One Piece…"
             aria-controls={listId}
             aria-autocomplete="list"
-            className="h-14 w-full bg-transparent text-[15px] text-black outline-none placeholder:text-black/35"
+            className="h-14 w-full bg-transparent text-base text-black outline-none placeholder:text-black/35 sm:text-[15px]"
             onKeyDown={(event) => {
               if (event.key === "ArrowDown") {
                 event.preventDefault()
@@ -151,6 +169,13 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
               }
             }}
           />
+          <button
+            type="button"
+            onClick={close}
+            className="inline-flex h-10 shrink-0 items-center justify-center rounded-full px-3 text-sm font-medium text-black/50 transition-colors hover:bg-black/5 hover:text-black sm:hidden"
+          >
+            Cancel
+          </button>
           <kbd className="hidden rounded-md border border-black/10 bg-neutral-50 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-black/40 sm:inline">
             ESC
           </kbd>
@@ -160,7 +185,7 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
           id={listId}
           role="listbox"
           aria-label="Search results"
-          className="max-h-[min(60vh,24rem)] overflow-y-auto p-2"
+          className="max-h-[min(70vh,28rem)] overflow-y-auto p-2 sm:max-h-[min(60vh,24rem)]"
         >
           {!query.trim() ? (
             <p className="px-3 py-8 text-center text-sm text-black/40">
@@ -182,11 +207,11 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                       onClick={() => selectProduct(product)}
                       onMouseEnter={() => setActiveIndex(index)}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
+                        "flex min-h-14 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
                         active ? "bg-black/[0.04]" : "hover:bg-black/[0.03]"
                       )}
                     >
-                      <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-50 ring-1 ring-black/5">
+                      <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5">
                         <Image
                           src={product.image}
                           alt=""
@@ -202,7 +227,9 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                           {product.title}
                         </p>
                         <p className="mt-0.5 truncate text-xs text-black/45">
-                          {product.category}
+                          {product.status === "soldout"
+                            ? `${product.category} · Sold Out`
+                            : product.category}
                         </p>
                       </div>
                     </button>

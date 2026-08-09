@@ -1,15 +1,25 @@
-import CollectionView from "@/components/catalog/CollectionView"
-import { getProducts } from "@/lib/catalog"
+import { notFound } from "next/navigation"
 
-export default function NewReleasesPage() {
-  // Catalog order from SORA is newest-first; combine both games.
-  const products = [...getProducts("pokemon"), ...getProducts("onepiece")]
+import CollectionView from "@/components/catalog/CollectionView"
+import { loadMerchCollectionPage } from "@/lib/shopify/merchPages"
+
+export default async function NewReleasesPage() {
+  const data = await loadMerchCollectionPage({ merchKey: "new-releases" })
+  if (!data) notFound()
 
   return (
     <CollectionView
-      title="New Releases"
-      description="The latest Japanese TCG arrivals across Pokémon and One Piece."
-      products={products}
+      presentation={data.presentation}
+      products={data.products}
+      heroProductCount={data.heroProductCount}
+      gameFacets={data.gameFacets}
+      merchBasePath={data.basePath}
+      selectedGame={data.selectedGame}
+      selectedGameLabel={data.selectedGameLabel}
+      requiresGamePick={data.requiresGamePick}
+      languageFacets={data.languageFacets}
+      requiresLanguagePick={data.requiresLanguagePick}
+      hideEmptyLanguages
     />
   )
 }

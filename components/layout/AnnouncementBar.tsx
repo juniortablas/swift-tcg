@@ -1,12 +1,12 @@
 const MESSAGE =
-  "Imported Weekly · Factory Sealed · Direct from Japan"
+  "Imported Weekly - Factory Sealed - Direct from Japan"
 
 export default function AnnouncementBar() {
   return (
     <div
       role="region"
       aria-label="Announcement"
-      className="flex h-10 w-full items-center justify-center overflow-hidden bg-emerald-600 text-white"
+      className="flex h-8 w-full items-center justify-center overflow-hidden bg-green-600 text-white sm:h-10"
     >
       <p className="hidden w-full text-center text-xs md:block">{MESSAGE}</p>
 

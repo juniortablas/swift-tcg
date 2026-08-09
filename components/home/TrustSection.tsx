@@ -1,75 +1,54 @@
-import { MapPin, Package, Truck, Zap, type LucideIcon } from "lucide-react"
+import { Flag, ShieldCheck, Zap, Truck } from "lucide-react"
 
-const features: {
-  icon: LucideIcon
-  title: string
-  description: string
-}[] = [
+const FEATURES = [
   {
-    icon: MapPin,
+    icon: Flag,
     title: "Direct from Japan",
-    description:
-      "We source authentic products directly from trusted suppliers in Japan.",
+    description: "Sourced authentic, every week.",
   },
   {
-    icon: Package,
+    icon: ShieldCheck,
     title: "Factory Sealed",
-    description:
-      "Every product is shipped in factory-sealed condition unless otherwise stated.",
+    description: "Unopened and guaranteed authentic.",
   },
   {
     icon: Zap,
     title: "Weekly Imports",
-    description:
-      "Stay ahead with Japan's newest releases arriving regularly.",
+    description: "New Japanese drops as they land.",
   },
   {
     icon: Truck,
     title: "Ships from California",
-    description:
-      "Fast domestic fulfillment with tracking on every order.",
+    description: "Fast U.S. shipping with tracking.",
   },
-]
+] as const
 
 export default function TrustSection() {
   return (
-    <section className="bg-white">
-      <div className="mx-auto max-w-[86rem] px-6 pt-14 pb-24 sm:pt-20 sm:pb-32">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold tracking-tight text-black sm:text-4xl">
-            Why Swift TCG?
-          </h2>
-          <p className="mt-5 text-base leading-relaxed text-black/60 sm:text-lg">
-            We specialize in bringing the newest Japanese trading card releases
-            directly to collectors and stores across the United States.
-          </p>
-        </div>
-
-        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4 lg:gap-8">
-          {features.map((feature) => {
-            const Icon = feature.icon
-
-            return (
-              <article
-                key={feature.title}
-                className="group rounded-3xl border border-black/5 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-              >
-                <span
-                  className="mb-5 flex size-11 items-center justify-center rounded-2xl bg-green-600/10 text-green-700 transition-transform duration-300 group-hover:scale-110"
-                  aria-hidden="true"
-                >
-                  <Icon className="size-5" strokeWidth={1.75} />
-                </span>
-                <h3 className="text-lg font-semibold tracking-tight text-black">
-                  {feature.title}
+    <section className="bg-[#f3faf5]">
+      <div className="mx-auto max-w-[1920px] px-4 py-5 sm:px-6 sm:py-10 lg:px-8 lg:py-11 xl:px-10">
+        <ul className="grid gap-4 sm:grid-cols-2 sm:gap-7 lg:grid-cols-4 lg:gap-6">
+          {FEATURES.map(({ icon: Icon, title, description }) => (
+            <li
+              key={title}
+              className="flex items-start gap-3.5 lg:justify-center lg:gap-4"
+            >
+              <Icon
+                className="mt-0.5 size-6 shrink-0 text-green-600"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+              <div>
+                <h3 className="text-[15px] font-semibold tracking-tight text-black">
+                  {title}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-black/60">
-                  {feature.description}
+                <p className="mt-1 text-sm leading-snug text-black/50">
+                  {description}
                 </p>
-              </article>
-            )
-          })}
-        </div>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )

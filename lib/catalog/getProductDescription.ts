@@ -3,6 +3,7 @@ import type { Product } from "@/types/product"
 export type ProductDescription = {
   shortDescription: string
   description: string
+  paragraphs: string[]
   highlights: string[]
 }
 
@@ -34,7 +35,11 @@ export function getProductDescription(product: ProductLike): ProductDescription 
 
   const shortDescription = `${product.title} is an authentic Japanese ${productType}, factory sealed and imported from Japan.`
 
-  const description = `${product.title} is an authentic Japanese ${productType} imported directly from Japan. Every product is factory sealed and sourced from trusted distributors. Swift TCG specializes in bringing the newest Japanese Pokémon and One Piece releases to collectors in the United States.`
+  const paragraphs = [
+    `${product.title} is an authentic Japanese ${productType} imported directly from Japan. Every unit is factory sealed and sourced from trusted Japanese distributors for collectors who want the real thing.`,
+    `Swift TCG specializes in current Japanese Pokémon and One Piece sealed product. We import weekly, inspect each shipment, and ship carefully from California so your order arrives ready for your collection.`,
+    `Whether you're opening packs or keeping it sealed, this product is intended for serious collectors who value authenticity, condition, and reliable U.S. fulfillment.`,
+  ]
 
   const highlights: string[] = [
     "Factory Sealed",
@@ -56,7 +61,8 @@ export function getProductDescription(product: ProductLike): ProductDescription 
 
   return {
     shortDescription,
-    description,
+    description: paragraphs.join(" "),
+    paragraphs,
     highlights,
   }
 }

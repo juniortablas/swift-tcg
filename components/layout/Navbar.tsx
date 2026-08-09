@@ -1,70 +1,107 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, Search, X } from "lucide-react"
+import Link from "next/link"
+import { Menu, Search, User, X } from "lucide-react"
 
 import CartButton from "@/components/cart/CartButton"
 import CartDrawer from "@/components/cart/CartDrawer"
 import SearchDialog from "@/components/search/SearchDialog"
 import { Button } from "@/components/ui/button"
-import { CartProvider } from "@/lib/cart/CartProvider"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
-  { label: "Pokemon", href: "#pokemon" },
-  { label: "One Piece", href: "#one-piece" },
-  { label: "Preorders", href: "#preorders" },
-  { label: "About", href: "#about" },
+  { label: "Home", href: "/" },
+  { label: "Pokémon", href: "/pokemon" },
+  { label: "One Piece", href: "/one-piece" },
+  { label: "Preorders", href: "/preorders" },
+  { label: "New Releases", href: "/new-releases", badge: "NEW" },
+  { label: "About", href: "/pages/about" },
 ] as const
 
-function NavbarContent() {
+type NavbarProps = {
+  /** Shopify New Customer Accounts session present. */
+  isLoggedIn?: boolean
+}
+
+export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const accountHref = isLoggedIn ? "/account" : "/account/login?return_to=/account"
+  const accountLabel = isLoggedIn ? "Account" : "Login"
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-black/10 bg-white/80 backdrop-blur-md">
-        <div className="relative mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-6">
-          <a
+      <header className="sticky top-0 z-50 border-b border-black/[0.06] bg-white">
+        <div className="relative mx-auto flex h-12 w-full max-w-[1920px] items-center justify-between px-3 sm:h-20 sm:px-6 lg:px-8 xl:px-10">
+          <Link
             href="/"
-            className="relative z-10 shrink-0 text-xl font-bold tracking-tight text-black"
+            className="relative z-10 flex shrink-0 flex-col leading-none"
           >
-            Swift&nbsp;TCG
-          </a>
+            <span className="text-[1rem] font-bold tracking-tight text-black sm:text-xl">
+              SWIFT
+            </span>
+            <span className="text-[0.6rem] font-bold tracking-[0.18em] text-green-600 sm:text-[0.75rem]">
+              TCG
+            </span>
+          </Link>
 
-          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
+          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 lg:flex">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-black/70 transition-colors hover:text-black"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-black/75 transition-colors hover:text-black"
               >
                 {link.label}
+                {"badge" in link && link.badge ? (
+                  <span className="rounded-full bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
+                    {link.badge}
+                  </span>
+                ) : null}
               </a>
             ))}
           </nav>
 
-          <div className="relative z-10 flex items-center gap-1">
+          <div className="relative z-10 flex items-center gap-0.5 sm:gap-1.5">
             <Button
               variant="ghost"
               size="icon"
               aria-label="Search"
               aria-keyshortcuts="Meta+K Control+K"
-              className="text-black/70 hover:text-black"
+              className="size-11 text-black/70 hover:text-black sm:size-8"
               onClick={() => setSearchOpen(true)}
             >
               <Search />
             </Button>
 
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={accountLabel}
+              className="size-11 text-black/70 hover:text-black sm:size-8 md:hidden"
+              render={<Link href={accountHref} />}
+            >
+              <User />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden h-8 px-2.5 text-sm font-medium text-black/70 hover:text-black md:inline-flex"
+              render={<Link href={accountHref} />}
+            >
+              {accountLabel}
+            </Button>
+
             <CartButton className="hidden md:inline-flex" />
-            <CartButton iconOnly className="md:hidden" />
+            <CartButton iconOnly className="size-11 sm:size-8 md:hidden" />
 
             <Button
               variant="ghost"
               size="icon"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
-              className="text-black/70 hover:text-black md:hidden"
+              className="size-11 text-black/70 hover:text-black sm:size-8 lg:hidden"
               onClick={() => setMobileOpen((open) => !open)}
             >
               {mobileOpen ? <X /> : <Menu />}
@@ -74,24 +111,37 @@ function NavbarContent() {
 
         <div
           className={cn(
-            "border-t border-black/10 bg-white/95 backdrop-blur-md md:hidden",
+            "border-t border-black/[0.06] bg-white lg:hidden",
             mobileOpen ? "block" : "hidden"
           )}
         >
-          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-4">
+          <nav className="mx-auto flex max-w-[1920px] flex-col gap-0.5 px-4 py-3 sm:px-6 sm:py-4 lg:px-8 xl:px-10">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-black/80 transition-colors hover:bg-black/5 hover:text-black"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-3 text-[15px] font-medium text-black/80 transition-colors hover:bg-black/5 hover:text-black"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
+                {"badge" in link && link.badge ? (
+                  <span className="rounded-full bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
+                    {link.badge}
+                  </span>
+                ) : null}
               </a>
             ))}
 
+            <Link
+              href={accountHref}
+              className="mt-1 inline-flex min-h-11 items-center rounded-lg px-3 py-3 text-[15px] font-medium text-black/80 transition-colors hover:bg-black/5 hover:text-black"
+              onClick={() => setMobileOpen(false)}
+            >
+              {accountLabel}
+            </Link>
+
             <CartButton
-              className="mt-3 w-full justify-center"
+              className="mt-2 h-11 w-full justify-center"
               onOpen={() => setMobileOpen(false)}
             />
           </nav>
@@ -101,13 +151,5 @@ function NavbarContent() {
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
       <CartDrawer />
     </>
-  )
-}
-
-export default function Navbar() {
-  return (
-    <CartProvider>
-      <NavbarContent />
-    </CartProvider>
   )
 }

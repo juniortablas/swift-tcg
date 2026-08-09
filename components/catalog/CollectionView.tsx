@@ -1,40 +1,79 @@
-import ProductGrid from "@/components/catalog/ProductGrid"
+import CollectionBrowseSection from "@/components/catalog/CollectionBrowseSection"
+import CollectionHero from "@/components/catalog/CollectionHero"
+import Newsletter from "@/components/home/Newsletter"
+import StoreChrome from "@/components/layout/StoreChrome"
+import type { CollectionPresentation } from "@/lib/catalog"
+import type { BrowseFacet } from "@/lib/shopify/browseHierarchy"
+import type { CollectionLanguageFacet } from "@/lib/shopify/collectionFacets"
 import type { Product } from "@/types/product"
 
 type CollectionViewProps = {
-  title: string
-  description?: string
+  presentation: CollectionPresentation
   products: Product[]
+  /** Parent / merch product count for the hero. */
+  heroProductCount?: number
+  /** TCG cards for merchandising pages. */
+  gameFacets?: BrowseFacet[]
+  merchBasePath?: string
+  selectedGame?: string | null
+  selectedGameLabel?: string | null
+  requiresGamePick?: boolean
+  languageFacets?: CollectionLanguageFacet[]
+  /** Required for TCG language card links (`/{game}/{language}`). */
+  gameHandle?: string
+  /** Merchandising language base (`/preorders/pokemon`). */
+  languageBasePath?: string
+  selectedLanguage?: string | null
+  requiresLanguagePick?: boolean
+  selectedLanguageLabel?: string | null
+  hideEmptyLanguages?: boolean
 }
 
 export default function CollectionView({
-  title,
-  description,
+  presentation,
   products,
+  heroProductCount,
+  gameFacets = [],
+  merchBasePath,
+  selectedGame = null,
+  requiresGamePick = false,
+  languageFacets = [],
+  gameHandle,
+  languageBasePath,
+  selectedLanguage = null,
+  requiresLanguagePick = false,
+  hideEmptyLanguages = false,
 }: CollectionViewProps) {
-  const count = products.length
+  const count = heroProductCount ?? products.length
 
   return (
-    <main className="bg-white">
-      <div className="mx-auto max-w-6xl px-6 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
-        <header className="max-w-2xl">
-          <h1 className="text-3xl font-semibold tracking-tight text-black sm:text-4xl lg:text-5xl lg:leading-[1.1]">
-            {title}
-          </h1>
-          {description ? (
-            <p className="mt-4 text-base leading-relaxed text-black/55 sm:text-lg">
-              {description}
-            </p>
-          ) : null}
-          <p className="mt-3 text-sm font-medium text-black/40">
-            {count} {count === 1 ? "product" : "products"}
-          </p>
-        </header>
+    <StoreChrome>
+      <main className="bg-white">
+        <div className="mx-auto max-w-[1920px] px-4 pt-3 pb-6 sm:px-6 sm:pt-8 sm:pb-12 lg:px-8 lg:pt-10 lg:pb-14 xl:px-10">
+          <CollectionHero collection={presentation} productCount={count} />
 
-        <div className="mt-10 sm:mt-12">
-          <ProductGrid products={products} />
+          <div className="mt-4 sm:mt-10">
+            <CollectionBrowseSection
+              products={products}
+              searchPlaceholder={presentation.searchPlaceholder}
+              gameFacets={gameFacets}
+              merchBasePath={merchBasePath}
+              selectedGame={selectedGame}
+              requiresGamePick={requiresGamePick}
+              languageFacets={languageFacets}
+              gameHandle={gameHandle}
+              languageBasePath={languageBasePath}
+              selectedLanguage={selectedLanguage}
+              requiresLanguagePick={requiresLanguagePick}
+              hideEmptyLanguages={hideEmptyLanguages}
+            />
+          </div>
         </div>
-      </div>
-    </main>
+
+        <div className="flex flex-col gap-5 border-t border-black/[0.05] pt-5 pb-6 sm:gap-10 sm:pt-12 sm:pb-12 lg:pt-14 lg:pb-14">
+          <Newsletter />
+        </div>
+      </main>
+    </StoreChrome>
   )
 }

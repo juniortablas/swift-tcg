@@ -1,0 +1,35 @@
+/**
+ * App routes / non-TCG handles that must never resolve as a TCG game.
+ * Shared by TCG page loaders and browse hierarchy discovery.
+ */
+export const RESERVED_GAME_HANDLES = new Set([
+  "api",
+  "products",
+  "preorders",
+  "new-releases",
+  "new-arrivals",
+  "coming-soon",
+  "featured",
+  "best-sellers",
+  "bestsellers",
+  "sale",
+  "accessories",
+  "sealed-cases",
+  "cases",
+  "booster-cases",
+  "cart",
+  "checkout",
+  "account",
+  "search",
+  "pages",
+  "policies",
+  "about",
+  "contact",
+  "faq",
+  "preorder-policy",
+  "privacy-policy",
+  "refund-policy",
+  "shipping-policy",
+  "terms-of-service",
+  "favicon.ico",
+])
