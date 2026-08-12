@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { processBackInStockAlerts } from "@/lib/back-in-stock/process"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -31,6 +32,10 @@ export async function GET(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Back-in-stock cron failed."
+    captureRouteException(error, {
+      route: "/api/cron/back-in-stock",
+      status: 500,
+    })
     return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }

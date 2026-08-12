@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 
 import ProductCard from "@/components/catalog/ProductCard"
 import StoreChrome from "@/components/layout/StoreChrome"
 import JsonLd from "@/components/seo/JsonLd"
+import EmptyState from "@/components/ux/EmptyState"
+import { SearchEmptyIllustration } from "@/components/ux/EmptyIllustrations"
 import {
   breadcrumbListJsonLd,
   buildPageMetadata,
@@ -33,10 +34,8 @@ export async function generateMetadata({
   return buildPageMetadata({
     title,
     description,
-    path: q ? `/search?q=${encodeURIComponent(q)}` : "/search",
-    robots: q
-      ? { index: true, follow: true }
-      : { index: false, follow: true },
+    path: "/search",
+    robots: { index: false, follow: true },
   })
 }
 
@@ -63,7 +62,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
               ? products.length > 0
                 ? `${products.length} product${products.length === 1 ? "" : "s"} found.`
                 : "No products matched your search."
-              : "Use the search bar in the header to find products."}
+              : "Use the search bar in the header, or start with a collection below."}
           </p>
 
           {products.length > 0 ? (
@@ -75,24 +74,48 @@ export default async function SearchPage({ searchParams }: PageProps) {
               ))}
             </ul>
           ) : q ? (
-            <p className="mt-8 text-sm text-black/60">
-              Try a different term, or browse{" "}
-              <Link
-                href="/pokemon"
-                className="font-medium text-green-700 underline-offset-2 hover:underline"
-              >
-                Pokémon
-              </Link>{" "}
-              and{" "}
-              <Link
-                href="/one-piece"
-                className="font-medium text-green-700 underline-offset-2 hover:underline"
-              >
-                One Piece
-              </Link>
-              .
-            </p>
-          ) : null}
+            <div className="mt-8">
+              <EmptyState
+                illustration={<SearchEmptyIllustration />}
+                title={`No results for “${q}”`}
+                description="Try a shorter term, a set name, or browse by game while we keep restocking Japanese sealed product."
+                actions={[
+                  { label: "Shop Pokémon", href: "/pokemon" },
+                  {
+                    label: "Shop One Piece",
+                    href: "/one-piece",
+                    variant: "secondary",
+                  },
+                  {
+                    label: "New Releases",
+                    href: "/new-releases",
+                    variant: "secondary",
+                  },
+                ]}
+              />
+            </div>
+          ) : (
+            <div className="mt-8">
+              <EmptyState
+                illustration={<SearchEmptyIllustration />}
+                title="What are you looking for?"
+                description="Search from the header, or jump into a collection to explore authentic Japanese Pokémon and One Piece cards."
+                actions={[
+                  { label: "Pokémon", href: "/pokemon" },
+                  {
+                    label: "One Piece",
+                    href: "/one-piece",
+                    variant: "secondary",
+                  },
+                  {
+                    label: "New Releases",
+                    href: "/new-releases",
+                    variant: "secondary",
+                  },
+                ]}
+              />
+            </div>
+          )}
         </div>
       </main>
     </StoreChrome>

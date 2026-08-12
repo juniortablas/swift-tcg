@@ -4,6 +4,7 @@
 
 import { cache } from "react"
 
+import { catalogFetchOptions } from "./cache"
 import { shopifyFetch } from "./client"
 import {
   GET_COLLECTION_BY_HANDLE,
@@ -115,6 +116,7 @@ export const getShopifyCollectionByHandle = cache(
     const data = await shopifyFetch<CollectionByHandleResult>({
       query: GET_COLLECTION_BY_HANDLE,
       variables: { handle: normalized },
+      ...catalogFetchOptions,
     })
 
     if (!data.collection) return null
@@ -131,6 +133,7 @@ export async function listSitemapProducts(): Promise<SitemapProductEntry[]> {
     const data = await shopifyFetch<ProductsSitemapResult>({
       query: GET_PRODUCTS_SITEMAP,
       variables: { first: 100, ...(after ? { after } : {}) },
+      ...catalogFetchOptions,
     })
 
     for (const edge of data.products.edges) {
@@ -161,6 +164,7 @@ export async function listSitemapCollections(): Promise<
     const data = await shopifyFetch<CollectionsSitemapResult>({
       query: GET_COLLECTIONS_SITEMAP,
       variables: { first: 50, ...(after ? { after } : {}) },
+      ...catalogFetchOptions,
     })
 
     for (const edge of data.collections.edges) {
@@ -190,6 +194,7 @@ export async function listSitemapPages(): Promise<SitemapPageEntry[]> {
     const data = await shopifyFetch<PagesResult>({
       query: GET_PAGES,
       variables: { first: 50, ...(after ? { after } : {}) },
+      ...catalogFetchOptions,
     })
 
     for (const edge of data.pages.edges) {

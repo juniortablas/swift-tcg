@@ -1,12 +1,15 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 
 import CollectionView from "@/components/catalog/CollectionView"
 import {
   tcgCollectionMetadata,
   tcgCollectionPath,
 } from "@/lib/seo"
-import { loadTcgCollectionPage } from "@/lib/shopify/tcgPages"
+import {
+  loadTcgCollectionPage,
+  tcgLanguageHandleRedirect,
+} from "@/lib/shopify/tcgPages"
 
 type PageProps = {
   params: Promise<{ game: string }>
@@ -16,6 +19,9 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { game } = await params
+  if (tcgLanguageHandleRedirect(game)) {
+    return { robots: { index: false, follow: true } }
+  }
   const data = await loadTcgCollectionPage({ gameHandle: game })
   if (!data) {
     return { title: "Collection not found", robots: { index: false, follow: false } }
@@ -25,6 +31,9 @@ export async function generateMetadata({
 
 export default async function TcgGamePage({ params }: PageProps) {
   const { game } = await params
+  const languageRedirect = tcgLanguageHandleRedirect(game)
+  if (languageRedirect) redirect(languageRedirect)
+
   const data = await loadTcgCollectionPage({ gameHandle: game })
   if (!data) notFound()
 

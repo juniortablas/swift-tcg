@@ -13,6 +13,7 @@ import {
   isBackInStockEmailConfigured,
   sendBackInStockEmail,
 } from "@/lib/back-in-stock/email"
+import { CANONICAL_ORIGIN } from "@/lib/seo"
 import {
   claimProductSubscribers,
   getAdminCustomerEmails,
@@ -39,8 +40,19 @@ function resolveStoreUrl(): string {
   const fromEnv =
     process.env.SHOPIFY_APP_URL?.trim() ||
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    "https://swifttcg.com"
-  return fromEnv.replace(/\/$/, "")
+    CANONICAL_ORIGIN
+
+  try {
+    const withProtocol = fromEnv.includes("://") ? fromEnv : `https://${fromEnv}`
+    const url = new URL(withProtocol)
+    const host = url.hostname.toLowerCase()
+    if (host === "swifttcg.com" || host === "www.swifttcg.com") {
+      return CANONICAL_ORIGIN
+    }
+    return url.origin
+  } catch {
+    return CANONICAL_ORIGIN
+  }
 }
 
 export async function processBackInStockAlerts(): Promise<BackInStockProcessResult> {

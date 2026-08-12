@@ -9,21 +9,29 @@
  * (see docs/STOREFRONT_CMS.md).
  */
 import type { Metadata } from "next"
+import dynamic from "next/dynamic"
 import { Package } from "lucide-react"
+import { Suspense } from "react"
 
 import StoreChrome from "@/components/layout/StoreChrome"
 import Hero from "@/components/home/Hero"
 import HomePromotion from "@/components/home/HomePromotion"
-import Newsletter from "@/components/home/Newsletter"
 import ProductCarousel from "@/components/home/ProductCarousel"
 import ShopByCategory from "@/components/home/ShopByCategory"
 import TrustSection from "@/components/home/TrustSection"
+import EmptyState from "@/components/ux/EmptyState"
+import { SparklesEmptyIllustration } from "@/components/ux/EmptyIllustrations"
 import {
   buildPageMetadata,
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
 } from "@/lib/seo"
 import { getHomepagePageData } from "@/lib/shopify/homepage"
+
+/** ISR fallback — webhooks are the primary invalidation path. */
+export const revalidate = 3600
+
+const Newsletter = dynamic(() => import("@/components/home/Newsletter"))
 
 export async function generateMetadata(): Promise<Metadata> {
   const { heroSlides } = await getHomepagePageData(8)
@@ -78,6 +86,22 @@ export default async function Home() {
               href={featuredHref}
               linkLabel={featuredLinkLabel}
               badges={featured.badges}
+              emptyState={
+                <EmptyState
+                  compact
+                  illustration={<SparklesEmptyIllustration />}
+                  title="Coming soon drops are brewing"
+                  description="We're lining up the next wave of Japanese sealed product. Browse preorders or new releases while you wait."
+                  actions={[
+                    { label: "View preorders", href: "/preorders" },
+                    {
+                      label: "New releases",
+                      href: "/new-releases",
+                      variant: "secondary",
+                    },
+                  ]}
+                />
+              }
             />
           </div>
         ) : null}
@@ -98,7 +122,11 @@ export default async function Home() {
             icon={Package}
           />
         ) : null}
-        {showNewsletter ? <Newsletter /> : null}
+        {showNewsletter ? (
+          <Suspense fallback={null}>
+            <Newsletter />
+          </Suspense>
+        ) : null}
       </div>
     </StoreChrome>
   )

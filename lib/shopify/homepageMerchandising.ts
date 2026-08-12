@@ -14,8 +14,10 @@
 
 import { cache } from "react"
 
+import { cmsFetchOptions } from "./cache"
 import { shopifyFetch, ShopifyClientError } from "./client"
 import { mapShopifyProduct } from "./mappers"
+import { collectionHitUrl } from "./predictiveSearch"
 import { GET_HOMEPAGE, GET_METAOBJECTS_BY_TYPE } from "./queries"
 import {
   normalizeStorefrontHref,
@@ -37,12 +39,7 @@ export const HOMEPAGE_FEATURED_COLLECTION_TYPE =
   "homepage_featured_collection"
 export const HOMEPAGE_PROMOTION_TYPE = "homepage_promotion"
 
-const CMS_FETCH_OPTIONS = {
-  cache: "no-store" as const,
-  next: {
-    tags: ["storefront-cms"],
-  },
-}
+const CMS_FETCH_OPTIONS = cmsFetchOptions
 
 export type HomepageFeaturedProductEntry = {
   product: Product
@@ -319,17 +316,13 @@ export function isPromotionActive(
   return true
 }
 
-function collectionHref(handle: string): string {
-  const normalized = handle.trim().toLowerCase()
-  if (normalized === "new-arrivals") return "/new-releases"
-  return `/${normalized}`
-}
-
 export function toCategoryCard(
   entry: ParsedFeaturedCollection
 ): HomepageCategoryCard | null {
   const { collection } = entry
-  const href = normalizeStorefrontHref(collectionHref(collection.handle))
+  const href = normalizeStorefrontHref(
+    collectionHitUrl(collection.handle) ?? ""
+  )
   if (!href) return null
 
   const known = COLLECTION_ATMOSPHERES[collection.handle]
@@ -476,7 +469,7 @@ export type HomepageConfig = {
 /**
  * Fetch the Homepage metaobject (single source of truth) and resolve nested refs.
  * Prefers handle `homepage` when multiple entries exist; otherwise first entry.
- * Cached per request; uses the same `no-store` + `storefront-cms` tag as other CMS loaders.
+ * Cached per request; uses the same `storefront-cms` tag as other CMS loaders.
  */
 export const getHomepageConfig = cache(
   async (): Promise<HomepageConfig | null> => {

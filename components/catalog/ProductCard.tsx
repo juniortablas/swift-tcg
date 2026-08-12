@@ -1,22 +1,23 @@
-"use client"
+/**
+ * Product card — Server Component shell with tiny client islands
+ * (wishlist, quick view, add to cart).
+ */
 
 import Image from "next/image"
 import Link from "next/link"
-import { ShoppingBag } from "lucide-react"
+import dynamic from "next/dynamic"
 
-import { toCartItemKind } from "@/lib/cart/mixedCart"
-import { useCart } from "@/lib/cart/useCart"
-import {
-  getProductReleaseDate,
-  getPurchaseCtaLabel,
-  isPurchasable,
-} from "@/lib/catalog"
+import ProductCardAddToCart from "@/components/catalog/ProductCardAddToCart"
+import ProductRating from "@/components/reviews/ProductRating"
+import WishlistButton from "@/components/wishlist/WishlistButton"
+import { getProductReleaseDate } from "@/lib/catalog"
 import { formatUsdPrice } from "@/lib/pricing"
 import type { Product, ProductStatus } from "@/types/product"
 import { cn } from "@/lib/utils"
-import ProductQuickView from "@/components/catalog/ProductQuickView"
-import ProductRating from "@/components/reviews/ProductRating"
-import WishlistButton from "@/components/wishlist/WishlistButton"
+
+const ProductQuickView = dynamic(
+  () => import("@/components/catalog/ProductQuickView")
+)
 
 function productHref(product: Product): string {
   if (product.url) return product.url
@@ -89,7 +90,6 @@ export default function ProductCard({
   /** Optional CMS merchandising badge; overrides availability badge when set. */
   badgeOverride?: string | null
 }) {
-  const { addItem } = useCart()
   const compact = variant === "compact"
   const rail = density === "rail" && !compact
   const availability = badgeOverride?.trim()
@@ -110,24 +110,6 @@ export default function ProductCard({
       ? "Coming Soon"
       : formatUsdPrice(product.price)
   const href = productHref(product)
-  const purchasable = isPurchasable(product)
-
-  function handleAddToCart(event: React.MouseEvent) {
-    event.preventDefault()
-    event.stopPropagation()
-    if (!purchasable) return
-    const status = toCartItemKind(product.status)
-    if (!status) return
-    addItem({
-      id: product.id,
-      title: product.title,
-      image: product.image,
-      price: product.price,
-      status,
-      slug: product.slug,
-      url: product.url,
-    })
-  }
 
   return (
     <article className="group relative flex h-full w-full flex-col">
@@ -174,8 +156,14 @@ export default function ProductCard({
                 alt={product.imageAlt?.trim() || product.title}
                 width={compact ? 240 : 400}
                 height={compact ? 300 : 500}
-                unoptimized
                 loading="lazy"
+                sizes={
+                  compact
+                    ? "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+                    : rail
+                      ? "(max-width: 640px) 40vw, 260px"
+                      : "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 280px"
+                }
                 className="h-full w-full scale-[1.06] bg-transparent object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-out group-hover:scale-[1.12]"
               />
             </div>
@@ -211,11 +199,7 @@ export default function ProductCard({
             >
               {product.title}
             </h3>
-            <div
-              className={cn(
-                compact || rail ? "mt-0.5" : "mt-0.5 sm:mt-1"
-              )}
-            >
+            <div className={cn(compact || rail ? "mt-0.5" : "mt-0.5 sm:mt-1")}>
               <ProductRating
                 average={product.reviewRating}
                 count={product.reviewCount}
@@ -275,17 +259,7 @@ export default function ProductCard({
               <div className="hidden sm:block">
                 <ProductQuickView product={product} />
               </div>
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={!purchasable}
-                className="pointer-events-auto inline-flex h-8 items-center justify-center gap-1 rounded-full bg-green-600 text-[11px] font-semibold text-white shadow-[0_8px_20px_-10px_rgba(22,163,74,0.55)] transition-transform duration-200 hover:scale-[1.02] hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-neutral-400 disabled:hover:scale-100 sm:h-10 sm:gap-1.5 sm:text-sm"
-              >
-                {purchasable ? (
-                  <ShoppingBag className="size-3 sm:size-3.5" aria-hidden="true" />
-                ) : null}
-                {getPurchaseCtaLabel(product, "card")}
-              </button>
+              <ProductCardAddToCart product={product} />
             </div>
           </div>
         ) : null}

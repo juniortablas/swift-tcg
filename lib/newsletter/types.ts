@@ -6,7 +6,7 @@
 export type NewsletterProviderId = "none" | "klaviyo" | "shopify"
 
 /** Where the signup form lives — useful for ESP source attribution. */
-export type NewsletterSource = "homepage" | "footer" | "unknown"
+export type NewsletterSource = "homepage" | "footer" | "maintenance" | "unknown"
 
 export type NewsletterSubscribeStatus =
   | "subscribed"

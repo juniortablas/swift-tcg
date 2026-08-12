@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { History } from "lucide-react"
 
 import ProductCarousel from "@/components/home/ProductCarousel"
+import EmptyState from "@/components/ux/EmptyState"
+import { HistoryEmptyIllustration } from "@/components/ux/EmptyIllustrations"
 import type { Product } from "@/types/product"
 
 const STORAGE_KEY = "swift-tcg-recently-viewed"
@@ -42,20 +44,58 @@ export function trackRecentlyViewed(product: Product) {
   writeViewed([product, ...existing])
 }
 
+export function RecentlyViewedEmptyState() {
+  return (
+    <EmptyState
+      compact
+      illustration={<HistoryEmptyIllustration />}
+      title="No recently viewed products"
+      description="Products you open will appear here so you can jump back to sets you’re comparing."
+      actions={[
+        { label: "Continue shopping", href: "/pokemon" },
+        {
+          label: "New releases",
+          href: "/new-releases",
+          variant: "secondary",
+        },
+      ]}
+    />
+  )
+}
+
 export default function RecentlyViewed({
   currentId,
+  showEmpty = false,
 }: {
   currentId: string
+  /** When true, render an empty state instead of hiding the rail. */
+  showEmpty?: boolean
 }) {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<Product[] | null>(null)
 
   useEffect(() => {
     // localStorage is client-only — read after mount to avoid hydration mismatch.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional post-hydration read
-    setProducts(readViewed().filter((item) => item.id !== currentId).slice(0, 5))
+    setProducts(
+      readViewed().filter((item) => item.id !== currentId).slice(0, 5)
+    )
   }, [currentId])
 
-  if (products.length === 0) return null
+  if (products === null) return null
+
+  if (products.length === 0) {
+    if (!showEmpty) return null
+    return (
+      <ProductCarousel
+        products={[]}
+        title="Recently Viewed"
+        href="/pokemon"
+        linkLabel="Continue shopping"
+        icon={History}
+        emptyState={<RecentlyViewedEmptyState />}
+      />
+    )
+  }
 
   return (
     <ProductCarousel

@@ -100,7 +100,11 @@ export function getProductSpecs(product: Product): ProductSpec[] {
   return specs
 }
 
-/** Gallery sources — currently a single catalog image; ready for multi-image. */
+/** Gallery sources — featured image first, then additional PDP images. */
 export function getProductImages(product: Product): string[] {
-  return product.image ? [product.image] : []
+  const urls = [
+    product.image,
+    ...(product.images ?? []),
+  ].filter((url): url is string => Boolean(url))
+  return [...new Set(urls)]
 }

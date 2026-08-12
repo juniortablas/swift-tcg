@@ -5,6 +5,8 @@
  * set the env var to `false` or unset it and redeploy/restart).
  */
 
+import { SENTRY_TUNNEL_ROUTE } from "@/lib/observability/config"
+
 /** Seconds for the `Retry-After` response header while maintenance is on. */
 export const MAINTENANCE_RETRY_AFTER_SECONDS = 60 * 60 * 24
 
@@ -18,6 +20,12 @@ export function isMaintenanceMode(): boolean {
 export function isMaintenanceBypassPath(pathname: string): boolean {
   if (pathname === MAINTENANCE_PATH) return true
   if (pathname.startsWith("/api/") || pathname === "/api") return true
+  if (
+    pathname === SENTRY_TUNNEL_ROUTE ||
+    pathname.startsWith(`${SENTRY_TUNNEL_ROUTE}/`)
+  ) {
+    return true
+  }
   if (pathname.startsWith("/account/") || pathname === "/account") return true
   if (pathname === "/robots.txt" || pathname === "/sitemap.xml") return true
   if (pathname === "/favicon.ico") return true

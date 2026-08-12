@@ -1,8 +1,8 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { Check } from "lucide-react"
 
-import NotifyMeButton from "@/components/back-in-stock/NotifyMeButton"
 import ProductRating from "@/components/reviews/ProductRating"
 import { Button } from "@/components/ui/button"
 import WishlistButton from "@/components/wishlist/WishlistButton"
@@ -14,8 +14,19 @@ import {
   isPurchasable,
 } from "@/lib/catalog"
 import { formatUsdPrice } from "@/lib/pricing"
+import { formatShopPayVariants } from "@/lib/shopify/shopPay"
 import type { Product, ProductStatus } from "@/types/product"
 import { cn } from "@/lib/utils"
+
+const NotifyMeButton = dynamic(
+  () => import("@/components/back-in-stock/NotifyMeButton"),
+  { ssr: false }
+)
+
+const ShopPayButton = dynamic(
+  () => import("@/components/checkout/ShopPayButton"),
+  { ssr: false }
+)
 
 const WHY_SWIFT = [
   "Authentic Japanese product",
@@ -68,7 +79,13 @@ function formatShipLabel(iso: string): string {
   })
 }
 
-export default function PurchasePanel({ product }: { product: Product }) {
+export default function PurchasePanel({
+  product,
+  shopPayStoreUrl,
+}: {
+  product: Product
+  shopPayStoreUrl?: string | null
+}) {
   const { addItem } = useCart()
   const badge = availabilityBadge(product)
   const release = getProductReleaseDate(product)
@@ -78,6 +95,11 @@ export default function PurchasePanel({ product }: { product: Product }) {
     product.status === "preorder" &&
     typeof product.price === "number" &&
     product.price > 0
+  const shopPayVariants =
+    canPurchase && product.variantId
+      ? formatShopPayVariants([{ id: product.variantId, quantity: 1 }])
+      : null
+  const showShopPay = Boolean(shopPayStoreUrl && shopPayVariants)
 
   function handlePurchase() {
     if (!canPurchase) return
@@ -164,6 +186,17 @@ export default function PurchasePanel({ product }: { product: Product }) {
         )}
         <WishlistButton productId={product.id} variant="pdp" />
       </div>
+
+      {showShopPay && shopPayStoreUrl && shopPayVariants ? (
+        <ShopPayButton
+          storeUrl={shopPayStoreUrl}
+          variants={shopPayVariants}
+          placement="product"
+          height="52px"
+          borderRadius="999px"
+          showDivider
+        />
+      ) : null}
 
       <div className="mt-5 rounded-[14px] border border-black/[0.06] bg-[#f7faf8] px-3.5 py-3.5 sm:mt-8 sm:rounded-[17px] sm:px-6 sm:py-6">
         <h2 className="text-center text-[14px] font-semibold tracking-tight text-black sm:text-[15px]">

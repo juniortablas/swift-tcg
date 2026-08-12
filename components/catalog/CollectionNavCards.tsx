@@ -120,7 +120,8 @@ export default function CollectionNavCards({
                     alt={facet.imageAlt ?? facet.label}
                     width={400}
                     height={400}
-                    unoptimized
+                    loading="lazy"
+                    sizes="(max-width: 640px) 55vw, (max-width: 1024px) 33vw, 280px"
                     className="absolute -right-[10%] top-1/2 h-[195%] w-auto -translate-y-1/2 rotate-3 object-contain drop-shadow-[0_28px_48px_rgba(0,0,0,0.5)]"
                   />
                 ) : null}

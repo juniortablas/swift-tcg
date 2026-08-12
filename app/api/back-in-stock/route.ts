@@ -10,6 +10,7 @@ import type { BisApiResponse } from "@/lib/back-in-stock/types"
 import { customerSubscriptionProductIds } from "@/lib/back-in-stock/constants"
 import { ShopifyClientError } from "@/lib/shopify/client"
 import { getCustomerAccessToken } from "@/lib/shopify/customerAccount"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -43,6 +44,7 @@ function errorResponse(
 
   if (error instanceof ShopifyClientError) {
     const status = error.status === 401 ? 401 : error.status === 409 ? 409 : 502
+    captureRouteException(error, { route: "/api/back-in-stock", status })
     return NextResponse.json(
       {
         ...emptyPayload(loggedIn && status !== 401),
@@ -57,6 +59,7 @@ function errorResponse(
 
   const message =
     error instanceof Error ? error.message : "Unexpected back-in-stock error."
+  captureRouteException(error, { route: "/api/back-in-stock", status: 500 })
   return NextResponse.json(
     {
       ...emptyPayload(loggedIn),

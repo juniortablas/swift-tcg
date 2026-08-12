@@ -176,10 +176,29 @@ export interface Product {
   rarity?: ShopifyMetafieldValue
   productCode?: ShopifyMetafieldValue
   featuredImage: Image | null
+  /**
+   * PDP-only gallery images. Omitted from card/list/CMS queries.
+   */
+  images?: {
+    edges: Array<{
+      node: Image
+    }>
+  }
   priceRange: {
     minVariantPrice: Money
   }
-  variants: {
+  /**
+   * PDP-only. Used for Shop Pay accelerated checkout.
+   * Omitted from card/list/CMS queries.
+   */
+  selectedOrFirstAvailableVariant?: {
+    id: string
+    availableForSale: boolean
+  } | null
+  /**
+   * Omitted on card/list/CMS queries. Cart uses `GET_PRODUCT_FOR_CART`.
+   */
+  variants?: {
     edges: Array<{
       node: Variant
     }>
@@ -190,7 +209,8 @@ export interface Collection {
   id: string
   handle: string
   title: string
-  description: string
+  /** Present on SEO/detail queries; omitted from list discovery. */
+  description?: string
   descriptionHtml?: string | null
   seo?: ShopifySeo | null
   image: Image | null
@@ -275,6 +295,12 @@ export type ShopifyPage = {
 
 export type PageByHandleQueryResult = {
   page: ShopifyPage | null
+}
+
+export type ShopChromeQueryResult = {
+  shop: {
+    name: string
+  } & ShopifyContentMetafields
 }
 
 export type ShopContentQueryResult = {

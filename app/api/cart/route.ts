@@ -14,6 +14,7 @@ import {
 } from "@/lib/shopify/cart"
 import { ShopifyClientError } from "@/lib/shopify/client"
 import { attachCustomerToCart } from "@/lib/shopify/customerAccount"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -24,6 +25,20 @@ function buyerIpFromRequest(request: Request): string | undefined {
     if (first) return first
   }
   return request.headers.get("x-real-ip")?.trim() || undefined
+}
+
+function isMissingCartError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  const status =
+    error instanceof ShopifyClientError ? error.status : undefined
+  if (status === 404) return true
+  const message = error.message.toLowerCase()
+  return (
+    message.includes("cart") &&
+    (message.includes("does not exist") ||
+      message.includes("not found") ||
+      message.includes("invalid"))
+  )
 }
 
 function isCartOperationError(
@@ -61,6 +76,7 @@ function errorResponse(error: unknown) {
   }
 
   if (error instanceof ShopifyClientError) {
+    captureRouteException(error, { route: "/api/cart", status: 502 })
     return NextResponse.json(
       {
         error: { code: "shopify", message: error.message },
@@ -72,6 +88,7 @@ function errorResponse(error: unknown) {
 
   const message =
     error instanceof Error ? error.message : "Unexpected cart error."
+  captureRouteException(error, { route: "/api/cart", status: 500 })
   return NextResponse.json(
     {
       error: { code: "shopify", message },
@@ -99,11 +116,10 @@ export async function GET(request: Request) {
     })
     return ok(payload)
   } catch (error) {
-    // Expired / invalid cart id → treat as empty so the client can start fresh.
-    if (
-      error instanceof ShopifyClientError ||
-      (error instanceof Error && /cart/i.test(error.message))
-    ) {
+    // Expired / missing carts come back as `cart: null` (empty 200).
+    // Only treat explicit "does not exist" GraphQL errors as empty —
+    // a 502 from Shopify must not wipe the shopper's stored cart id.
+    if (isMissingCartError(error)) {
       return ok(emptyCartPayload())
     }
     return errorResponse(error)

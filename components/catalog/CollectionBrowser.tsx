@@ -10,6 +10,7 @@ import CollectionToolbar, {
   type GridColumns,
 } from "@/components/catalog/CollectionToolbar"
 import ProductCard from "@/components/catalog/ProductCard"
+import { EscapedCardIllustration } from "@/components/ux/EmptyIllustrations"
 import {
   DEFAULT_FILTERS,
   DEFAULT_SORT,
@@ -196,16 +197,17 @@ function CollectionBrowserInner({
         <div className="min-w-0">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-black/10 bg-neutral-50/60 px-6 py-14 text-center sm:py-20">
-              <p className="text-base font-medium tracking-tight text-black">
-                No products found.
+              <EscapedCardIllustration className="h-24" />
+              <p className="mt-4 text-base font-medium tracking-tight text-black">
+                No products found
               </p>
               <p className="mt-2 max-w-sm text-sm leading-relaxed text-black/50">
-                Try adjusting your filters.
+                Try adjusting your filters, or reset to see the full collection.
               </p>
               <button
                 type="button"
                 onClick={resetAll}
-                className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 focus-visible:ring-offset-2"
               >
                 Reset Filters
               </button>

@@ -9,6 +9,7 @@ import type { CatalogCategory, Product } from "@/types/product"
 
 import { cache } from "react"
 
+import { catalogFetchOptions } from "./cache"
 import { shopifyFetch } from "./client"
 import { mapShopifyProduct, mapShopifyProducts } from "./mappers"
 import {
@@ -60,6 +61,7 @@ async function fetchAllCatalogProducts(
         ...(options.query ? { query: options.query } : {}),
         ...(after ? { after } : {}),
       },
+      ...catalogFetchOptions,
     })
 
     for (const edge of data.products.edges) {
@@ -88,6 +90,7 @@ async function fetchAllCollectionProducts(
         first: PAGE_SIZE,
         ...(after ? { after } : {}),
       },
+      ...catalogFetchOptions,
     })
 
     const collection = data.collection
@@ -107,25 +110,48 @@ async function fetchAllCollectionProducts(
 }
 
 /**
+ * Per-request dedupe keyed by primitive args (React `cache` uses Object.is).
+ */
+const getShopifyProductsCached = cache(
+  async (
+    collectionHandle: string,
+    query: string,
+    category: string
+  ): Promise<Product[]> => {
+    const nodes = collectionHandle
+      ? await fetchAllCollectionProducts(collectionHandle)
+      : await fetchAllCatalogProducts({
+          ...(query ? { query } : {}),
+        })
+
+    const products = mapShopifyProducts(nodes, {
+      ...(category ? { category } : {}),
+    })
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        collectionHandle
+          ? `Fetched ${products.length} Shopify products from collection "${collectionHandle}".`
+          : `Fetched ${products.length} Shopify products.`
+      )
+    }
+
+    return products
+  }
+)
+
+/**
  * Fetch published products from the Shopify Storefront API
  * and map them into the app `Product` interface.
  */
 export async function getShopifyProducts(
   options: GetShopifyProductsOptions = {}
 ): Promise<Product[]> {
-  const nodes = options.collectionHandle
-    ? await fetchAllCollectionProducts(options.collectionHandle)
-    : await fetchAllCatalogProducts({ query: options.query })
-
-  const products = mapShopifyProducts(nodes, { category: options.category })
-
-  console.log(
-    options.collectionHandle
-      ? `Fetched ${products.length} Shopify products from collection "${options.collectionHandle}".`
-      : `Fetched ${products.length} Shopify products.`
+  return getShopifyProductsCached(
+    options.collectionHandle ?? "",
+    options.query ?? "",
+    options.category ?? ""
   )
-
-  return products
 }
 
 /**
@@ -138,6 +164,7 @@ export const getShopifyProductByHandle = cache(
     const data = await shopifyFetch<ProductByHandleQueryResult>({
       query: GET_PRODUCT_BY_HANDLE,
       variables: { handle },
+      ...catalogFetchOptions,
     })
 
     if (!data.product) return null
@@ -157,15 +184,23 @@ export async function getShopifyProductsByIds(
   if (unique.length === 0) return []
 
   const CHUNK = 50
-  const byId = new Map<string, Product>()
-
+  const chunks: string[][] = []
   for (let i = 0; i < unique.length; i += CHUNK) {
-    const chunk = unique.slice(i, i + CHUNK)
-    const data = await shopifyFetch<ProductsByIdsQueryResult>({
-      query: GET_PRODUCTS_BY_IDS,
-      variables: { ids: chunk },
-    })
+    chunks.push(unique.slice(i, i + CHUNK))
+  }
 
+  const results = await Promise.all(
+    chunks.map((chunk) =>
+      shopifyFetch<ProductsByIdsQueryResult>({
+        query: GET_PRODUCTS_BY_IDS,
+        variables: { ids: chunk },
+        ...catalogFetchOptions,
+      })
+    )
+  )
+
+  const byId = new Map<string, Product>()
+  for (const data of results) {
     for (const node of data.nodes) {
       if (!node?.id) continue
       byId.set(node.id, mapShopifyProduct(node))
@@ -243,19 +278,23 @@ function inferCollectionHandleFromProduct(product: {
 
 /**
  * Resolve which primary collection should supply related products.
- * Prefers collections the product already belongs to, then category/tags.
+ * Prefers category/tags first to avoid an extra Shopify round-trip when possible.
  */
 async function resolveRelatedCollectionHandle(
   handle: string,
   category?: CatalogCategory
 ): Promise<string | null> {
+  const fromCategory = categoryToCollectionHandle(category)
+  if (fromCategory) return fromCategory
+
   const data = await shopifyFetch<ProductCollectionsQueryResult>({
     query: GET_PRODUCT_COLLECTIONS,
     variables: { handle },
+    ...catalogFetchOptions,
   })
 
   const product = data.product
-  if (!product) return categoryToCollectionHandle(category)
+  if (!product) return null
 
   const memberHandles = product.collections.edges.map((edge) => edge.node.handle)
 
@@ -268,10 +307,7 @@ async function resolveRelatedCollectionHandle(
     }
   }
 
-  return (
-    inferCollectionHandleFromProduct(product) ??
-    categoryToCollectionHandle(category)
-  )
+  return inferCollectionHandleFromProduct(product)
 }
 
 /**
@@ -296,6 +332,7 @@ export async function getShopifyRelatedProducts(
       // Fetch a small buffer so excluding the current product still fills the rail.
       first: Math.max(limit + 1, 12),
     },
+    ...catalogFetchOptions,
   })
 
   const nodes = data.collection?.products.edges.map((edge) => edge.node) ?? []

@@ -15,10 +15,11 @@ import {
   productMatchesLanguageFacet,
   type CollectionLanguageFacet,
 } from "./collectionFacets"
-import { shopifyFetch } from "./client"
-import { GET_COLLECTION_PRODUCTS, GET_COLLECTIONS } from "./queries"
+import {
+  getAllShopifyCollections,
+  resolveCollectionImage,
+} from "./collections"
 import { RESERVED_GAME_HANDLES } from "./reservedHandles"
-import type { Collection, CollectionsQueryResult } from "./types"
 import type { Product } from "@/types/product"
 
 /** Shared shape for TCG and language navigation cards. */
@@ -41,73 +42,6 @@ function humanizeHandle(handle: string): string {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-}
-
-async function fetchAllCollections(): Promise<Collection[]> {
-  const nodes: Collection[] = []
-  let after: string | null | undefined
-  let hasNextPage = true
-
-  while (hasNextPage) {
-    const data = await shopifyFetch<CollectionsQueryResult>({
-      query: GET_COLLECTIONS,
-      variables: {
-        first: 50,
-        ...(after ? { after } : {}),
-      },
-    })
-
-    for (const edge of data.collections.edges) {
-      nodes.push(edge.node)
-    }
-
-    hasNextPage = data.collections.pageInfo?.hasNextPage ?? false
-    after = data.collections.pageInfo?.endCursor ?? undefined
-  }
-
-  return nodes
-}
-
-async function resolveCollectionImage(
-  handle: string,
-  collectionImage: Collection["image"]
-): Promise<{ url: string | null; alt: string | null }> {
-  if (collectionImage?.url) {
-    return {
-      url: collectionImage.url,
-      alt: collectionImage.altText,
-    }
-  }
-
-  try {
-    const data = await shopifyFetch<{
-      collection: {
-        products: {
-          edges: Array<{
-            node: {
-              title: string
-              featuredImage: { url: string; altText: string | null } | null
-            }
-          }>
-        }
-      } | null
-    }>({
-      query: GET_COLLECTION_PRODUCTS,
-      variables: { handle, first: 1 },
-    })
-    const product = data.collection?.products.edges[0]?.node
-    const image = product?.featuredImage
-    if (image?.url) {
-      return {
-        url: image.url,
-        alt: image.altText ?? product?.title ?? null,
-      }
-    }
-  } catch {
-    // Best-effort image only.
-  }
-
-  return { url: null, alt: null }
 }
 
 /**
@@ -163,7 +97,7 @@ export function productMatchesGame(
 export async function discoverPrimaryTcgCollections(): Promise<
   PrimaryTcgCollection[]
 > {
-  const collections = await fetchAllCollections()
+  const collections = await getAllShopifyCollections()
   const byHandle = new Map(
     collections.map((collection) => [
       collection.handle.trim().toLowerCase(),

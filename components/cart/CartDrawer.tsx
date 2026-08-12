@@ -3,10 +3,12 @@
 import Image from "next/image"
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react"
 
+import ShopPayButton from "@/components/checkout/ShopPayButton"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart/useCart"
 import type { CartItem } from "@/lib/cart/types"
 import { formatUsdPrice } from "@/lib/pricing"
+import { formatShopPayVariants } from "@/lib/shopify/shopPay"
 import { cn } from "@/lib/utils"
 
 function formatPrice(price: number | null): string {
@@ -19,7 +21,11 @@ function lineTotal(item: CartItem): number | null {
   return item.price * item.quantity
 }
 
-export default function CartDrawer() {
+export default function CartDrawer({
+  shopPayStoreUrl,
+}: {
+  shopPayStoreUrl?: string | null
+}) {
   const {
     items,
     itemCount,
@@ -31,6 +37,17 @@ export default function CartDrawer() {
     updateQuantity,
     clearCart,
   } = useCart()
+
+  const shopPayVariants = formatShopPayVariants(
+    items.flatMap((item) =>
+      item.merchandiseId
+        ? [{ id: item.merchandiseId, quantity: item.quantity }]
+        : []
+    )
+  )
+  const showShopPay = Boolean(
+    isOpen && shopPayStoreUrl && shopPayVariants && items.length > 0
+  )
 
   function handleCheckout() {
     if (!checkoutUrl) return
@@ -138,7 +155,7 @@ export default function CartDrawer() {
                         alt=""
                         width={72}
                         height={72}
-                        unoptimized
+                        sizes="72px"
                         className="max-h-[80%] max-w-[80%] object-contain"
                       />
                     ) : null}
@@ -230,6 +247,17 @@ export default function CartDrawer() {
               >
                 Checkout
               </Button>
+
+              {showShopPay && shopPayStoreUrl && shopPayVariants ? (
+                <ShopPayButton
+                  storeUrl={shopPayStoreUrl}
+                  variants={shopPayVariants}
+                  placement="cart"
+                  height="48px"
+                  borderRadius="12px"
+                  showDivider
+                />
+              ) : null}
             </footer>
           </>
         )}

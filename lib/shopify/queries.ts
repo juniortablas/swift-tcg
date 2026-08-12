@@ -2,9 +2,18 @@
  * Storefront API GraphQL query documents.
  *
  * Keep documents here; execute them through `shopifyFetch` in `client.ts`.
+ *
+ * Fragments:
+ * - PRODUCT_CARD_FIELDS — lists, search, CMS refs, wishlist (no variants)
+ * - PRODUCT_COMING_SOON_FIELDS — Coming Soon rail (+ homepage_position)
+ * - PRODUCT_PDP_FIELDS — single product page (seo, review breakdown,
+ *   selectedOrFirstAvailableVariant for Shop Pay)
+ *
+ * Full variant lists are only fetched via `GET_PRODUCT_FOR_CART` in cartFields.ts.
  */
 
-const PRODUCT_FIELDS = `
+/** Card / list product shape — omit variants and PDP-only metafields. */
+const PRODUCT_CARD_FIELDS = `
   id
   handle
   title
@@ -25,16 +34,6 @@ const PRODUCT_FIELDS = `
   reviewCount: metafield(namespace: "swift", key: "review_count") {
     value
   }
-  reviewBreakdown: metafield(namespace: "swift", key: "review_breakdown") {
-    value
-  }
-  homepagePosition: metafield(namespace: "swift", key: "homepage_position") {
-    value
-  }
-  seo {
-    title
-    description
-  }
   featuredImage {
     url
     altText
@@ -47,31 +46,43 @@ const PRODUCT_FIELDS = `
       currencyCode
     }
   }
-  variants(first: 100) {
+`
+
+/** Coming Soon rail — card fields + manual homepage position. */
+const PRODUCT_COMING_SOON_FIELDS = `
+  ${PRODUCT_CARD_FIELDS}
+  homepagePosition: metafield(namespace: "swift", key: "homepage_position") {
+    value
+  }
+`
+
+/** PDP product shape — card + SEO + review breakdown + Shop Pay variant. */
+const PRODUCT_PDP_FIELDS = `
+  ${PRODUCT_CARD_FIELDS}
+  reviewBreakdown: metafield(namespace: "swift", key: "review_breakdown") {
+    value
+  }
+  seo {
+    title
+    description
+  }
+  selectedOrFirstAvailableVariant {
+    id
+    availableForSale
+  }
+  images(first: 12) {
     edges {
       node {
-        id
-        title
-        availableForSale
-        price {
-          amount
-          currencyCode
-        }
-        image {
-          url
-          altText
-          width
-          height
-        }
-        selectedOptions {
-          name
-          value
-        }
+        url
+        altText
+        width
+        height
       }
     }
   }
 `
 
+/** Collection identity + SEO (full detail). */
 const COLLECTION_FIELDS = `
   id
   handle
@@ -91,7 +102,20 @@ const COLLECTION_FIELDS = `
   }
 `
 
-/** Paginated product list. */
+/** Lightweight collection list for browse/facet discovery. */
+const COLLECTION_LIST_FIELDS = `
+  id
+  handle
+  title
+  image {
+    url
+    altText
+    width
+    height
+  }
+`
+
+/** Paginated product list (cards). */
 export const GET_PRODUCTS = `
   query GetProducts(
     $first: Int!
@@ -110,7 +134,7 @@ export const GET_PRODUCTS = `
       edges {
         cursor
         node {
-          ${PRODUCT_FIELDS}
+          ${PRODUCT_CARD_FIELDS}
         }
       }
       pageInfo {
@@ -121,11 +145,59 @@ export const GET_PRODUCTS = `
   }
 `
 
+/** Coming Soon / preorder list with homepage_position for rail ordering. */
+export const GET_COMING_SOON_PRODUCTS = `
+  query GetComingSoonProducts(
+    $first: Int!
+    $after: String
+    $query: String
+  ) {
+    products(
+      first: $first
+      after: $after
+      query: $query
+    ) {
+      edges {
+        cursor
+        node {
+          ${PRODUCT_COMING_SOON_FIELDS}
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+/** Preorders collection products with homepage_position. */
+export const GET_COMING_SOON_COLLECTION_PRODUCTS = `
+  query GetComingSoonCollectionProducts($handle: String!, $first: Int!, $after: String) {
+    collection(handle: $handle) {
+      id
+      handle
+      products(first: $first, after: $after) {
+        edges {
+          cursor
+          node {
+            ${PRODUCT_COMING_SOON_FIELDS}
+          }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+`
+
 /** Single product by handle (slug). Includes body HTML + PDP metafields. */
 export const GET_PRODUCT_BY_HANDLE = `
   query GetProductByHandle($handle: String!) {
     product(handle: $handle) {
-      ${PRODUCT_FIELDS}
+      ${PRODUCT_PDP_FIELDS}
       description
       descriptionHtml
       series: metafield(namespace: "custom", key: "series") {
@@ -139,6 +211,60 @@ export const GET_PRODUCT_BY_HANDLE = `
       }
       productCode: metafield(namespace: "custom", key: "product_code") {
         value
+      }
+    }
+  }
+`
+
+/** Card-shaped product by handle — search exact-handle boost. */
+export const GET_PRODUCT_CARD_BY_HANDLE = `
+  query GetProductCardByHandle($handle: String!) {
+    product(handle: $handle) {
+      ${PRODUCT_CARD_FIELDS}
+    }
+  }
+`
+
+/**
+ * Shopify Predictive Search — products, collections, pages, query suggestions.
+ * searchableFields cover title/type/vendor/tag/sku/variant title/body so set
+ * names and JP/EN naming in titles, tags, and descriptions can match.
+ */
+export const PREDICTIVE_SEARCH = `
+  query PredictiveSearch(
+    $query: String!
+    $limit: Int!
+    $types: [PredictiveSearchType!]
+    $searchableFields: [SearchableField!]
+  ) {
+    predictiveSearch(
+      query: $query
+      limit: $limit
+      limitScope: EACH
+      types: $types
+      searchableFields: $searchableFields
+      unavailableProducts: SHOW
+    ) {
+      products {
+        ${PRODUCT_CARD_FIELDS}
+      }
+      collections {
+        id
+        handle
+        title
+        image {
+          url
+          altText
+        }
+      }
+      pages {
+        id
+        handle
+        title
+      }
+      queries {
+        text
+        styledText
       }
     }
   }
@@ -222,7 +348,7 @@ export const GET_PRODUCTS_BY_IDS = `
   query GetProductsByIds($ids: [ID!]!) {
     nodes(ids: $ids) {
       ... on Product {
-        ${PRODUCT_FIELDS}
+        ${PRODUCT_CARD_FIELDS}
       }
     }
   }
@@ -248,14 +374,14 @@ export const GET_PRODUCT_COLLECTIONS = `
   }
 `
 
-/** Paginated collection list. */
+/** Paginated collection list (browse / facet discovery). */
 export const GET_COLLECTIONS = `
   query GetCollections($first: Int!, $after: String) {
     collections(first: $first, after: $after) {
       edges {
         cursor
         node {
-          ${COLLECTION_FIELDS}
+          ${COLLECTION_LIST_FIELDS}
         }
       }
       pageInfo {
@@ -266,21 +392,48 @@ export const GET_COLLECTIONS = `
   }
 `
 
-/** Collection by handle, including its products. */
+/** Collection by handle, including its products (cards). */
 export const GET_COLLECTION_PRODUCTS = `
   query GetCollectionProducts($handle: String!, $first: Int!, $after: String) {
     collection(handle: $handle) {
-      ${COLLECTION_FIELDS}
+      id
+      handle
+      title
+      image {
+        url
+        altText
+        width
+        height
+      }
       products(first: $first, after: $after) {
         edges {
           cursor
           node {
-            ${PRODUCT_FIELDS}
+            ${PRODUCT_CARD_FIELDS}
           }
         }
         pageInfo {
           hasNextPage
           endCursor
+        }
+      }
+    }
+  }
+`
+
+/** First product image in a collection — facet/browse art fallback. */
+export const GET_COLLECTION_FIRST_PRODUCT_IMAGE = `
+  query GetCollectionFirstProductImage($handle: String!) {
+    collection(handle: $handle) {
+      products(first: 1) {
+        edges {
+          node {
+            title
+            featuredImage {
+              url
+              altText
+            }
+          }
         }
       }
     }
@@ -333,6 +486,19 @@ export const GET_PAGE_BY_HANDLE = `
 `
 
 /**
+ * Shop chrome only — name + contact/social metafields.
+ * Used by StoreChrome/Footer; avoids downloading policy HTML on every page.
+ */
+export const GET_SHOP_CHROME = `
+  query GetShopChrome {
+    shop {
+      name
+      ${SHOP_CONTENT_METAFIELDS}
+    }
+  }
+`
+
+/**
  * Shop policies + shared contact/social metafields.
  * Policies use Shopify's native Policy resources.
  */
@@ -360,6 +526,7 @@ export const GET_SHOP_CONTENT = `
 /**
  * Leaf metaobject fields (file / product / collection refs).
  * Used for nested Homepage references — one level deep.
+ * Products use card fields (no variants).
  */
 const METAOBJECT_LEAF_FIELDS = `
   id
@@ -379,10 +546,18 @@ const METAOBJECT_LEAF_FIELDS = `
         }
       }
       ... on Product {
-        ${PRODUCT_FIELDS}
+        ${PRODUCT_CARD_FIELDS}
       }
       ... on Collection {
-        ${COLLECTION_FIELDS}
+        id
+        handle
+        title
+        image {
+          url
+          altText
+          width
+          height
+        }
       }
     }
   }
@@ -410,10 +585,18 @@ const METAOBJECT_FIELDS = `
         }
       }
       ... on Product {
-        ${PRODUCT_FIELDS}
+        ${PRODUCT_CARD_FIELDS}
       }
       ... on Collection {
-        ${COLLECTION_FIELDS}
+        id
+        handle
+        title
+        image {
+          url
+          altText
+          width
+          height
+        }
       }
     }
   }

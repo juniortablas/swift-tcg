@@ -11,6 +11,7 @@ import type { Product } from "@/types/product"
 
 import { cache } from "react"
 
+import { catalogFetchOptions } from "./cache"
 import { shopifyFetch } from "./client"
 import {
   featuredCollectionsFromMetaobjects,
@@ -23,7 +24,11 @@ import {
   type HomepagePromotion,
 } from "./homepageMerchandising"
 import { mapShopifyProducts } from "./mappers"
-import { GET_COLLECTION_PRODUCTS, GET_PRODUCTS } from "./queries"
+import {
+  GET_COMING_SOON_COLLECTION_PRODUCTS,
+  GET_COMING_SOON_PRODUCTS,
+  GET_PRODUCTS,
+} from "./queries"
 import {
   getHomepageCategoryCards,
   getHomepageHeroSlides,
@@ -78,8 +83,9 @@ async function fetchCollectionProducts(
   first: number
 ): Promise<ShopifyProduct[]> {
   const data = await shopifyFetch<CollectionProductsQueryResult>({
-    query: GET_COLLECTION_PRODUCTS,
+    query: GET_COMING_SOON_COLLECTION_PRODUCTS,
     variables: { handle, first },
+    ...catalogFetchOptions,
   })
 
   return data.collection?.products.edges.map((edge) => edge.node) ?? []
@@ -112,8 +118,9 @@ export async function getShopifyComingSoonProducts(
   }
 
   const data = await shopifyFetch<ProductsQueryResult>({
-    query: GET_PRODUCTS,
+    query: GET_COMING_SOON_PRODUCTS,
     variables: { first: fetchCount },
+    ...catalogFetchOptions,
   })
 
   const tagged = data.products.edges
@@ -169,6 +176,7 @@ export async function getShopifyNewestArrivals(limit = 8): Promise<Product[]> {
       sortKey: "CREATED_AT",
       reverse: true,
     },
+    ...catalogFetchOptions,
   })
 
   const sorted = [...data.products.edges.map((edge) => edge.node)].sort(
@@ -250,7 +258,7 @@ async function resolveFeaturedRail(
 
 /**
  * Single homepage load: Homepage metaobject when present, else legacy fallbacks.
- * Preserves layout, caching (`no-store` + `storefront-cms`), and section fallbacks.
+ * Preserves layout, caching (`storefront-cms` tag + webhook invalidation), and section fallbacks.
  * Cached per request so `generateMetadata` + page share one load.
  */
 export const getHomepagePageData = cache(

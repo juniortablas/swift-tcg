@@ -23,6 +23,7 @@ import type {
   CollectionPresentation,
 } from "@/lib/catalog/collections"
 
+import { cmsFetchOptions } from "./cache"
 import { shopifyFetch, ShopifyClientError } from "./client"
 import { GET_METAOBJECTS_BY_TYPE } from "./queries"
 import type {
@@ -37,14 +38,7 @@ export const STOREFRONT_HERO_TYPE = "storefront_hero"
 /** Shopify metaobject type handle for cards / promo images. */
 export const STOREFRONT_VISUAL_TYPE = "storefront_visual"
 
-const CMS_FETCH_OPTIONS = {
-  // Marketing CMS must reflect Admin image/copy edits on the next request.
-  // A long force-cache window made Shopify CDN swaps look like "stuck" local art.
-  cache: "no-store" as const,
-  next: {
-    tags: ["storefront-cms"],
-  },
-}
+const CMS_FETCH_OPTIONS = cmsFetchOptions
 
 export type StorefrontHero = {
   key: string

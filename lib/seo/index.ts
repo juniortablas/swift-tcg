@@ -5,6 +5,8 @@ export {
   DEFAULT_OG_IMAGE,
   DEFAULT_KEYWORDS,
   THEME_COLOR,
+  CANONICAL_ORIGIN,
+  CANONICAL_HOST,
   getSiteOrigin,
   absoluteUrl,
 } from "./config"

@@ -10,6 +10,7 @@ import {
   updatePendingReview,
 } from "@/lib/reviews/server"
 import type { ReviewsApiError, ReviewsMutationApiResponse } from "@/lib/reviews/types"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -17,42 +18,34 @@ function errorPayload(error: unknown): {
   status: number
   error: ReviewsApiError
 } {
-  if (error instanceof ReviewsAuthError) {
-    return {
-      status: 401,
-      error: { code: "auth_required", message: error.message },
-    }
+  let status = 500
+  let apiError: ReviewsApiError = {
+    code: "shopify",
+    message:
+      error instanceof Error ? error.message : "Unexpected reviews error.",
   }
-  if (error instanceof ReviewsValidationError) {
-    const status =
+
+  if (error instanceof ReviewsAuthError) {
+    status = 401
+    apiError = { code: "auth_required", message: error.message }
+  } else if (error instanceof ReviewsValidationError) {
+    status =
       error.code === "not_found"
         ? 404
         : error.code === "forbidden"
           ? 403
           : 400
-    return {
-      status,
-      error: { code: error.code, message: error.message },
+    apiError = { code: error.code, message: error.message }
+  } else if (error instanceof ShopifyClientError) {
+    status = error.status === 401 ? 401 : 502
+    apiError = {
+      code: status === 401 ? "auth_required" : "shopify",
+      message: error.message,
     }
   }
-  if (error instanceof ShopifyClientError) {
-    const status = error.status === 401 ? 401 : 502
-    return {
-      status,
-      error: {
-        code: status === 401 ? "auth_required" : "shopify",
-        message: error.message,
-      },
-    }
-  }
-  return {
-    status: 500,
-    error: {
-      code: "shopify",
-      message:
-        error instanceof Error ? error.message : "Unexpected reviews error.",
-    },
-  }
+
+  captureRouteException(error, { route: "/api/reviews/[id]", status })
+  return { status, error: apiError }
 }
 
 type RouteContext = {

@@ -11,6 +11,7 @@
 | UI primitives | shadcn/ui |
 | Commerce | Shopify (Headless Storefront + Admin sync) |
 | Hosting | Vercel |
+| Observability | Sentry (`@sentry/nextjs`) — errors, traces, replay |
 
 ## Folder Conventions
 
@@ -61,6 +62,7 @@ Shopify Admin API          Shopify Storefront API
 | Storefront reads (products, collections, search, homepage rails, pages, policies) | `lib/shopify/` → `app/` |
 | Marketing heroes / category & language card art | `lib/shopify/storefrontCms.ts` (Metaobjects + local fallbacks) |
 | Cart create / lines / checkout URL | `lib/shopify/cart.ts` via `app/api/cart` |
+| Shop Pay accelerated checkout | Official `<shop-pay-button>` via `components/checkout/ShopPayButton` (PDP + cart). Regular Checkout still uses `checkoutUrl`. |
 | Presentation helpers (filters, specs, CTAs, collection chrome) | `lib/catalog/` (operates on `Product`, does not load catalog data) |
 | Import from SORA + Admin sync | `scripts/import-sora.ts` + `lib/shopify/sync.ts` |
 | Offline JSON dumps under `data/` | Importer artifact only — never read by the storefront |
@@ -93,6 +95,8 @@ Shopify Admin API          Shopify Storefront API
 | `/api/reviews` | Product reviews (metaobjects + aggregates) |
 | `/api/reviews/[id]` | Helpful vote / edit / delete pending review |
 | `/api/webhooks/reviews` | Metaobject change → recompute product aggregates |
+| `/api/webhooks/cache` | Products/collections/inventory/CMS/shop → `revalidateTag` |
+| `/api/account/session` | Client session probe (logged-in) for cacheable chrome |
 | `/api/cron/reviews` | Hourly aggregate sync after Admin moderation |
 
 ## Component Organization
@@ -106,6 +110,7 @@ components/
   reviews/     → Stars, summary, cards, modal, gallery, filters
   content/     → Shopify pages / policies (rich HTML, contact, FAQ)
   cart/        → Cart drawer, line items, mixed-cart dialog
+  checkout/    → Official Shop Pay accelerated checkout button
   search/      → Search dialog
   ui/          → shadcn primitives and shared controls
 ```
@@ -116,6 +121,11 @@ components/
 - Add `"use client"` only for interactivity (menus, drawers, forms, local state)
 - Keep Shopify access on the server side whenever possible
 - Cart mutations go through `app/api/cart` so private Storefront tokens stay server-side
+- Shop Pay uses Shopify's official web component (Checkout Links). Load its CDN script only on PDP/cart when the button mounts. Do not recreate the Shop Pay button.
+
+## Observability
+
+Sentry (`@sentry/nextjs`) captures client, server, edge, Route Handler, Server Component, webhook, and cron failures. It initializes only when a DSN is set. Helpers live in `lib/observability/`. See [SENTRY.md](./SENTRY.md).
 
 ## Shopify Integration Guidelines
 

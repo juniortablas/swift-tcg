@@ -10,6 +10,7 @@ import {
 } from "react"
 
 import MixedCartDialog from "@/components/cart/MixedCartDialog"
+import { useCustomerSession } from "@/lib/account/CustomerSessionProvider"
 
 import {
   cartReducer,
@@ -48,11 +49,13 @@ function readStoredCartId(): string | null {
 
 function writeCartIdCookie(cartId: string | null) {
   try {
+    const secure =
+      window.location.protocol === "https:" ? "; Secure" : ""
     if (!cartId) {
-      document.cookie = `${CART_ID_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`
+      document.cookie = `${CART_ID_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax${secure}`
       return
     }
-    document.cookie = `${CART_ID_COOKIE}=${encodeURIComponent(cartId)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`
+    document.cookie = `${CART_ID_COOKIE}=${encodeURIComponent(cartId)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secure}`
   } catch {
     // Ignore cookie write failures.
   }
@@ -85,7 +88,13 @@ function payloadToState(payload: CartApiResponse): CartState {
 
 async function cartGet(cartId: string): Promise<CartApiResponse> {
   const res = await fetch(`/api/cart?cartId=${encodeURIComponent(cartId)}`)
-  return (await res.json()) as CartApiResponse
+  const payload = (await res.json()) as CartApiResponse
+  if (!res.ok) {
+    const error = new Error(payload.error?.message || "Cart fetch failed.")
+    ;(error as Error & { status?: number }).status = res.status
+    throw error
+  }
+  return payload
 }
 
 async function cartPost(
@@ -106,18 +115,16 @@ async function cartPost(
 
 type CartProviderProps = {
   children: ReactNode
-  /** When true, attach Customer Account token to the cart and use silent SSO checkout. */
-  customerLoggedIn?: boolean
 }
 
 /**
  * Shopify-backed cart provider. Persist only the cart id locally;
  * Shopify Storefront Cart is the source of truth for lines.
+ * Customer login is hydrated via CustomerSessionProvider (no SSR cookie wait).
  */
-export function CartProvider({
-  children,
-  customerLoggedIn = false,
-}: CartProviderProps) {
+export function CartProvider({ children }: CartProviderProps) {
+  const { loggedIn: customerLoggedIn, isHydrated: sessionHydrated } =
+    useCustomerSession()
   const [state, dispatch] = useReducer(cartReducer, initialCartState)
   const [isOpen, setIsOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
@@ -153,9 +160,9 @@ export function CartProvider({
             applyPayload(payload)
           }
         } catch {
+          // Keep the stored cart id on transient failures so a Shopify blip
+          // cannot wipe the bag. Expired carts already return 200 + empty.
           if (!cancelled) {
-            writeStoredCartId(null)
-            cartIdRef.current = null
             dispatch({ type: "HYDRATE", payload: initialCartState })
           }
         }
@@ -172,7 +179,7 @@ export function CartProvider({
 
   // After sign-in (and on hydrate when already logged in), associate cart buyer identity.
   useEffect(() => {
-    if (!isHydrated || !customerLoggedIn) return
+    if (!isHydrated || !sessionHydrated || !customerLoggedIn) return
     const cartId = cartIdRef.current
     if (!cartId || attachedRef.current) return
 
@@ -194,7 +201,7 @@ export function CartProvider({
         window.history.replaceState({}, "", next)
       }
     })
-  }, [isHydrated, customerLoggedIn])
+  }, [isHydrated, sessionHydrated, customerLoggedIn])
 
   useEffect(() => {
     if (!isOpen && !pendingItem) return

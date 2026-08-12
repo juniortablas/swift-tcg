@@ -116,6 +116,10 @@ export function mapShopifyProduct(
   const imageAlt = product.featuredImage?.altText?.trim() || null
   const currencyCode =
     product.priceRange.minVariantPrice.currencyCode?.trim() || null
+  const variantId = product.selectedOrFirstAvailableVariant?.id ?? null
+  const galleryImages = (product.images?.edges ?? [])
+    .map((edge) => edge.node.url)
+    .filter((url): url is string => Boolean(url))
 
   return {
     id: product.id,
@@ -149,6 +153,8 @@ export function mapShopifyProduct(
       ? { reviewCount }
       : {}),
     ...(reviewBreakdown ? { reviewBreakdown } : {}),
+    ...(variantId ? { variantId } : {}),
+    ...(galleryImages.length > 0 ? { images: galleryImages } : {}),
   }
 }
 
@@ -159,5 +165,12 @@ export function mapShopifyProducts(
   products: ShopifyProduct[],
   options: MapShopifyProductOptions = {}
 ): AppProduct[] {
-  return products.map((product) => mapShopifyProduct(product, options))
+  const seen = new Set<string>()
+  const mapped: AppProduct[] = []
+  for (const product of products) {
+    if (seen.has(product.id)) continue
+    seen.add(product.id)
+    mapped.push(mapShopifyProduct(product, options))
+  }
+  return mapped
 }

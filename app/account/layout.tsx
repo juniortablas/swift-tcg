@@ -1,4 +1,6 @@
+import type { Metadata } from "next"
 import type { ReactNode } from "react"
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import StoreChrome from "@/components/layout/StoreChrome"
@@ -9,6 +11,10 @@ import {
 } from "@/lib/shopify/customerAccount"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default async function AccountLayout({
   children,
@@ -48,7 +54,9 @@ export default async function AccountLayout({
 
   const loggedIn = await isCustomerLoggedIn()
   if (!loggedIn) {
-    redirect(getCustomerLoginHref("/account"))
+    const returnTo =
+      (await headers()).get("x-swift-pathname") || "/account"
+    redirect(getCustomerLoginHref(returnTo))
   }
 
   return <StoreChrome>{children}</StoreChrome>

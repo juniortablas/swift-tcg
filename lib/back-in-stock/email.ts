@@ -119,7 +119,7 @@ export function buildBackInStockEmailHtml(input: {
                 Questions? <a href="mailto:support@swifttcg.com" style="color:#0EA54B;text-decoration:none;">support@swifttcg.com</a>
               </p>
               <p style="margin:0;font-size:13px;line-height:1.55;color:#666666;">
-                <a href="https://swifttcg.com" style="color:#0EA54B;text-decoration:none;">swifttcg.com</a>
+                <a href="https://www.swifttcg.com" style="color:#0EA54B;text-decoration:none;">swifttcg.com</a>
               </p>
             </td>
           </tr>

@@ -60,8 +60,7 @@ export function getCustomerAccountConfig(): CustomerAccountConfig {
     process.env.SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_SECRET?.trim() || null
   const sessionSecret =
     process.env.SHOPIFY_CUSTOMER_ACCOUNT_SESSION_SECRET?.trim() ||
-    process.env.SHOPIFY_CLIENT_SECRET?.trim() ||
-    clientId
+    process.env.SHOPIFY_CLIENT_SECRET?.trim()
 
   if (!clientId) {
     throw new ShopifyClientError(

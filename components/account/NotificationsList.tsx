@@ -4,6 +4,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Trash2 } from "lucide-react"
 
+import EmptyState from "@/components/ux/EmptyState"
+import { BellEmptyIllustration } from "@/components/ux/EmptyIllustrations"
 import { useBackInStock } from "@/lib/back-in-stock/useBackInStock"
 import { formatUsdPrice } from "@/lib/pricing"
 import type { Product } from "@/types/product"
@@ -135,20 +137,18 @@ export default function NotificationsList({ rows }: NotificationsListProps) {
 
 export function NotificationsEmptyState() {
   return (
-    <div className="rounded-xl border border-dashed border-black/[0.1] bg-white px-6 py-14 text-center">
-      <p className="text-base font-semibold tracking-tight text-black">
-        No stock alerts yet
-      </p>
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-black/55">
-        When a product is sold out, tap Notify Me on the product page. We&apos;ll
-        email you when it returns — alerts sync with your Shopify account.
-      </p>
-      <Link
-        href="/"
-        className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-green-700"
-      >
-        Continue shopping
-      </Link>
-    </div>
+    <EmptyState
+      illustration={<BellEmptyIllustration />}
+      title="No stock alerts yet"
+      description="When a product is sold out, tap Notify Me on the product page. We'll email you when it returns — alerts sync with your Shopify account."
+      actions={[
+        { label: "Continue shopping", href: "/" },
+        {
+          label: "Browse preorders",
+          href: "/preorders",
+          variant: "secondary",
+        },
+      ]}
+    />
   )
 }

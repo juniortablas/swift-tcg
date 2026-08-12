@@ -1,5 +1,3 @@
-import { createHmac, timingSafeEqual } from "node:crypto"
-
 import { NextResponse } from "next/server"
 
 import {
@@ -8,6 +6,8 @@ import {
   isProductGid,
 } from "@/lib/reviews/constants"
 import { syncProductReviewAggregates } from "@/lib/reviews/server"
+import { verifyShopifyWebhookHmac } from "@/lib/shopify/webhookAuth"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -20,27 +20,6 @@ export const dynamic = "force-dynamic"
  * Auth: HMAC via X-Shopify-Hmac-Sha256 using SHOPIFY_CLIENT_SECRET
  * (or SHOPIFY_WEBHOOK_SECRET if set).
  */
-
-function getWebhookSecret(): string | null {
-  return (
-    process.env.SHOPIFY_WEBHOOK_SECRET?.trim() ||
-    process.env.SHOPIFY_CLIENT_SECRET?.trim() ||
-    null
-  )
-}
-
-function verifyHmac(rawBody: string, hmacHeader: string | null): boolean {
-  const secret = getWebhookSecret()
-  if (!secret || !hmacHeader) return false
-  const digest = createHmac("sha256", secret).update(rawBody, "utf8").digest("base64")
-  try {
-    const a = Buffer.from(digest)
-    const b = Buffer.from(hmacHeader)
-    return a.length === b.length && timingSafeEqual(a, b)
-  } catch {
-    return false
-  }
-}
 
 type WebhookPayload = {
   type?: string
@@ -66,7 +45,7 @@ export async function POST(request: Request) {
   const rawBody = await request.text()
   const hmac = request.headers.get("x-shopify-hmac-sha256")
 
-  if (!verifyHmac(rawBody, hmac)) {
+  if (!verifyShopifyWebhookHmac(rawBody, hmac)) {
     return NextResponse.json({ ok: false, error: "invalid_hmac" }, { status: 401 })
   }
 
@@ -92,6 +71,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "sync_failed"
     console.error("[reviews webhook]", message)
+    captureRouteException(error, { route: "/api/webhooks/reviews", status: 500 })
     return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }

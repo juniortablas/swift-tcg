@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 
-import { ShopifyClientError } from "@/lib/shopify/client"
 import {
   attachCustomerToCart,
   completeCustomerLogin,
   readCartIdCookie,
 } from "@/lib/shopify/customerAccount"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -34,14 +34,13 @@ export async function GET(request: Request) {
     destination.searchParams.set("cart_sync", "1")
     return NextResponse.redirect(destination)
   } catch (error) {
-    const message =
-      error instanceof ShopifyClientError
-        ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Login failed."
+    console.error("[account/authorize]", error)
+    const oauthError = searchParams.get("error")
+    if (oauthError !== "access_denied" && oauthError !== "login_required") {
+      captureRouteException(error, { route: "/account/authorize", status: 500 })
+    }
     const home = new URL("/", request.url)
-    home.searchParams.set("account_error", message)
+    home.searchParams.set("account_error", "1")
     return NextResponse.redirect(home)
   }
 }

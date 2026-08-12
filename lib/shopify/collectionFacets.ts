@@ -6,13 +6,11 @@
  * Example: parent `pokemon` → `pokemon-japanese`, `pokemon-korean`.
  */
 
-import { shopifyFetch } from "./client"
-import { GET_COLLECTION_PRODUCTS, GET_COLLECTIONS } from "./queries"
-import type {
-  Collection,
-  CollectionProductsQueryResult,
-  CollectionsQueryResult,
-} from "./types"
+import {
+  getAllShopifyCollections,
+  resolveCollectionImage,
+} from "./collections"
+import type { Collection } from "./types"
 
 export type CollectionLanguageFacet = {
   /** Full Shopify collection handle (`pokemon-japanese`). */
@@ -40,61 +38,12 @@ function humanizeFacetSlug(slug: string): string {
     .join(" ")
 }
 
-async function fetchAllCollections(): Promise<Collection[]> {
-  const nodes: Collection[] = []
-  let after: string | null | undefined
-  let hasNextPage = true
-
-  while (hasNextPage) {
-    const data = await shopifyFetch<CollectionsQueryResult>({
-      query: GET_COLLECTIONS,
-      variables: {
-        first: 50,
-        ...(after ? { after } : {}),
-      },
-    })
-
-    for (const edge of data.collections.edges) {
-      nodes.push(edge.node)
-    }
-
-    hasNextPage = data.collections.pageInfo?.hasNextPage ?? false
-    after = data.collections.pageInfo?.endCursor ?? undefined
-  }
-
-  return nodes
-}
-
 /** Prefer the collection image; otherwise the first product image in that collection. */
 async function resolveFacetImage(
   handle: string,
   collectionImage: Collection["image"]
 ): Promise<{ url: string | null; alt: string | null }> {
-  if (collectionImage?.url) {
-    return {
-      url: collectionImage.url,
-      alt: collectionImage.altText,
-    }
-  }
-
-  try {
-    const data = await shopifyFetch<CollectionProductsQueryResult>({
-      query: GET_COLLECTION_PRODUCTS,
-      variables: { handle, first: 1 },
-    })
-    const product = data.collection?.products.edges[0]?.node
-    const image = product?.featuredImage
-    if (image?.url) {
-      return {
-        url: image.url,
-        alt: image.altText ?? product?.title ?? null,
-      }
-    }
-  } catch {
-    // Best-effort image only — facet still works without art.
-  }
-
-  return { url: null, alt: null }
+  return resolveCollectionImage(handle, collectionImage)
 }
 
 /**
@@ -109,7 +58,7 @@ export async function getShopifyCollectionLanguageFacets(
   if (!parent) return []
 
   const prefix = `${parent}-`
-  const collections = await fetchAllCollections()
+  const collections = await getAllShopifyCollections()
 
   const matched = collections
     .map((collection) => {

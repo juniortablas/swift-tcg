@@ -4,6 +4,10 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 
 import ReviewCard from "@/components/reviews/ReviewCard"
 import ReviewFilters from "@/components/reviews/ReviewFilters"
+import ApiErrorState from "@/components/ux/ApiErrorState"
+import EmptyState from "@/components/ux/EmptyState"
+import { StarEmptyIllustration } from "@/components/ux/EmptyIllustrations"
+import { Skeleton } from "@/components/ux/Skeleton"
 import { REVIEW_PAGE_SIZE } from "@/lib/reviews/constants"
 import type {
   ProductReview,
@@ -126,21 +130,49 @@ export default function ReviewList({
       <ReviewFilters sort={sort} onSortChange={handleSortChange} />
 
       {!loaded && pending ? (
-        <p className="py-8 text-center text-sm text-black/45" role="status">
-          Loading reviews…
-        </p>
+        <div
+          className="space-y-3 py-2"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <span className="sr-only">Loading reviews</span>
+          {Array.from({ length: 3 }, (_, index) => (
+            <div
+              key={index}
+              className="rounded-[17px] border border-black/[0.06] p-4"
+            >
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+              <Skeleton className="mt-3 h-3 w-full" />
+              <Skeleton className="mt-2 h-3 w-4/5" />
+            </div>
+          ))}
+        </div>
       ) : null}
 
       {error ? (
-        <p className="py-6 text-center text-sm text-black/55" role="alert">
-          {error}
-        </p>
+        <ApiErrorState
+          compact
+          title="Couldn't load reviews"
+          description={error}
+          onRetry={() => {
+            setLoaded(false)
+            setError(null)
+            load(1, sort, false)
+          }}
+        />
       ) : null}
 
       {loaded && !error && reviews.length === 0 ? (
-        <p className="rounded-[17px] border border-dashed border-black/[0.08] bg-white px-4 py-10 text-center text-sm text-black/50">
-          No reviews yet. Be the first to share your experience.
-        </p>
+        <EmptyState
+          compact
+          illustration={<StarEmptyIllustration className="h-20" />}
+          title="No reviews yet"
+          description="Be the first to share how this product arrived — sealed condition, packing, and shipping notes help other collectors."
+          actions={[{ label: "Browse more products", href: "/new-releases" }]}
+        />
       ) : null}
 
       <ul className="space-y-3" aria-live="polite">

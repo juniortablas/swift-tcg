@@ -1,46 +1,50 @@
 "use client"
 
 import { useEffect } from "react"
-import Link from "next/link"
+import * as Sentry from "@sentry/nextjs"
 
-import { Button } from "@/components/ui/button"
+import ErrorRecovery from "@/components/ux/ErrorRecovery"
 import { getCustomerLoginHref } from "@/lib/account/customerLogin"
 
 export default function AccountError({
   error,
+  retry,
   reset,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  retry?: () => void
+  reset?: () => void
 }) {
+  const unauthorized = /not signed in|unauthorized|401/i.test(error.message)
+  const recover = retry ?? reset
+
   useEffect(() => {
     console.error(error)
-  }, [error])
+    if (!unauthorized) {
+      Sentry.captureException(error)
+    }
+  }, [error, unauthorized])
 
-  const unauthorized = /not signed in|unauthorized|401/i.test(error.message)
+  if (unauthorized) {
+    return (
+      <ErrorRecovery
+        title="Session expired"
+        description="Sign in again with Shopify Customer Accounts to continue managing your orders, wishlist, and alerts."
+        showHome
+        showSupport={false}
+        secondaryHref={getCustomerLoginHref("/account")}
+        secondaryLabel="Sign in"
+      />
+    )
+  }
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-16 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight text-black">
-        {unauthorized ? "Session expired" : "Something went wrong"}
-      </h1>
-      <p className="mt-3 text-sm leading-relaxed text-black/55">
-        {unauthorized
-          ? "Sign in again with Shopify Customer Accounts to continue."
-          : error.message || "Unable to load your account."}
-      </p>
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        {unauthorized ? (
-          <Button render={<Link href={getCustomerLoginHref("/account")} />}>
-            Sign in
-          </Button>
-        ) : (
-          <Button onClick={reset}>Try again</Button>
-        )}
-        <Button variant="ghost" render={<Link href="/" />}>
-          Back to store
-        </Button>
-      </div>
-    </div>
+    <ErrorRecovery
+      title="Unable to load your account"
+      description="Please try again. If the problem continues, contact support and we'll help you get back in."
+      onRetry={recover}
+      showHome
+      showSupport
+    />
   )
 }

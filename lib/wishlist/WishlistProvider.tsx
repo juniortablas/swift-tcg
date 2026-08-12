@@ -17,11 +17,6 @@ import type {
 
 export const WishlistContext = createContext<WishlistContextValue | null>(null)
 
-type WishlistProviderProps = {
-  children: ReactNode
-  customerLoggedIn?: boolean
-}
-
 function redirectToLogin(productId?: string) {
   redirectToCustomerLogin(
     productId
@@ -53,16 +48,18 @@ async function wishlistPost(body: {
   return { ok: res.ok, status: res.status, payload }
 }
 
+type WishlistProviderProps = {
+  children: ReactNode
+}
+
 /**
  * Shopify-backed wishlist provider. Product GIDs live on the customer
  * metafield; this provider mirrors them with optimistic client updates.
+ * Login state comes from `/api/wishlist` (no SSR cookie wait).
  */
-export function WishlistProvider({
-  children,
-  customerLoggedIn = false,
-}: WishlistProviderProps) {
+export function WishlistProvider({ children }: WishlistProviderProps) {
   const [productIds, setProductIds] = useState<string[]>([])
-  const [loggedIn, setLoggedIn] = useState(customerLoggedIn)
+  const [loggedIn, setLoggedIn] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
   const idsRef = useRef<string[]>([])
   const syncChain = useRef(Promise.resolve())
@@ -89,7 +86,7 @@ export function WishlistProvider({
         applyIds(payload.productIds ?? [])
       } catch {
         if (!cancelled) {
-          setLoggedIn(customerLoggedIn)
+          setLoggedIn(false)
           applyIds([])
         }
       } finally {
@@ -101,7 +98,7 @@ export function WishlistProvider({
     return () => {
       cancelled = true
     }
-  }, [customerLoggedIn])
+  }, [])
 
   // After login, apply a heart click that triggered the auth redirect.
   useEffect(() => {

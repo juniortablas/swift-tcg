@@ -30,6 +30,9 @@ import type {
   ShopifyCart,
 } from "./types"
 
+/** Cart mutations/reads must never hit the Data Cache. */
+const CART_FETCH = { cache: "no-store" as const }
+
 /** Line attribute key for preorder / in-stock separation. */
 export const CART_STATUS_ATTRIBUTE = "_status"
 
@@ -168,6 +171,7 @@ export async function fetchShopifyCart(
     query: GET_CART,
     variables: { cartId },
     buyerIp: options?.buyerIp,
+    ...CART_FETCH,
   })
   return mapShopifyCart(data.cart)
 }
@@ -180,6 +184,7 @@ export async function fetchProductForCart(
     query: GET_PRODUCT_FOR_CART,
     variables: { id: productId },
     buyerIp: options?.buyerIp,
+    ...CART_FETCH,
   })
   return data.product
 }
@@ -258,6 +263,7 @@ export async function createShopifyCart(
       },
     },
     buyerIp: options?.buyerIp,
+    ...CART_FETCH,
   })
   return mapShopifyCart(throwOnUserErrors(data.cartCreate))
 }
@@ -276,6 +282,7 @@ export async function addShopifyCartLines(
       lines: [lineInput(merchandiseId, quantity, status)],
     },
     buyerIp: options?.buyerIp,
+    ...CART_FETCH,
   })
   return mapShopifyCart(throwOnUserErrors(data.cartLinesAdd))
 }
@@ -297,6 +304,7 @@ export async function updateShopifyCartLines(
       lines: [{ id: lineId, quantity }],
     },
     buyerIp: options?.buyerIp,
+    ...CART_FETCH,
   })
   return mapShopifyCart(throwOnUserErrors(data.cartLinesUpdate))
 }
@@ -314,6 +322,7 @@ export async function removeShopifyCartLines(
     query: CART_LINES_REMOVE,
     variables: { cartId, lineIds },
     buyerIp: options?.buyerIp,
+    ...CART_FETCH,
   })
   return mapShopifyCart(throwOnUserErrors(data.cartLinesRemove))
 }

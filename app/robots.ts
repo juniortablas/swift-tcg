@@ -1,15 +1,13 @@
 import type { MetadataRoute } from "next"
 
-import { absoluteUrl, getSiteOrigin } from "@/lib/seo"
+import { CANONICAL_HOST, CANONICAL_ORIGIN } from "@/lib/seo"
 
 /**
  * App Router robots → served at `/robots.txt`.
- * Sitemap URL must match the browsable origin (SHOPIFY_APP_URL / site URL).
+ *
+ * Host + Sitemap always emit the www canonical so crawlers never see apex.
  */
 export default function robots(): MetadataRoute.Robots {
-  const origin = getSiteOrigin()
-  const host = new URL(origin).host
-
   return {
     rules: [
       {
@@ -18,7 +16,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/account", "/account/", "/cart", "/cart/", "/api/", "/api"],
       },
     ],
-    sitemap: `${origin}/sitemap.xml`,
-    host,
+    sitemap: `${CANONICAL_ORIGIN}/sitemap.xml`,
+    host: CANONICAL_HOST,
   }
 }

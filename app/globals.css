@@ -145,8 +145,34 @@
   animation: maintenance-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* UX polish — skeleton shimmer + soft fade-ins */
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes ux-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@utility animate-skeleton-shimmer {
+  animation: skeleton-shimmer 1.35s ease-in-out infinite;
+}
+
+@utility animate-ux-fade {
+  animation: ux-fade 280ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-maintenance-enter {
+  .animate-maintenance-enter,
+  .animate-skeleton-shimmer,
+  .animate-ux-fade {
     animation: none;
   }
 }

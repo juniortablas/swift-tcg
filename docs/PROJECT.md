@@ -52,3 +52,4 @@ Swift TCG is a premium headless ecommerce storefront for authentic Japanese trad
 - [BRAND.md](./BRAND.md) — positioning, personality, voice, audience
 - [DESIGN.md](./DESIGN.md) — visual system and UI principles
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — stack, structure, and engineering rules
+- [SENTRY.md](./SENTRY.md) — error monitoring, env vars, and launch checklist

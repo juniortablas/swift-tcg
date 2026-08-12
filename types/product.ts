@@ -61,4 +61,13 @@ export interface Product {
   imageAlt?: string | null
   /** ISO 4217 currency for `price` (defaults to USD in SEO helpers). */
   currencyCode?: string | null
+  /**
+   * Shopify variant GID (`selectedOrFirstAvailableVariant`).
+   * Present on PDP fetches (`getShopifyProductByHandle`); omitted from lists.
+   */
+  variantId?: string | null
+  /**
+   * Additional gallery image URLs (PDP fetches). Featured image is `image`.
+   */
+  images?: string[]
 }

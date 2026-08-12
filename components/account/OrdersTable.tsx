@@ -1,5 +1,7 @@
 import Link from "next/link"
 
+import EmptyState from "@/components/ux/EmptyState"
+import { PackageEmptyIllustration } from "@/components/ux/EmptyIllustrations"
 import {
   formatAccountDate,
   formatAccountMoney,
@@ -14,19 +16,23 @@ type OrdersTableProps = {
 
 export default function OrdersTable({
   orders,
-  emptyMessage = "No orders yet.",
+  emptyMessage = "When you place an order, it will appear here with tracking and status updates.",
 }: OrdersTableProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-xl border border-black/[0.06] bg-white px-5 py-10 text-center">
-        <p className="text-sm text-black/55">{emptyMessage}</p>
-        <Link
-          href="/new-releases"
-          className="mt-4 inline-flex text-sm font-medium text-green-700 hover:text-green-800"
-        >
-          Browse new releases
-        </Link>
-      </div>
+      <EmptyState
+        illustration={<PackageEmptyIllustration />}
+        title="No orders yet"
+        description={emptyMessage}
+        actions={[
+          { label: "Browse new releases", href: "/new-releases" },
+          {
+            label: "Shop Pokémon",
+            href: "/pokemon",
+            variant: "secondary",
+          },
+        ]}
+      />
     )
   }
 

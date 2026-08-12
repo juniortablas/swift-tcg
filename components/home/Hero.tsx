@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -55,8 +55,20 @@ function HeadingLines({ heading }: { heading: string }) {
 export default function Hero({ slides }: HeroProps) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const reduceMotionRef = useRef(false)
 
   const slideCount = slides.length
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+    function sync() {
+      reduceMotionRef.current = media.matches
+      if (media.matches) setPaused(true)
+    }
+    sync()
+    media.addEventListener("change", sync)
+    return () => media.removeEventListener("change", sync)
+  }, [])
 
   useEffect(() => {
     if (paused || slideCount === 0) return
@@ -80,13 +92,20 @@ export default function Hero({ slides }: HeroProps) {
     <section
       className="relative overflow-hidden bg-white sm:h-[240px] lg:h-[280px] 2xl:h-[300px]"
       onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseLeave={() => {
+        if (!reduceMotionRef.current) setPaused(false)
+      }}
       aria-roledescription="carousel"
       aria-label="Featured collections"
     >
       {/* ── Artwork plane (absolute; not part of content flow) ───────────── */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {slides.map((slide, i) => (
+        {slides.map((slide, i) => {
+          // Mount active + neighbors only — cuts LCP bandwidth and decode work.
+          const isNear = Math.abs(i - index) <= 1 || (index === 0 && i === slideCount - 1) || (index === slideCount - 1 && i === 0)
+          if (!isNear) return null
+
+          return (
           <div
             key={slide.id}
             className={cn(
@@ -104,9 +123,8 @@ export default function Hero({ slides }: HeroProps) {
                     src={slide.desktopImage}
                     alt={slide.imageAlt || slide.heading || "Swift TCG"}
                     fill
-                    unoptimized
                     priority={i === 0}
-                    sizes="90vw"
+                    sizes="(max-width: 639px) 1px, (max-width: 1024px) 70vw, 55vw"
                     className="object-cover object-[72%_center]"
                   />
                 </div>
@@ -124,16 +142,16 @@ export default function Hero({ slides }: HeroProps) {
                     src={slide.mobileImage}
                     alt={slide.imageAlt || slide.heading || "Swift TCG"}
                     fill
-                    unoptimized
                     priority={i === 0}
-                    sizes="90vw"
+                    sizes="(max-width: 639px) 72vw, 1px"
                     className="object-contain object-center"
                   />
                 </div>
               </div>
             ) : null}
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* ── Left blend overlay (above art, below text) ───────────────────── */}

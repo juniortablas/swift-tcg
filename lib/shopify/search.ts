@@ -1,14 +1,15 @@
 /**
- * Shopify product search for the global SearchDialog.
+ * Shopify product search for the global SearchDialog (fallback path).
  *
- * Matches against title, handle, vendor, product type, and tags.
+ * Matches against title, handle, vendor, product type, tags, and SKU.
  */
 
 import type { Product } from "@/types/product"
 
+import { catalogFetchOptions } from "./cache"
 import { shopifyFetch } from "./client"
 import { mapShopifyProduct, mapShopifyProducts } from "./mappers"
-import { GET_PRODUCT_BY_HANDLE, GET_PRODUCTS } from "./queries"
+import { GET_PRODUCT_CARD_BY_HANDLE, GET_PRODUCTS } from "./queries"
 import type {
   Product as ShopifyProduct,
   ProductByHandleQueryResult,
@@ -24,9 +25,8 @@ function sanitizeSearchTerm(term: string): string {
 }
 
 /**
- * Storefront `products(query:)` supports title, vendor, product_type, and tag.
- * Handle is matched locally (and via exact handle lookup) because it is not a
- * documented Storefront filter field.
+ * Storefront `products(query:)` supports title, vendor, product_type, tag, sku.
+ * Handle is matched locally (and via exact handle lookup).
  */
 function buildShopifySearchQuery(term: string): string {
   const escaped = sanitizeSearchTerm(term)
@@ -37,6 +37,7 @@ function buildShopifySearchQuery(term: string): string {
     `vendor:${escaped}*`,
     `product_type:${escaped}*`,
     `tag:${escaped}*`,
+    `sku:${escaped}*`,
     escaped,
   ].join(" OR ")
 }
@@ -74,18 +75,21 @@ export async function searchShopifyProducts(
   if (!shopifyQuery) return []
 
   const handleCandidate = term.toLowerCase().replace(/\s+/g, "-")
+  const fetchSize = Math.min(Math.max(limit * 2, 16), 40)
 
   const [listData, handleData] = await Promise.all([
     shopifyFetch<ProductsQueryResult>({
       query: GET_PRODUCTS,
       variables: {
-        first: Math.max(limit * 4, 25),
+        first: fetchSize,
         query: shopifyQuery,
       },
+      ...catalogFetchOptions,
     }),
     shopifyFetch<ProductByHandleQueryResult>({
-      query: GET_PRODUCT_BY_HANDLE,
+      query: GET_PRODUCT_CARD_BY_HANDLE,
       variables: { handle: handleCandidate },
+      ...catalogFetchOptions,
     }),
   ])
 
@@ -98,17 +102,19 @@ export async function searchShopifyProducts(
     }
   }
 
-  if (
-    handleData.product &&
-    matchesShopifyProduct(handleData.product, term)
-  ) {
+  if (handleData.product) {
     byId.set(handleData.product.id, handleData.product)
+  } else {
+    for (const edge of listData.products.edges) {
+      if (edge.node.handle.toLowerCase().includes(term.toLowerCase())) {
+        byId.set(edge.node.id, edge.node)
+      }
+    }
   }
 
   const matched = Array.from(byId.values())
   if (matched.length === 0) return []
 
-  // Prefer exact handle hit first when present, then mapped list order.
   if (handleData.product && byId.has(handleData.product.id)) {
     const exact = handleData.product
     const rest = matched.filter((product) => product.id !== exact.id)

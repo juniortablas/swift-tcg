@@ -10,7 +10,7 @@ Branded Liquid email templates for Shopify customer notifications. Shopify Liqui
 | Accent | `#0EA54B` |
 | Logo | Official lockup (`/brand/swift-tcg-logo.png`) — prefer `shop.email_logo_url` when set in admin |
 | Support | `support@swifttcg.com` |
-| Site | `https://swifttcg.com` |
+| Site | `https://www.swifttcg.com` |
 
 ### Logo assets
 
@@ -20,9 +20,9 @@ Branded Liquid email templates for Shopify customer notifications. Shopify Liqui
 | [`public/brand/swift-tcg-logo-email.png`](../../public/brand/swift-tcg-logo-email.png) | Email / Messaging headers (~320px wide) |
 | [`public/brand/swift-tcg-mark.png`](../../public/brand/swift-tcg-mark.png) | Favicon / app icon (white S on black) |
 
-**Shopify Admin notifications:** upload `swift-tcg-logo-email.png` under **Settings → Notifications → Customer notifications → Customize** (preferred). Templates fall back to the hosted PNG at `https://swifttcg.com/brand/swift-tcg-logo-email.png` until then.
+**Shopify Admin notifications:** upload `swift-tcg-logo-email.png` under **Settings → Notifications → Customer notifications → Customize** (preferred). Templates fall back to the hosted PNG at `https://www.swifttcg.com/brand/swift-tcg-logo-email.png` until then.
 
-**Messaging automations:** templates embed `https://swifttcg.com/brand/swift-tcg-logo-email.png` directly (re-paste after deploy if the file changes).
+**Messaging automations:** templates embed `https://www.swifttcg.com/brand/swift-tcg-logo-email.png` directly (re-paste after deploy if the file changes).
 
 Also set the notification accent color to `#0EA54B` in that same Customize panel so any non-overridden Shopify UI chrome matches.
 
@@ -76,4 +76,4 @@ Do not remove Liquid tags such as `{{ order_status_url }}`, `{{ url }}` (abandon
 - Green accent buttons and links (`#0EA54B`)
 - Header logo (uploaded admin logo preferred for Admin notifications; Messaging / BIS use hosted PNG)
 - Green header rule and quieter footer
-- Footer contact: `support@swifttcg.com` and `https://swifttcg.com`
+- Footer contact: `support@swifttcg.com` and `https://www.swifttcg.com`

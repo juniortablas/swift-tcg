@@ -1,11 +1,16 @@
 "use client"
 
+import dynamic from "next/dynamic"
+
 import ReviewList from "@/components/reviews/ReviewList"
-import ReviewModal from "@/components/reviews/ReviewModal"
 import ReviewSummary from "@/components/reviews/ReviewSummary"
 import { ReviewProvider } from "@/lib/reviews/ReviewsProvider"
 import { useReviews } from "@/lib/reviews/useReviews"
 import type { ReviewSummary as ReviewSummaryType } from "@/lib/reviews/types"
+
+const ReviewModal = dynamic(() => import("@/components/reviews/ReviewModal"), {
+  ssr: false,
+})
 
 type ProductReviewsSectionProps = {
   productId: string
@@ -87,15 +92,17 @@ function ReviewsBody() {
         />
       </div>
 
-      <ReviewModal
-        open={modalOpen}
-        onClose={closeModal}
-        productId={productId}
-        productTitle={productTitle}
-        onSubmitted={() => {
-          void refreshEligibility()
-        }}
-      />
+      {modalOpen ? (
+        <ReviewModal
+          open={modalOpen}
+          onClose={closeModal}
+          productId={productId}
+          productTitle={productTitle}
+          onSubmitted={() => {
+            void refreshEligibility()
+          }}
+        />
+      ) : null}
     </section>
   )
 }

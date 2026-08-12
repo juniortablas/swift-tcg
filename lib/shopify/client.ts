@@ -106,8 +106,9 @@ export type ShopifyFetchOptions = {
    */
   buyerIp?: string
   /**
-   * Next.js `fetch` cache mode. Defaults to the framework default
-   * (uncached). CMS / metaobject loaders may pass `force-cache`.
+   * Next.js `fetch` cache mode. When omitted with `next`, catalog reads use
+   * the Data Cache via `next.revalidate`. Pass `no-store` for cart / buyer /
+   * CMS freshness paths.
    */
   cache?: RequestCache
   /** Next.js fetch revalidation / tag options. */

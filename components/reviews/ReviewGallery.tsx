@@ -76,7 +76,7 @@ export default function ReviewGallery({
                 alt={images[active].altText ?? `Review photo ${active + 1}`}
                 width={images[active].width ?? 1200}
                 height={images[active].height ?? 1200}
-                unoptimized
+                sizes="90vw"
                 className="max-h-[85vh] w-auto rounded-xl object-contain"
               />
             </div>
@@ -104,7 +104,7 @@ export default function ReviewGallery({
                 alt={image.altText ?? `Review photo ${index + 1}`}
                 width={80}
                 height={80}
-                unoptimized
+                sizes="80px"
                 className="size-full object-cover"
               />
             </button>

@@ -4,6 +4,8 @@ import Link from "next/link"
 import { useState, useTransition } from "react"
 
 import ReviewStars from "@/components/reviews/ReviewStars"
+import EmptyState from "@/components/ux/EmptyState"
+import { StarEmptyIllustration } from "@/components/ux/EmptyIllustrations"
 import {
   REVIEW_BODY_MAX,
   REVIEW_BODY_MIN,
@@ -43,18 +45,19 @@ function formatDate(iso: string) {
 
 export function ReviewsEmptyState() {
   return (
-    <div className="rounded-xl border border-dashed border-black/[0.08] bg-white px-4 py-12 text-center">
-      <p className="text-sm font-medium text-black">No reviews yet</p>
-      <p className="mt-1 text-sm text-black/50">
-        After you purchase and leave a review, it will show up here.
-      </p>
-      <Link
-        href="/"
-        className="mt-5 inline-flex h-10 items-center justify-center rounded-full bg-green-600 px-5 text-sm font-semibold text-white hover:bg-green-700"
-      >
-        Continue shopping
-      </Link>
-    </div>
+    <EmptyState
+      illustration={<StarEmptyIllustration />}
+      title="No reviews yet"
+      description="After you purchase and leave a review, it will show up here. Share how your sealed product arrived — collectors rely on it."
+      actions={[
+        { label: "Continue shopping", href: "/" },
+        {
+          label: "View your orders",
+          href: "/account/orders",
+          variant: "secondary",
+        },
+      ]}
+    />
   )
 }
 

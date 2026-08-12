@@ -16,13 +16,15 @@ import type {
 
 import { cache } from "react"
 
+import { chromeFetchOptions, policyFetchOptions } from "./cache"
 import { ShopifyClientError, shopifyFetch } from "./client"
-import { GET_PAGE_BY_HANDLE, GET_SHOP_CONTENT } from "./queries"
+import { GET_PAGE_BY_HANDLE, GET_SHOP_CHROME, GET_SHOP_CONTENT } from "./queries"
 import { sanitizeShopifyHtml } from "./sanitizeHtml"
 import type {
   PageByHandleQueryResult,
   ShopifyContentMetafields,
   ShopifyShopPolicy,
+  ShopChromeQueryResult,
   ShopContentQueryResult,
 } from "./types"
 
@@ -113,14 +115,42 @@ function emptyShopContent(): ShopContentSettings {
 }
 
 /**
+ * Shop name + contact/social metafields for layout chrome.
+ * Does not fetch policy HTML bodies.
+ */
+export const getShopChromeSettings = cache(
+  async (): Promise<ShopContentSettings> => {
+    try {
+      const data = await shopifyFetch<ShopChromeQueryResult>({
+        query: GET_SHOP_CHROME,
+        ...chromeFetchOptions,
+      })
+
+      return {
+        shopName: data.shop.name?.trim() || "Swift TCG",
+        contact: mapContactDetails(data.shop),
+        policies: [],
+      }
+    } catch (error) {
+      if (error instanceof ShopifyClientError) {
+        console.error("[shopify/content] getShopChromeSettings:", error.message)
+        return emptyShopContent()
+      }
+      throw error
+    }
+  }
+)
+
+/**
  * Shop-level contact/social metafields and native policy summaries.
- * Safe to call from layout chrome — returns empty defaults on failure.
+ * Prefer `getShopChromeSettings` for StoreChrome — this loads policy bodies.
  */
 export const getShopContentSettings = cache(
   async (): Promise<ShopContentSettings> => {
     try {
       const data = await shopifyFetch<ShopContentQueryResult>({
         query: GET_SHOP_CONTENT,
+        ...policyFetchOptions,
       })
 
       const policies = (
@@ -156,15 +186,18 @@ export const getShopifyPageByHandle = cache(
     const normalized = handle.trim().toLowerCase()
     if (!normalized) return null
 
-    const pageData = await shopifyFetch<PageByHandleQueryResult>({
-      query: GET_PAGE_BY_HANDLE,
-      variables: { handle: normalized },
-    })
+    const [pageData, shop] = await Promise.all([
+      shopifyFetch<PageByHandleQueryResult>({
+        query: GET_PAGE_BY_HANDLE,
+        variables: { handle: normalized },
+        ...chromeFetchOptions,
+      }),
+      getShopChromeSettings(),
+    ])
 
     const page = pageData.page
     if (!page) return null
 
-    const shop = await getShopContentSettings()
     const pageContact = mapContactDetails(page)
     const contact = mergeContactDetails(pageContact, shop.contact)
 

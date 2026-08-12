@@ -200,7 +200,7 @@ export default function ProductQuickView({
                 alt={product.title}
                 width={420}
                 height={520}
-                unoptimized
+                sizes="(max-width: 640px) 90vw, 420px"
                 className="h-auto max-h-[280px] w-full object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.12)] sm:max-h-[340px]"
               />
             </div>

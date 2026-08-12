@@ -18,11 +18,6 @@ import type {
 
 export const BackInStockContext = createContext<BisContextValue | null>(null)
 
-type BackInStockProviderProps = {
-  children: ReactNode
-  customerLoggedIn?: boolean
-}
-
 type ProductStatus = "idle" | "pending" | "success" | "error"
 
 function redirectToLogin(productId?: string) {
@@ -65,16 +60,18 @@ function applyPayload(
   return { productIds, subscriptions }
 }
 
+type BackInStockProviderProps = {
+  children: ReactNode
+}
+
 /**
  * Shopify-backed back-in-stock provider with optimistic client updates.
+ * Login state comes from `/api/back-in-stock` (no SSR cookie wait).
  */
-export function BackInStockProvider({
-  children,
-  customerLoggedIn = false,
-}: BackInStockProviderProps) {
+export function BackInStockProvider({ children }: BackInStockProviderProps) {
   const [productIds, setProductIds] = useState<string[]>([])
   const [subscriptions, setSubscriptions] = useState<BisSubscriptionView[]>([])
-  const [loggedIn, setLoggedIn] = useState(customerLoggedIn)
+  const [loggedIn, setLoggedIn] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
   const [statuses, setStatuses] = useState<Record<string, ProductStatus>>({})
   const [lastError, setLastError] = useState<string | null>(null)
@@ -114,7 +111,7 @@ export function BackInStockProvider({
         applyState(applyPayload(payload))
       } catch {
         if (!cancelled) {
-          setLoggedIn(customerLoggedIn)
+          setLoggedIn(false)
           applyState({ productIds: [], subscriptions: [] })
         }
       } finally {
@@ -126,7 +123,7 @@ export function BackInStockProvider({
     return () => {
       cancelled = true
     }
-  }, [customerLoggedIn])
+  }, [])
 
   // After login, apply a Notify Me click that triggered the auth redirect.
   useEffect(() => {

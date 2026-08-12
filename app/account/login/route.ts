@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { beginCustomerLogin } from "@/lib/shopify/customerAccount"
-import { ShopifyClientError } from "@/lib/shopify/client"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -17,14 +17,10 @@ export async function GET(request: Request) {
     const authorizationUrl = await beginCustomerLogin({ returnTo })
     return NextResponse.redirect(authorizationUrl)
   } catch (error) {
-    const message =
-      error instanceof ShopifyClientError
-        ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Unable to start login."
+    console.error("[account/login]", error)
+    captureRouteException(error, { route: "/account/login", status: 500 })
     const url = new URL("/", request.url)
-    url.searchParams.set("account_error", message)
+    url.searchParams.set("account_error", "1")
     return NextResponse.redirect(url)
   }
 }

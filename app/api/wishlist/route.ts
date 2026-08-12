@@ -9,6 +9,7 @@ import {
   WishlistValidationError,
 } from "@/lib/wishlist/server"
 import type { WishlistApiResponse } from "@/lib/wishlist/types"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -42,6 +43,7 @@ function errorResponse(
 
   if (error instanceof ShopifyClientError) {
     const status = error.status === 401 ? 401 : 502
+    captureRouteException(error, { route: "/api/wishlist", status })
     return NextResponse.json(
       {
         ...emptyPayload(loggedIn && status !== 401),
@@ -56,6 +58,7 @@ function errorResponse(
 
   const message =
     error instanceof Error ? error.message : "Unexpected wishlist error."
+  captureRouteException(error, { route: "/api/wishlist", status: 500 })
   return NextResponse.json(
     {
       ...emptyPayload(loggedIn),

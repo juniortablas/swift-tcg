@@ -60,7 +60,8 @@ export default function ShopByCategory({
                     alt={image.alt}
                     width={400}
                     height={400}
-                    unoptimized
+                    loading="lazy"
+                    sizes="(max-width: 640px) 55vw, (max-width: 1024px) 360px, 25vw"
                     className={image.className}
                   />
                 ))}

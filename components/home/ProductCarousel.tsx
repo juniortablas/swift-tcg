@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, Sparkles, type LucideIcon } from "lucide-react"
+import type { ReactNode } from "react"
 
 import ProductCard from "@/components/catalog/ProductCard"
 import CarouselScroller from "@/components/home/CarouselScroller"
@@ -13,6 +14,8 @@ interface ProductCarouselProps {
   icon?: LucideIcon
   /** Optional CMS merchandising badges keyed by product id. */
   badges?: Record<string, string>
+  /** When set, shown instead of hiding the rail for an empty product list. */
+  emptyState?: ReactNode
 }
 
 export default function ProductCarousel({
@@ -22,8 +25,34 @@ export default function ProductCarousel({
   linkLabel = "View all",
   icon: Icon = Sparkles,
   badges,
+  emptyState,
 }: ProductCarouselProps) {
-  if (products.length === 0) return null
+  if (products.length === 0) {
+    if (!emptyState) return null
+    return (
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 xl:px-10">
+          <div className="flex items-end justify-between gap-3 sm:gap-4">
+            <h2 className="flex items-center gap-1.5 text-[1.1rem] font-semibold tracking-tight text-black sm:gap-2.5 sm:text-[1.65rem]">
+              <Icon
+                className="size-4 text-green-600 sm:size-6"
+                aria-hidden="true"
+              />
+              {title}
+            </h2>
+            <Link
+              href={href}
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-green-600 transition-colors hover:text-green-700 sm:text-sm"
+            >
+              {linkLabel}
+              <ArrowRight className="size-3.5 sm:size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-4 sm:mt-6">{emptyState}</div>
+        </div>
+      </section>
+    )
+  }
 
   const gapPx = 8
 

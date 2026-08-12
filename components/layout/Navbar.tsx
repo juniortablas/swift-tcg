@@ -2,15 +2,23 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { Menu, Search, User, X } from "lucide-react"
 
 import BrandLogo from "@/components/brand/BrandLogo"
 import CartButton from "@/components/cart/CartButton"
-import CartDrawer from "@/components/cart/CartDrawer"
-import SearchDialog from "@/components/search/SearchDialog"
 import { Button } from "@/components/ui/button"
+import { useCustomerSession } from "@/lib/account/CustomerSessionProvider"
 import { getCustomerLoginHref } from "@/lib/account/customerLogin"
 import { cn } from "@/lib/utils"
+
+const SearchDialog = dynamic(
+  () => import("@/components/search/SearchDialog"),
+  { ssr: false }
+)
+const CartDrawer = dynamic(() => import("@/components/cart/CartDrawer"), {
+  ssr: false,
+})
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -21,14 +29,16 @@ const NAV_LINKS = [
   { label: "About", href: "/pages/about" },
 ] as const
 
-type NavbarProps = {
-  /** Shopify New Customer Accounts session present. */
-  isLoggedIn?: boolean
-}
-
-export default function Navbar({ isLoggedIn = false }: NavbarProps) {
+export default function Navbar({
+  shopPayStoreUrl,
+}: {
+  shopPayStoreUrl?: string | null
+}) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const { loggedIn, isHydrated } = useCustomerSession()
+  // SSR + pre-hydrate: assume logged out (cacheable). Update after session probe.
+  const isLoggedIn = isHydrated && loggedIn
   const accountHref = isLoggedIn ? "/account" : getCustomerLoginHref("/account")
   const accountLabel = isLoggedIn ? "Account" : "Login"
 
@@ -147,7 +157,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       </header>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
-      <CartDrawer />
+      <CartDrawer shopPayStoreUrl={shopPayStoreUrl} />
     </>
   )
 }

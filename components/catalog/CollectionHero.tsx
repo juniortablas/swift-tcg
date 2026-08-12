@@ -43,8 +43,8 @@ export default function CollectionHero({
               alt={image.alt}
               width={520}
               height={520}
-              unoptimized
               priority
+              sizes="(max-width: 640px) 100vw, 60vw"
               className={[image.className, mediaClass].filter(Boolean).join(" ")}
             />
           )

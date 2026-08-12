@@ -143,7 +143,8 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                   alt=""
                   width={96}
                   height={96}
-                  unoptimized
+                  loading="lazy"
+                  sizes="72px"
                   className="size-full scale-[1.06] object-contain p-1"
                 />
               </button>
@@ -175,8 +176,8 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
               alt={title}
               width={900}
               height={1080}
-              unoptimized
               priority
+              sizes="(max-width: 1024px) 100vw, 55vw"
               className={cn(
                 "h-full w-full object-contain p-3 transition-[opacity,transform] duration-300 ease-out sm:p-6",
                 fading ? "opacity-0" : "opacity-100",
@@ -246,7 +247,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
               alt={title}
               width={1200}
               height={1400}
-              unoptimized
+              sizes="90vw"
               className="mx-auto max-h-[85vh] w-auto object-contain"
             />
             {count > 1 ? (

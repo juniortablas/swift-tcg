@@ -17,6 +17,7 @@ import {
 import {
   enrichLanguageFacets,
   getShopifyCollectionLanguageFacets,
+  productMatchesLanguageFacet,
   type CollectionLanguageFacet,
 } from "@/lib/shopify/collectionFacets"
 import { getShopifyCollectionByHandle } from "@/lib/shopify/collectionSeo"
@@ -33,6 +34,25 @@ import type { Product } from "@/types/product"
 import { cache } from "react"
 
 export { RESERVED_GAME_HANDLES }
+
+const LANGUAGE_PARENT_HANDLES = ["one-piece", "pokemon"] as const
+
+/**
+ * `/pokemon-japanese` is a Shopify handle, not a storefront route.
+ * Canonical URL is `/{game}/{language}` — redirect to avoid duplicate catalog URLs.
+ */
+export function tcgLanguageHandleRedirect(gameHandle: string): string | null {
+  const handle = gameHandle.trim().toLowerCase()
+  if (!handle) return null
+  for (const parent of LANGUAGE_PARENT_HANDLES) {
+    const prefix = `${parent}-`
+    if (handle.startsWith(prefix)) {
+      const slug = handle.slice(prefix.length)
+      if (slug) return `/${parent}/${slug}`
+    }
+  }
+  return null
+}
 
 const DEFAULT_ATMOSPHERE =
   "bg-[radial-gradient(ellipse_at_80%_20%,rgba(255,255,255,0.14)_0%,transparent_42%),linear-gradient(125deg,#0a0a0a_0%,#171717_48%,#404040_100%)]"
@@ -150,13 +170,14 @@ const loadTcgCollectionPageCached = cache(
       gameHandle,
       shopifyCollection.title
     )
-    const presentation = await applyStorefrontHeroToPresentation(
-      heroKeyForGame(gameHandle),
-      basePresentation
-    )
-    const category = presentation.title
+    const category = basePresentation.title
 
-    const [parentProducts, rawFacets] = await Promise.all([
+    // Parallelize hero CMS, catalog, and facet discovery.
+    const [presentation, parentProducts, rawFacets] = await Promise.all([
+      applyStorefrontHeroToPresentation(
+        heroKeyForGame(gameHandle),
+        basePresentation
+      ),
       getShopifyProducts({
         collectionHandle: gameHandle,
         category,
@@ -193,10 +214,10 @@ const loadTcgCollectionPageCached = cache(
       // with zero products — language cards stay visible as disabled otherwise.
       if (!facet || facet.productCount === 0) return null
 
-      const products = await getShopifyProducts({
-        collectionHandle: facet.handle,
-        category,
-      })
+      // Filter the already-loaded parent catalog — avoids a second full collection walk.
+      const products = parentProducts.filter((product) =>
+        productMatchesLanguageFacet(product, facet.slug)
+      )
 
       return {
         gameHandle,

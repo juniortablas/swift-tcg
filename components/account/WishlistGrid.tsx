@@ -4,6 +4,8 @@ import Link from "next/link"
 import { ShoppingBag, Trash2 } from "lucide-react"
 
 import ProductCard from "@/components/catalog/ProductCard"
+import EmptyState from "@/components/ux/EmptyState"
+import { HeartEmptyIllustration } from "@/components/ux/EmptyIllustrations"
 import { toCartItemKind } from "@/lib/cart/mixedCart"
 import { useCart } from "@/lib/cart/useCart"
 import { isPurchasable } from "@/lib/catalog"
@@ -91,20 +93,18 @@ export default function WishlistGrid({ products }: WishlistGridProps) {
 
 export function WishlistEmptyState() {
   return (
-    <div className="rounded-xl border border-dashed border-black/[0.1] bg-white px-6 py-14 text-center">
-      <p className="text-base font-semibold tracking-tight text-black">
-        Your wishlist is empty
-      </p>
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-black/55">
-        Tap the heart on any product to save it here. Your list follows your
-        account across devices.
-      </p>
-      <Link
-        href="/"
-        className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-green-700"
-      >
-        Continue shopping
-      </Link>
-    </div>
+    <EmptyState
+      illustration={<HeartEmptyIllustration />}
+      title="Your wishlist is empty"
+      description="Tap the heart on any product to save it here. Your list follows your account across devices."
+      actions={[
+        { label: "Continue shopping", href: "/" },
+        {
+          label: "Browse new releases",
+          href: "/new-releases",
+          variant: "secondary",
+        },
+      ]}
+    />
   )
 }

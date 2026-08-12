@@ -158,10 +158,17 @@ const loadMerchCollectionPageCached = cache(
   ): Promise<MerchCollectionPayload | null> => {
     const config = MERCH_CONFIG[merchKey]
     const basePath = `/${merchKey}`
-    const presentation = await presentationFor(merchKey)
-    const shopifyCollection = await getShopifyCollectionByHandle(
-      config.shopifyHandle
-    )
+
+    // Parallelize presentation, SEO, catalog, and TCG discovery.
+    const [presentation, shopifyCollection, allProducts, primaryGames] =
+      await Promise.all([
+        presentationFor(merchKey),
+        getShopifyCollectionByHandle(config.shopifyHandle),
+        getShopifyProducts({
+          collectionHandle: config.shopifyHandle,
+        }),
+        discoverPrimaryTcgCollections(),
+      ])
 
     const seoFields = {
       shopifySeoTitle: shopifyCollection?.seo.title ?? null,
@@ -181,11 +188,6 @@ const loadMerchCollectionPageCached = cache(
         presentation.title,
     }
 
-    const allProducts = await getShopifyProducts({
-      collectionHandle: config.shopifyHandle,
-    })
-
-    const primaryGames = await discoverPrimaryTcgCollections()
     const gameFacets = await applyGameVisuals(
       buildGameFacetsFromProducts(primaryGames, allProducts)
     )

@@ -27,7 +27,7 @@ export default function HomePromotion({ promotion }: HomePromotionProps) {
               src={promotion.mobileImage}
               alt={promotion.title}
               fill
-              unoptimized
+              loading="lazy"
               sizes="(max-width: 639px) 100vw, 1px"
               className="object-cover sm:hidden"
             />
@@ -35,7 +35,7 @@ export default function HomePromotion({ promotion }: HomePromotionProps) {
               src={promotion.desktopImage}
               alt={promotion.title}
               fill
-              unoptimized
+              loading="lazy"
               sizes="(min-width: 640px) 100vw, 1px"
               className="hidden object-cover sm:block"
             />

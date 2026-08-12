@@ -31,6 +31,8 @@ export async function subscribeToNewsletter(
 function normalizeSource(
   source: NewsletterSource | undefined
 ): NewsletterSource {
-  if (source === "homepage" || source === "footer") return source
+  if (source === "homepage" || source === "footer" || source === "maintenance") {
+    return source
+  }
   return "unknown"
 }

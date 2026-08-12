@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server"
 
+import { getCustomerLoginHref } from "@/lib/account/customerLogin"
 import {
   isMaintenanceBypassPath,
   isMaintenanceMode,
   MAINTENANCE_PATH,
   MAINTENANCE_RETRY_AFTER_SECONDS,
 } from "@/lib/maintenance"
-import { getCustomerLoginHref } from "@/lib/account/customerLogin"
 
 const PUBLIC_ACCOUNT_PATHS = new Set([
   "/account/login",
@@ -55,13 +55,20 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-swift-pathname", `${pathname}${search}`)
+
   if (PUBLIC_ACCOUNT_PATHS.has(pathname)) {
-    return NextResponse.next()
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    })
   }
 
   const loggedIn = request.cookies.get("swift_ca_logged_in")?.value === "1"
   if (loggedIn) {
-    return NextResponse.next()
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    })
   }
 
   const loginUrl = new URL(
@@ -75,9 +82,9 @@ export const config = {
   matcher: [
     /*
      * Run on app routes + account auth.
-     * Skip API, Next internals, SEO files, and known static asset prefixes.
+     * Skip API, Sentry tunnel, Next internals, SEO files, and known static asset prefixes.
      * File extensions are also bypassed inside `isMaintenanceBypassPath`.
      */
-    "/((?!api(?:/|$)|_next/|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|brand/|images/|fonts/|icons/).*)",
+    "/((?!api(?:/|$)|monitoring(?:/|$)|_next/|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|brand/|images/|fonts/|icons/).*)",
   ],
 }
