@@ -2,7 +2,10 @@
 
 import { Check } from "lucide-react"
 
+import NotifyMeButton from "@/components/back-in-stock/NotifyMeButton"
+import ProductRating from "@/components/reviews/ProductRating"
 import { Button } from "@/components/ui/button"
+import WishlistButton from "@/components/wishlist/WishlistButton"
 import { toCartItemKind } from "@/lib/cart/mixedCart"
 import { useCart } from "@/lib/cart/useCart"
 import {
@@ -70,6 +73,7 @@ export default function PurchasePanel({ product }: { product: Product }) {
   const badge = availabilityBadge(product)
   const release = getProductReleaseDate(product)
   const canPurchase = isPurchasable(product)
+  const isSoldOut = product.status === "soldout"
   const isPreorder =
     product.status === "preorder" &&
     typeof product.price === "number" &&
@@ -100,6 +104,15 @@ export default function PurchasePanel({ product }: { product: Product }) {
         {product.title}
       </h1>
 
+      <div className="mt-2 sm:mt-3">
+        <ProductRating
+          average={product.reviewRating}
+          count={product.reviewCount}
+          size="md"
+          href="#product-reviews"
+        />
+      </div>
+
       <div className="mt-3 sm:mt-5">
         {isPreorder && release ? (
           <div>
@@ -128,20 +141,29 @@ export default function PurchasePanel({ product }: { product: Product }) {
         </span>
       ) : null}
 
-      <Button
-        type="button"
-        size="lg"
-        disabled={!canPurchase}
-        onClick={handlePurchase}
-        className={cn(
-          "mt-4 h-12 w-full rounded-full text-[15px] font-semibold transition-all duration-200 sm:mt-7 sm:h-[52px]",
-          canPurchase
-            ? "bg-green-600 text-white shadow-[0_10px_28px_-14px_rgba(22,163,74,0.55)] hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-[0_14px_32px_-14px_rgba(22,163,74,0.6)]"
-            : "bg-neutral-100 text-black/45"
+      <div className="mt-4 flex items-start gap-2.5 sm:mt-7">
+        {isSoldOut ? (
+          <div className="min-w-0 flex-1">
+            <NotifyMeButton productId={product.id} />
+          </div>
+        ) : (
+          <Button
+            type="button"
+            size="lg"
+            disabled={!canPurchase}
+            onClick={handlePurchase}
+            className={cn(
+              "h-12 flex-1 rounded-full text-[15px] font-semibold transition-all duration-200 sm:h-[52px]",
+              canPurchase
+                ? "bg-green-600 text-white shadow-[0_10px_28px_-14px_rgba(22,163,74,0.55)] hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-[0_14px_32px_-14px_rgba(22,163,74,0.6)]"
+                : "bg-neutral-100 text-black/45"
+            )}
+          >
+            {getPurchaseCtaLabel(product, "bag")}
+          </Button>
         )}
-      >
-        {getPurchaseCtaLabel(product, "bag")}
-      </Button>
+        <WishlistButton productId={product.id} variant="pdp" />
+      </div>
 
       <div className="mt-5 rounded-[14px] border border-black/[0.06] bg-[#f7faf8] px-3.5 py-3.5 sm:mt-8 sm:rounded-[17px] sm:px-6 sm:py-6">
         <h2 className="text-center text-[14px] font-semibold tracking-tight text-black sm:text-[15px]">

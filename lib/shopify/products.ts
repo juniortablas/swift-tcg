@@ -7,6 +7,8 @@
 
 import type { CatalogCategory, Product } from "@/types/product"
 
+import { cache } from "react"
+
 import { shopifyFetch } from "./client"
 import { mapShopifyProduct, mapShopifyProducts } from "./mappers"
 import {
@@ -14,6 +16,7 @@ import {
   GET_PRODUCT_BY_HANDLE,
   GET_PRODUCT_COLLECTIONS,
   GET_PRODUCTS,
+  GET_PRODUCTS_BY_IDS,
 } from "./queries"
 import {
   getStandardCollection,
@@ -24,6 +27,7 @@ import type {
   Product as ShopifyProduct,
   ProductByHandleQueryResult,
   ProductCollectionsQueryResult,
+  ProductsByIdsQueryResult,
   ProductsQueryResult,
 } from "./types"
 
@@ -127,18 +131,50 @@ export async function getShopifyProducts(
 /**
  * Fetch a single published product by handle (slug).
  * Returns `null` when Shopify has no matching product.
+ * Cached per request so `generateMetadata` + page share one fetch.
  */
-export async function getShopifyProductByHandle(
-  handle: string
-): Promise<Product | null> {
-  const data = await shopifyFetch<ProductByHandleQueryResult>({
-    query: GET_PRODUCT_BY_HANDLE,
-    variables: { handle },
-  })
+export const getShopifyProductByHandle = cache(
+  async (handle: string): Promise<Product | null> => {
+    const data = await shopifyFetch<ProductByHandleQueryResult>({
+      query: GET_PRODUCT_BY_HANDLE,
+      variables: { handle },
+    })
 
-  if (!data.product) return null
+    if (!data.product) return null
 
-  return mapShopifyProduct(data.product)
+    return mapShopifyProduct(data.product)
+  }
+)
+
+/**
+ * Hydrate products by Shopify GIDs. Preserves input order; skips missing nodes.
+ * Storefront `nodes` accepts up to 250 ids per request — chunk when needed.
+ */
+export async function getShopifyProductsByIds(
+  ids: string[]
+): Promise<Product[]> {
+  const unique = [...new Set(ids.filter(Boolean))]
+  if (unique.length === 0) return []
+
+  const CHUNK = 50
+  const byId = new Map<string, Product>()
+
+  for (let i = 0; i < unique.length; i += CHUNK) {
+    const chunk = unique.slice(i, i + CHUNK)
+    const data = await shopifyFetch<ProductsByIdsQueryResult>({
+      query: GET_PRODUCTS_BY_IDS,
+      variables: { ids: chunk },
+    })
+
+    for (const node of data.nodes) {
+      if (!node?.id) continue
+      byId.set(node.id, mapShopifyProduct(node))
+    }
+  }
+
+  return ids
+    .map((id) => byId.get(id))
+    .filter((product): product is Product => Boolean(product))
 }
 
 export type GetShopifyRelatedProductsOptions = {

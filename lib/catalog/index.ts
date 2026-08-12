@@ -2,8 +2,8 @@
  * Catalog helpers for storefront presentation.
  *
  * Product data is loaded from Shopify (`@/lib/shopify`). This module exports
- * derived UI helpers (descriptions, filters, collection page config) that
- * operate on the shared `Product` model.
+ * derived UI helpers (PDP specs from Shopify fields, filters, collection page
+ * config) that operate on the shared `Product` model.
  */
 
 export {
@@ -21,25 +21,43 @@ export {
   getProductBrand,
   getProductTypeLabel,
   getProductTypeFilter,
+  getShopifyProductType,
   getTypeFilterLabel,
   getAvailability,
   getReleaseYear,
+  getProductLanguageSlug,
+  getProductLanguageLabel,
+  getLanguageFilterLabel,
   getPurchaseCtaLabel,
   isProductTypeLabel,
   isPurchasable,
+  PRODUCT_LANGUAGE_SLUGS,
+  SHOPIFY_PRODUCT_TYPES,
   type AvailabilityFilter,
+  type ProductLanguageSlug,
   type ProductTypeFilter,
   type PurchaseCtaVariant,
+  type ShopifyProductType,
 } from "./productMeta"
 export {
   DEFAULT_FILTERS,
+  DEFAULT_SORT,
   PAGE_SIZE,
   filterProducts,
+  getAvailableLanguages,
   getAvailableTypes,
   getAvailableYears,
   getPriceBounds,
+  hasActiveFilters,
   searchProducts,
   sortProducts,
   type CollectionFiltersState,
   type SortOption,
 } from "./collectionFilters"
+export {
+  collectionUrlSearch,
+  collectionUrlStatesEqual,
+  parseCollectionUrlState,
+  serializeCollectionUrlState,
+  type CollectionUrlState,
+} from "./collectionUrlState"

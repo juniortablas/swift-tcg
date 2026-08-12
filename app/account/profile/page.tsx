@@ -8,7 +8,7 @@ import { getCustomerProfile } from "@/lib/shopify/customerAccount"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Profile | Swift TCG",
+  title: "Profile",
   robots: { index: false, follow: false },
 }
 

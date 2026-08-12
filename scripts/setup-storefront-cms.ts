@@ -2,9 +2,13 @@
  * Idempotent Shopify Storefront CMS setup via Admin GraphQL.
  *
  * Creates / verifies:
- * - Metaobject definitions: storefront_hero, storefront_visual
- * - Product metafield definition: custom.release_date (Date)
+ * - Metaobject definitions: storefront_hero, storefront_visual,
+ *   homepage_featured_product, homepage_featured_collection, homepage_promotion,
+ *   homepage (orchestration)
+ * - Product metafield definitions: custom.release_date, language, series,
+ *   condition, rarity, product_code; swift.homepage_position (Coming Soon rail)
  * - Hero + Visual seed entries (by `key`)
+ * - One Homepage orchestration entry (handle `homepage`)
  * - Shopify Files uploads from /public when local assets match
  *
  * Then verifies Storefront API reads return Shopify data for seeded keys.
@@ -420,6 +424,140 @@ const VISUAL_FIELDS: FieldDefInput[] = [
   { name: "Link", key: "link", type: "single_line_text_field" },
 ]
 
+const FEATURED_PRODUCT_FIELDS: FieldDefInput[] = [
+  {
+    name: "Product",
+    key: "product",
+    type: "product_reference",
+    required: true,
+  },
+  { name: "Badge", key: "badge", type: "single_line_text_field" },
+  { name: "Sort order", key: "sort_order", type: "number_integer" },
+  { name: "Enabled", key: "enabled", type: "boolean" },
+]
+
+const FEATURED_COLLECTION_FIELDS: FieldDefInput[] = [
+  {
+    name: "Collection",
+    key: "collection",
+    type: "collection_reference",
+    required: true,
+  },
+  {
+    name: "Title override",
+    key: "title_override",
+    type: "single_line_text_field",
+  },
+  {
+    name: "Description override",
+    key: "description_override",
+    type: "multi_line_text_field",
+  },
+  {
+    name: "Image override",
+    key: "image_override",
+    type: "file_reference",
+    validations: [IMAGE_FILE_VALIDATION],
+  },
+  { name: "Sort order", key: "sort_order", type: "number_integer" },
+  { name: "Enabled", key: "enabled", type: "boolean" },
+]
+
+const PROMOTION_FIELDS: FieldDefInput[] = [
+  {
+    name: "Title",
+    key: "title",
+    type: "single_line_text_field",
+    required: true,
+  },
+  { name: "Description", key: "description", type: "multi_line_text_field" },
+  {
+    name: "Desktop image",
+    key: "desktop_image",
+    type: "file_reference",
+    validations: [IMAGE_FILE_VALIDATION],
+  },
+  {
+    name: "Mobile image",
+    key: "mobile_image",
+    type: "file_reference",
+    validations: [IMAGE_FILE_VALIDATION],
+  },
+  { name: "CTA text", key: "cta_text", type: "single_line_text_field" },
+  { name: "CTA link", key: "cta_link", type: "single_line_text_field" },
+  { name: "Start date", key: "start_date", type: "date_time" },
+  { name: "End date", key: "end_date", type: "date_time" },
+  { name: "Enabled", key: "enabled", type: "boolean" },
+]
+
+function homepageFields(deps: {
+  heroDefinitionId: string
+  promotionDefinitionId: string
+  featuredProductDefinitionId: string
+  featuredCollectionDefinitionId: string
+}): FieldDefInput[] {
+  const metaobjectRef = (definitionId: string) => [
+    { name: "metaobject_definition_id", value: definitionId },
+  ]
+
+  return [
+    {
+      name: "Hero",
+      key: "hero",
+      type: "metaobject_reference",
+      validations: metaobjectRef(deps.heroDefinitionId),
+    },
+    {
+      name: "Promotion",
+      key: "promotion",
+      type: "metaobject_reference",
+      validations: metaobjectRef(deps.promotionDefinitionId),
+    },
+    {
+      name: "Featured Products",
+      key: "featured_products",
+      type: "list.metaobject_reference",
+      validations: metaobjectRef(deps.featuredProductDefinitionId),
+    },
+    {
+      name: "Featured Collections",
+      key: "featured_collections",
+      type: "list.metaobject_reference",
+      validations: metaobjectRef(deps.featuredCollectionDefinitionId),
+    },
+    {
+      name: "Featured Products Title",
+      key: "featured_products_title",
+      type: "single_line_text_field",
+    },
+    {
+      name: "Featured Collections Title",
+      key: "featured_collections_title",
+      type: "single_line_text_field",
+    },
+    {
+      name: "Show Latest Releases",
+      key: "show_latest_releases",
+      type: "boolean",
+    },
+    {
+      name: "Show Coming Soon",
+      key: "show_coming_soon",
+      type: "boolean",
+    },
+    {
+      name: "Show Categories",
+      key: "show_categories",
+      type: "boolean",
+    },
+    {
+      name: "Show Newsletter",
+      key: "show_newsletter",
+      type: "boolean",
+    },
+  ]
+}
+
 type MetaobjectDefinitionNode = {
   id: string
   name: string
@@ -475,8 +613,16 @@ async function ensureDefinition(input: {
   name: string
   type: string
   fields: FieldDefInput[]
+  /** Admin list display field; defaults to `key` when that field exists. */
+  displayNameKey?: string | null
 }): Promise<"created" | "verified" | "updated"> {
   const existing = await getDefinitionByType(input.type)
+  const displayNameKey =
+    input.displayNameKey === undefined
+      ? input.fields.some((field) => field.key === "key")
+        ? "key"
+        : null
+      : input.displayNameKey
 
   if (!existing) {
     if (DRY_RUN) {
@@ -510,7 +656,7 @@ async function ensureDefinition(input: {
         definition: {
           name: input.name,
           type: input.type,
-          displayNameKey: "key",
+          ...(displayNameKey ? { displayNameKey } : {}),
           access: {
             storefront: "PUBLIC_READ",
           },
@@ -537,8 +683,10 @@ async function ensureDefinition(input: {
   const missingFields = input.fields.filter((f) => !existingKeys.has(f.key))
   const needsStorefront =
     existing.access.storefront !== "PUBLIC_READ"
+  const needsDisplayName =
+    Boolean(displayNameKey) && existing.displayNameKey !== displayNameKey
 
-  if (missingFields.length === 0 && !needsStorefront) {
+  if (missingFields.length === 0 && !needsStorefront && !needsDisplayName) {
     console.log(`  Verified definition: ${input.type}`)
     return "verified"
   }
@@ -549,7 +697,8 @@ async function ensureDefinition(input: {
         (missingFields.length
           ? ` (+fields: ${missingFields.map((f) => f.key).join(", ")})`
           : "") +
-        (needsStorefront ? " (+storefront PUBLIC_READ)" : "")
+        (needsStorefront ? " (+storefront PUBLIC_READ)" : "") +
+        (needsDisplayName ? ` (+displayNameKey ${displayNameKey})` : "")
     )
     return "updated"
   }
@@ -583,8 +732,8 @@ async function ensureDefinition(input: {
         ...(needsStorefront
           ? { access: { storefront: "PUBLIC_READ" } }
           : {}),
-        ...(existing.displayNameKey !== "key"
-          ? { displayNameKey: "key" }
+        ...(needsDisplayName && displayNameKey
+          ? { displayNameKey }
           : {}),
         fieldDefinitions: missingFields.map((field) => ({
           create: {
@@ -617,15 +766,80 @@ async function ensureDefinition(input: {
 // Product metafield definitions
 // ---------------------------------------------------------------------------
 
-const PRODUCT_RELEASE_DATE_METAFIELD = {
-  name: "Official Release Date",
-  namespace: "custom",
-  key: "release_date",
-  type: "date",
-  ownerType: "PRODUCT" as const,
-  description:
-    "Official product release date. Used to sort Newest Arrivals; falls back to product createdAt when empty.",
+type ProductMetafieldDef = {
+  name: string
+  namespace: string
+  key: string
+  type: string
+  ownerType: "PRODUCT"
+  description: string
 }
+
+const PRODUCT_METAFIELDS: ProductMetafieldDef[] = [
+  {
+    name: "Official Release Date",
+    namespace: "custom",
+    key: "release_date",
+    type: "date",
+    ownerType: "PRODUCT",
+    description:
+      "Official product release date. Used to sort Newest Arrivals and shown on the PDP; falls back to product createdAt when empty.",
+  },
+  {
+    name: "Language",
+    namespace: "custom",
+    key: "language",
+    type: "single_line_text_field",
+    ownerType: "PRODUCT",
+    description:
+      "Product language (Japanese, English, Korean, Chinese). Shown on the PDP when set; otherwise language tags are used.",
+  },
+  {
+    name: "Series / Set",
+    namespace: "custom",
+    key: "series",
+    type: "single_line_text_field",
+    ownerType: "PRODUCT",
+    description:
+      "Series or set name for the PDP specifications table (e.g. Scarlet & Violet — Black Bolt).",
+  },
+  {
+    name: "Condition",
+    namespace: "custom",
+    key: "condition",
+    type: "single_line_text_field",
+    ownerType: "PRODUCT",
+    description:
+      "Product condition for the PDP (e.g. Factory Sealed). Leave empty to hide the row.",
+  },
+  {
+    name: "Rarity",
+    namespace: "custom",
+    key: "rarity",
+    type: "single_line_text_field",
+    ownerType: "PRODUCT",
+    description:
+      "Rarity when applicable. Leave empty to hide the row on the PDP.",
+  },
+  {
+    name: "Product Code",
+    namespace: "custom",
+    key: "product_code",
+    type: "single_line_text_field",
+    ownerType: "PRODUCT",
+    description:
+      "Manufacturer or distributor product code. Leave empty to hide the row on the PDP.",
+  },
+  {
+    name: "Homepage position",
+    namespace: "swift",
+    key: "homepage_position",
+    type: "number_integer",
+    ownerType: "PRODUCT",
+    description:
+      "Manual sort order for the homepage Coming Soon carousel (1, 2, 3…). Lower numbers appear first. Products without this field follow after all positioned products.",
+  },
+]
 
 type ProductMetafieldDefinitionNode = {
   id: string
@@ -638,15 +852,17 @@ type ProductMetafieldDefinitionNode = {
   access: { storefront: string | null }
 }
 
-async function fetchProductReleaseDateDefinition(): Promise<ProductMetafieldDefinitionNode | null> {
-  const { namespace, key, ownerType } = PRODUCT_RELEASE_DATE_METAFIELD
+async function fetchProductMetafieldDefinition(
+  def: ProductMetafieldDef
+): Promise<ProductMetafieldDefinitionNode | null> {
+  const { namespace, key, ownerType } = def
   const data = await shopifyAdminFetch<{
     metafieldDefinitions: {
       edges: Array<{ node: ProductMetafieldDefinitionNode }>
     }
   }>({
     query: /* GraphQL */ `
-      query ProductReleaseDateDefinition(
+      query ProductMetafieldDefinition(
         $ownerType: MetafieldOwnerType!
         $namespace: String!
         $key: String!
@@ -690,7 +906,7 @@ async function pinProductMetafieldDefinition(definitionId: string): Promise<void
     }
   }>({
     query: /* GraphQL */ `
-      mutation PinProductReleaseDate($definitionId: ID!) {
+      mutation PinProductMetafield($definitionId: ID!) {
         metafieldDefinitionPin(definitionId: $definitionId) {
           pinnedDefinition {
             id
@@ -721,15 +937,14 @@ async function pinProductMetafieldDefinition(definitionId: string): Promise<void
 }
 
 /**
- * Ensure Product metafield `custom.release_date` (Date) exists, is pinned in
- * Admin, and has Storefront PUBLIC_READ. Idempotent.
+ * Ensure a Product metafield definition exists, is pinned in Admin, and has
+ * Storefront PUBLIC_READ. Idempotent.
  *
  * Pinning is required — Shopify Admin only auto-shows pinned metafields on
  * product pages ("No metafields pinned" otherwise).
  */
-async function ensureProductReleaseDateMetafield(): Promise<void> {
-  const { name, namespace, key, type, ownerType, description } =
-    PRODUCT_RELEASE_DATE_METAFIELD
+async function ensureProductMetafield(def: ProductMetafieldDef): Promise<void> {
+  const { name, namespace, key, type, ownerType, description } = def
   const label = `${namespace}.${key}`
 
   if (DRY_RUN) {
@@ -739,7 +954,7 @@ async function ensureProductReleaseDateMetafield(): Promise<void> {
     return
   }
 
-  let node = await fetchProductReleaseDateDefinition()
+  let node = await fetchProductMetafieldDefinition(def)
 
   if (!node) {
     const data = await shopifyAdminFetch<{
@@ -755,7 +970,7 @@ async function ensureProductReleaseDateMetafield(): Promise<void> {
       }
     }>({
       query: /* GraphQL */ `
-        mutation CreateProductReleaseDateMetafield(
+        mutation CreateProductMetafield(
           $definition: MetafieldDefinitionInput!
         ) {
           metafieldDefinitionCreate(definition: $definition) {
@@ -813,7 +1028,7 @@ async function ensureProductReleaseDateMetafield(): Promise<void> {
       console.log(`  Created definition: ${label} (pinned)`)
     }
 
-    node = await fetchProductReleaseDateDefinition()
+    node = await fetchProductMetafieldDefinition(def)
     if (!node) {
       throw new ShopifyClientError(
         `metafieldDefinitionCreate(${label}): definition missing after create`
@@ -832,7 +1047,7 @@ async function ensureProductReleaseDateMetafield(): Promise<void> {
       }
     }>({
       query: /* GraphQL */ `
-        mutation UpdateProductReleaseDate(
+        mutation UpdateProductMetafield(
           $definition: MetafieldDefinitionUpdateInput!
         ) {
           metafieldDefinitionUpdate(definition: $definition) {
@@ -878,17 +1093,17 @@ async function ensureProductReleaseDateMetafield(): Promise<void> {
     console.log(`  Verified definition: ${label} (pinned)`)
   }
 
-  await verifyProductReleaseDateDefinition()
+  await verifyProductMetafield(def)
 }
 
 /**
  * Fail the setup run if the Product metafield is missing, wrong type/owner,
  * unpinned, or not Storefront-readable.
  */
-async function verifyProductReleaseDateDefinition(): Promise<void> {
-  const { name, namespace, key, type, ownerType } = PRODUCT_RELEASE_DATE_METAFIELD
+async function verifyProductMetafield(def: ProductMetafieldDef): Promise<void> {
+  const { name, namespace, key, type, ownerType } = def
   const label = `${namespace}.${key}`
-  const node = await fetchProductReleaseDateDefinition()
+  const node = await fetchProductMetafieldDefinition(def)
 
   if (!node) {
     throw new ShopifyClientError(
@@ -919,6 +1134,12 @@ async function verifyProductReleaseDateDefinition(): Promise<void> {
   console.log(
     `  Admin verify OK: ${label} id=${node.id} ownerType=${node.ownerType} type=${node.type.name} pinned=#${node.pinnedPosition} name="${node.name || name}"`
   )
+}
+
+async function ensureProductMetafields(): Promise<void> {
+  for (const def of PRODUCT_METAFIELDS) {
+    await ensureProductMetafield(def)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1528,6 +1749,80 @@ async function seedVisuals(): Promise<{ created: number; skipped: number; update
   return { created, skipped, updated }
 }
 
+/**
+ * Seed a single Homepage orchestration entry (handle `homepage`).
+ *
+ * Leaves hero / promotion / featured lists empty so the storefront keeps the
+ * existing multi-slide carousel + Coming Soon / Visual category fallbacks until
+ * merchants wire references in Admin. Section toggles default to on.
+ */
+async function seedHomepage(): Promise<{
+  created: number
+  skipped: number
+  updated: number
+}> {
+  const definition = await getDefinitionByType("homepage")
+  if (!definition) {
+    if (DRY_RUN) {
+      console.log(
+        "  [dry-run] would seed homepage entry after definition exists"
+      )
+      return { created: 1, skipped: 0, updated: 0 }
+    }
+    throw new Error("Cannot seed Homepage — definition homepage is missing")
+  }
+
+  const HOMEPAGE_HANDLE = "homepage"
+  const defaultFields: Array<{ key: string; value: string }> = [
+    { key: "featured_products_title", value: "Featured" },
+    { key: "featured_collections_title", value: "Shop by Category" },
+    { key: "show_latest_releases", value: "true" },
+    { key: "show_coming_soon", value: "true" },
+    { key: "show_categories", value: "true" },
+    { key: "show_newsletter", value: "true" },
+  ]
+
+  const existing = await fetchAdminMetaobjects("homepage")
+  const current =
+    existing.find((node) => node.handle === HOMEPAGE_HANDLE) ?? existing[0]
+
+  if (current) {
+    const patch: Array<{ key: string; value: string }> = []
+    for (const field of defaultFields) {
+      if (!fieldValue(current, field.key)) {
+        patch.push(field)
+      }
+    }
+
+    if (patch.length === 0) {
+      console.log(`  skip homepage (exists): ${current.handle}`)
+      return { created: 0, skipped: 1, updated: 0 }
+    }
+
+    if (DRY_RUN) {
+      console.log(
+        `  [dry-run] would patch homepage ${current.handle}: ${patch.map((p) => p.key).join(", ")}`
+      )
+      return { created: 0, skipped: 0, updated: 1 }
+    }
+
+    await updateMetaobjectFields(current.id, patch)
+    console.log(
+      `  patched homepage: ${current.handle} (${patch.map((p) => p.key).join(", ")})`
+    )
+    return { created: 0, skipped: 0, updated: 1 }
+  }
+
+  if (DRY_RUN) {
+    console.log(`  [dry-run] would create homepage: ${HOMEPAGE_HANDLE}`)
+    return { created: 1, skipped: 0, updated: 0 }
+  }
+
+  await createMetaobject("homepage", HOMEPAGE_HANDLE, defaultFields)
+  console.log(`  created homepage: ${HOMEPAGE_HANDLE}`)
+  return { created: 1, skipped: 0, updated: 0 }
+}
+
 // ---------------------------------------------------------------------------
 // Storefront verification
 // ---------------------------------------------------------------------------
@@ -1608,6 +1903,23 @@ async function verifyStorefront(): Promise<void> {
     console.log(`  getStorefrontVisual("${key}") → Shopify (alt set)`)
   }
 
+  // Homepage merchandising + orchestration types must be Storefront-readable
+  // (entries optional — Homepage entry is merchant-created).
+  const merchTypes = [
+    "homepage_featured_product",
+    "homepage_featured_collection",
+    "homepage_promotion",
+    "homepage",
+  ] as const
+  for (const type of merchTypes) {
+    await shopifyFetch<MetaobjectsByTypeQueryResult>({
+      query: GET_METAOBJECTS_BY_TYPE,
+      variables: { type, first: 1 },
+      config,
+    })
+    console.log(`  metaobjects(type: "${type}") → Storefront readable`)
+  }
+
   // Missing-key fallback path still works in code (no Shopify entry required).
   console.log(
     `  fallbacks intact for missing keys (local hero art when Shopify images empty)`
@@ -1656,10 +1968,67 @@ async function main(): Promise<void> {
     type: "storefront_visual",
     fields: VISUAL_FIELDS,
   })
+  await ensureDefinition({
+    name: "Homepage Featured Product",
+    type: "homepage_featured_product",
+    fields: FEATURED_PRODUCT_FIELDS,
+    displayNameKey: null,
+  })
+  await ensureDefinition({
+    name: "Homepage Featured Collection",
+    type: "homepage_featured_collection",
+    fields: FEATURED_COLLECTION_FIELDS,
+    displayNameKey: null,
+  })
+  await ensureDefinition({
+    name: "Homepage Promotion",
+    type: "homepage_promotion",
+    fields: PROMOTION_FIELDS,
+    displayNameKey: "title",
+  })
+
+  // Homepage orchestration references the leaf types above — resolve their GIDs.
+  const heroDef = await getDefinitionByType("storefront_hero")
+  const featuredProductDef = await getDefinitionByType(
+    "homepage_featured_product"
+  )
+  const featuredCollectionDef = await getDefinitionByType(
+    "homepage_featured_collection"
+  )
+  const promotionDef = await getDefinitionByType("homepage_promotion")
+
+  if (
+    !heroDef?.id ||
+    !featuredProductDef?.id ||
+    !featuredCollectionDef?.id ||
+    !promotionDef?.id
+  ) {
+    if (DRY_RUN) {
+      console.log(
+        "  [dry-run] would create definition homepage (deps unresolved in dry-run)"
+      )
+    } else {
+      throw new Error(
+        "Cannot create Homepage definition — missing dependency definition IDs"
+      )
+    }
+  } else {
+    await ensureDefinition({
+      name: "Homepage",
+      type: "homepage",
+      displayNameKey: null,
+      fields: homepageFields({
+        heroDefinitionId: heroDef.id,
+        promotionDefinitionId: promotionDef.id,
+        featuredProductDefinitionId: featuredProductDef.id,
+        featuredCollectionDefinitionId: featuredCollectionDef.id,
+      }),
+    })
+  }
   console.log("✔ Metaobject definitions created/verified")
 
   console.log("\n1b) Product metafield definitions")
-  await ensureProductReleaseDateMetafield()
+  await ensureProductMetafields()
   console.log("✔ Product metafield definitions created/verified")
 
   console.log("\n2) Seed Storefront Hero entries")
@@ -1676,16 +2045,23 @@ async function main(): Promise<void> {
   )
   console.log("✔ Visual entries created")
 
+  console.log("\n4) Seed Homepage orchestration entry")
+  const homepage = await seedHomepage()
+  console.log(
+    `  homepage: ${homepage.created} created, ${homepage.updated} patched, ${homepage.skipped} skipped`
+  )
+  console.log("✔ Homepage entry created")
+
   const uploaded = [...fileIdCache.values()].filter(Boolean).length
-  console.log(`\n4) Images`)
+  console.log(`\n5) Images`)
   console.log(`  ${uploaded} Shopify Files resolved/uploaded this run`)
   console.log("✔ Images uploaded")
 
   if (DRY_RUN) {
-    console.log("\n5) Storefront verification skipped (dry-run)")
+    console.log("\n6) Storefront verification skipped (dry-run)")
     console.log("✔ Storefront verification passed")
   } else {
-    console.log("\n5) Storefront verification")
+    console.log("\n6) Storefront verification")
     await verifyStorefront()
     console.log("✔ Storefront verification passed")
   }

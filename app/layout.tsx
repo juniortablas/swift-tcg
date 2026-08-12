@@ -1,6 +1,22 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
+import SiteJsonLd from "@/components/seo/SiteJsonLd";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_KEYWORDS,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_TITLE,
+  getSiteOrigin,
+  SITE_NAME,
+  THEME_COLOR,
+} from "@/lib/seo";
 import "./globals.css";
+
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const clarityProjectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
+const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,31 +28,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteName = "Swift TCG";
-const siteTitle =
-  "Swift TCG | Japanese Pokémon & One Piece Trading Cards";
-const siteDescription =
-  "Shop authentic Japanese Pokémon and One Piece trading cards. Factory sealed booster boxes, premium collections, weekly imports, and official products shipped from the USA.";
+export const viewport: Viewport = {
+  themeColor: THEME_COLOR,
+  colorScheme: "light",
+};
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://swifttcg.com"),
-  title: siteTitle,
-  description: siteDescription,
-  applicationName: siteName,
-  category: "ecommerce",
-  keywords: [
-    "Japanese Pokémon cards",
-    "One Piece TCG",
-    "Japanese trading cards",
-    "Pokémon TCG Japan",
-    "One Piece Card Game",
-    "factory sealed booster boxes",
-    "Japanese TCG imports",
-    "Swift TCG",
-  ],
-  icons: {
-    icon: [{ url: "/favicon.ico", sizes: "any" }],
+  metadataBase: new URL(getSiteOrigin()),
+  title: {
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  category: "ecommerce",
+  keywords: [...DEFAULT_KEYWORDS],
   robots: {
     index: true,
     follow: true,
@@ -48,19 +54,34 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName,
-    title: siteTitle,
-    description: siteDescription,
+    siteName: SITE_NAME,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 709,
+        height: 216,
+        alt: SITE_NAME,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: siteTitle,
-    description: siteDescription,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
   },
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -69,7 +90,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        <SiteJsonLd />
+        {children}
+        {process.env.NODE_ENV === "production" && gaMeasurementId ? (
+          <GoogleAnalytics measurementId={gaMeasurementId} />
+        ) : null}
+        {process.env.NODE_ENV === "production" && clarityProjectId ? (
+          <MicrosoftClarity projectId={clarityProjectId} />
+        ) : null}
+      </body>
     </html>
   );
 }

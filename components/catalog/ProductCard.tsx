@@ -15,6 +15,8 @@ import { formatUsdPrice } from "@/lib/pricing"
 import type { Product, ProductStatus } from "@/types/product"
 import { cn } from "@/lib/utils"
 import ProductQuickView from "@/components/catalog/ProductQuickView"
+import ProductRating from "@/components/reviews/ProductRating"
+import WishlistButton from "@/components/wishlist/WishlistButton"
 
 function productHref(product: Product): string {
   if (product.url) return product.url
@@ -77,17 +79,25 @@ export default function ProductCard({
   variant = "featured",
   showQuickActions = false,
   density = "default",
+  badgeOverride,
 }: {
   product: Product
   variant?: ProductCardVariant
   showQuickActions?: boolean
   /** Homepage rails use a shorter image + tighter text on mobile. */
   density?: ProductCardDensity
+  /** Optional CMS merchandising badge; overrides availability badge when set. */
+  badgeOverride?: string | null
 }) {
   const { addItem } = useCart()
   const compact = variant === "compact"
   const rail = density === "rail" && !compact
-  const availability = availabilityBadge(product)
+  const availability = badgeOverride?.trim()
+    ? {
+        label: badgeOverride.trim(),
+        className: "bg-black text-white",
+      }
+    : availabilityBadge(product)
   const releaseLabel =
     product.status === "preorder" ||
     product.price == null ||
@@ -161,7 +171,7 @@ export default function ProductCard({
             <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
               <Image
                 src={product.image}
-                alt=""
+                alt={product.imageAlt?.trim() || product.title}
                 width={compact ? 240 : 400}
                 height={compact ? 300 : 500}
                 unoptimized
@@ -201,6 +211,17 @@ export default function ProductCard({
             >
               {product.title}
             </h3>
+            <div
+              className={cn(
+                compact || rail ? "mt-0.5" : "mt-0.5 sm:mt-1"
+              )}
+            >
+              <ProductRating
+                average={product.reviewRating}
+                count={product.reviewCount}
+                size="sm"
+              />
+            </div>
             {releaseLabel ? (
               <p
                 className={cn(
@@ -236,6 +257,17 @@ export default function ProductCard({
             </p>
           </div>
         </Link>
+
+        <div
+          className={cn(
+            "absolute z-30",
+            compact
+              ? "top-1.5 right-1.5"
+              : "top-1.5 right-1.5 sm:top-3 sm:right-3"
+          )}
+        >
+          <WishlistButton productId={product.id} variant="card" />
+        </div>
 
         {showQuickActions && !compact ? (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 aspect-square sm:aspect-[7/8]">

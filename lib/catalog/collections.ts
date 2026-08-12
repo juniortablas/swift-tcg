@@ -48,7 +48,7 @@ export const COLLECTIONS: Record<CollectionId, CollectionConfig> = {
       },
       {
         src: "/products/30th-celebration.webp",
-        alt: "",
+        alt: "Japanese Pokémon sealed product",
         className:
           "absolute right-[26%] top-[58%] hidden h-[130%] w-auto -translate-y-1/2 -rotate-8 object-contain opacity-80 drop-shadow-[0_20px_36px_rgba(0,0,0,0.4)] md:block",
       },
@@ -72,7 +72,7 @@ export const COLLECTIONS: Record<CollectionId, CollectionConfig> = {
       },
       {
         src: "/products/emperors-in-the-new-world.webp",
-        alt: "",
+        alt: "One Piece Card Game sealed collection",
         className:
           "absolute right-[30%] top-[54%] hidden h-[115%] w-auto -translate-y-1/2 rotate-6 object-contain opacity-65 drop-shadow-[0_20px_36px_rgba(0,0,0,0.4)] md:block",
       },
@@ -90,7 +90,7 @@ export const COLLECTIONS: Record<CollectionId, CollectionConfig> = {
     images: [
       {
         src: "/products/30th-celebration.webp",
-        alt: "",
+        alt: "Upcoming Japanese Pokémon preorder product",
         className:
           "absolute right-[18%] top-[48%] h-[130%] w-auto -translate-y-1/2 -rotate-10 object-contain opacity-70 drop-shadow-[0_20px_36px_rgba(0,0,0,0.45)]",
       },
@@ -114,7 +114,7 @@ export const COLLECTIONS: Record<CollectionId, CollectionConfig> = {
     images: [
       {
         src: "/products/white-flare.webp",
-        alt: "",
+        alt: "New Japanese Pokémon TCG release",
         className:
           "absolute right-[22%] top-[50%] hidden h-[125%] w-auto -translate-y-1/2 -rotate-6 object-contain opacity-70 drop-shadow-[0_20px_36px_rgba(0,0,0,0.4)] md:block",
       },

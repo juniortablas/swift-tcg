@@ -22,10 +22,10 @@ type CollectionToolbarProps = {
 }
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "newest", label: "Newest" },
-  { value: "price-asc", label: "Price Low–High" },
-  { value: "price-desc", label: "Price High–Low" },
-  { value: "release-date", label: "Release Date" },
+  { value: "newest", label: "Newest Release" },
+  { value: "oldest", label: "Oldest Release" },
+  { value: "price-asc", label: "Price Low → High" },
+  { value: "price-desc", label: "Price High → Low" },
   { value: "alphabetical", label: "Alphabetical" },
 ]
 
@@ -99,7 +99,7 @@ export default function CollectionToolbar({
             id="collection-sort"
             value={sort}
             onChange={(event) => onSortChange(event.target.value as SortOption)}
-            className="h-11 min-w-0 flex-1 rounded-full border border-black/10 bg-white px-3.5 text-sm font-medium text-black/75 outline-none transition-colors hover:border-black/20 focus:border-black/20 focus:ring-2 focus:ring-green-600/15 sm:h-10 sm:min-w-[10.5rem] sm:flex-none"
+            className="h-11 min-w-0 flex-1 rounded-full border border-black/10 bg-white px-3.5 text-sm font-medium text-black/75 outline-none transition-colors hover:border-black/20 focus:border-black/20 focus:ring-2 focus:ring-green-600/15 sm:h-10 sm:min-w-[12.5rem] sm:flex-none"
           >
             {SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>

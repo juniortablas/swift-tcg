@@ -35,7 +35,9 @@ Swift TCG is a premium headless ecommerce storefront for authentic Japanese trad
 - [ ] Checkout
 - [ ] Customer Accounts
 - [ ] Search
-- [ ] Wishlist
+- [x] Wishlist
+- [x] Back in Stock notifications
+- [x] Product Reviews (Shopify metaobjects)
 
 ## Success Criteria
 

@@ -5,6 +5,10 @@
  *   - Storefront Hero   → type `storefront_hero`
  *   - Storefront Visual → type `storefront_visual`
  *
+ * Homepage merchandising (featured products / collections / promotions) lives
+ * in `homepageMerchandising.ts` and shares the same fetch + `storefront-cms`
+ * cache-tag pattern.
+ *
  * Loaders fetch all entries once per request (React `cache`) and expose
  * keyed helpers with local asset fallbacks when Shopify content is missing.
  *
@@ -318,7 +322,9 @@ function fieldImageUrl(
   key: string
 ): string | null {
   const field = fields.get(key)
-  const url = field?.reference?.image?.url?.trim()
+  const ref = field?.reference
+  if (!ref || !("image" in ref)) return null
+  const url = ref.image?.url?.trim()
   return url || null
 }
 
@@ -342,15 +348,27 @@ function parseHero(node: ShopifyMetaobject): StorefrontHero | null {
   }
 }
 
+/** Parse a Storefront Hero metaobject node (used by Homepage orchestration). */
+export function storefrontHeroFromMetaobject(
+  node: ShopifyMetaobject
+): StorefrontHero | null {
+  return parseHero(node)
+}
+
 function parseVisual(node: ShopifyMetaobject): StorefrontVisual | null {
   const fields = fieldMap(node.fields)
   const key = fieldText(fields, "key") || node.handle
   if (!key) return null
 
+  const imageRef = fields.get("image")?.reference
+  const imageAlt =
+    imageRef && imageRef.__typename === "MediaImage"
+      ? imageRef.image?.altText
+      : null
   const altText =
     fieldText(fields, "alt") ||
     fieldText(fields, "alt_text") ||
-    fields.get("image")?.reference?.image?.altText ||
+    imageAlt ||
     key
   const title = fieldText(fields, "title") || altText || key
 
@@ -741,6 +759,52 @@ const HOMEPAGE_SLIDE_DEFS: Array<{
   },
 ]
 
+const DEFAULT_HOMEPAGE_SLIDE_PRESENTATION = {
+  secondary: { label: "Browse Catalog", href: "/products" },
+  glow: "rgba(255,255,255,0.5)",
+  imageClassName:
+    "absolute right-[2%] top-[2%] z-10 w-[72%] sm:inset-y-0 sm:right-0 sm:left-0 sm:top-0 sm:h-full sm:w-full",
+} as const
+
+/**
+ * Build a carousel slide from a resolved Storefront Hero.
+ * Uses known slide presentation when the hero key matches a carousel def.
+ */
+export function homepageHeroSlideFromHero(
+  hero: StorefrontHero
+): HomepageHeroSlide {
+  const def = HOMEPAGE_SLIDE_DEFS.find((entry) => entry.heroKey === hero.key)
+  const presentation = def ?? {
+    id: hero.key,
+    ...DEFAULT_HOMEPAGE_SLIDE_PRESENTATION,
+  }
+
+  const desktopImage =
+    hero.desktopImage || HERO_FALLBACKS[hero.key]?.desktopImage || ""
+  const mobileImage =
+    hero.mobileImage ||
+    hero.desktopImage ||
+    HERO_FALLBACKS[hero.key]?.mobileImage ||
+    desktopImage
+
+  return {
+    id: presentation.id,
+    eyebrow: hero.eyebrow,
+    heading: hero.heading,
+    description: hero.description,
+    primary: {
+      label: hero.ctaText || "Shop Now",
+      href: normalizeStorefrontHref(hero.ctaLink) || "/",
+    },
+    secondary: presentation.secondary,
+    glow: presentation.glow,
+    desktopImage,
+    mobileImage,
+    imageAlt: hero.title || hero.heading || presentation.id,
+    imageClassName: presentation.imageClassName,
+  }
+}
+
 /**
  * Build homepage carousel slides from Storefront Heroes only.
  * Each slide’s copy + desktop/mobile art come from one metaobject.
@@ -749,32 +813,7 @@ export async function getHomepageHeroSlides(): Promise<HomepageHeroSlide[]> {
   return Promise.all(
     HOMEPAGE_SLIDE_DEFS.map(async (def) => {
       const hero = await getStorefrontHero(def.heroKey)
-      const desktopImage =
-        hero.desktopImage ||
-        HERO_FALLBACKS[def.heroKey]?.desktopImage ||
-        ""
-      const mobileImage =
-        hero.mobileImage ||
-        hero.desktopImage ||
-        HERO_FALLBACKS[def.heroKey]?.mobileImage ||
-        desktopImage
-
-      return {
-        id: def.id,
-        eyebrow: hero.eyebrow,
-        heading: hero.heading,
-        description: hero.description,
-        primary: {
-          label: hero.ctaText || "Shop Now",
-          href: normalizeStorefrontHref(hero.ctaLink) || "/",
-        },
-        secondary: def.secondary,
-        glow: def.glow,
-        desktopImage,
-        mobileImage,
-        imageAlt: hero.title || hero.heading || def.id,
-        imageClassName: def.imageClassName,
-      }
+      return homepageHeroSlideFromHero(hero)
     })
   )
 }

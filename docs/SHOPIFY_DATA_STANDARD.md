@@ -263,8 +263,147 @@ Tags should not replace collections.
 | Setup | `npm run setup:cms` (see `docs/STOREFRONT_CMS.md` §8) |
 
 **Purpose:** Official product release date. Powers Newest Arrivals sorting
-(`release_date` DESC, fallback `createdAt`). Optional — products without a value
-keep working.
+(`release_date` DESC, fallback `createdAt`), collection browse sort
+(Newest / Oldest Release), Release Year filters, and the PDP Specifications
+row. Optional — products without a value keep working; the Release Date row
+is hidden.
+
+### Language
+
+| | |
+| --- | --- |
+| Namespace | `custom` |
+| Key | `language` |
+| Type | Single line text |
+| Setup | `npm run setup:cms` |
+
+**Purpose:** PDP Language row and collection Language filter. When empty, the
+storefront falls back to a known language tag (`japanese`, `english`,
+`korean`, `chinese`).
+
+### Series / Set
+
+| | |
+| --- | --- |
+| Namespace | `custom` |
+| Key | `series` |
+| Type | Single line text |
+| Setup | `npm run setup:cms` |
+
+**Purpose:** PDP Series / Set row. When empty, a set-code tag (e.g. `sv11b`)
+may be shown as a fallback.
+
+### Condition
+
+| | |
+| --- | --- |
+| Namespace | `custom` |
+| Key | `condition` |
+| Type | Single line text |
+| Setup | `npm run setup:cms` |
+
+**Purpose:** PDP Condition row (e.g. Factory Sealed). Hidden when empty.
+
+### Rarity
+
+| | |
+| --- | --- |
+| Namespace | `custom` |
+| Key | `rarity` |
+| Type | Single line text |
+| Setup | `npm run setup:cms` |
+
+**Purpose:** PDP Rarity row when applicable. Hidden when empty.
+
+### Product Code
+
+| | |
+| --- | --- |
+| Namespace | `custom` |
+| Key | `product_code` |
+| Type | Single line text |
+| Setup | `npm run setup:cms` |
+
+**Purpose:** Manufacturer / distributor product code on the PDP. Hidden when empty.
+
+### Homepage position (Coming Soon rail)
+
+| | |
+| --- | --- |
+| Namespace | `swift` |
+| Key | `homepage_position` |
+| Type | Integer (`number_integer`) |
+| Setup | `npm run setup:cms` |
+
+**Purpose:** Manual sort for the homepage **Coming Soon** carousel only.
+Products with a value sort ascending (1, 2, 3…). Products without the field
+appear after all positioned products. Same values keep Shopify collection order.
+Does not affect collections, search, or other listings.
+
+### Customer Wishlist
+
+| | |
+| --- | --- |
+| Namespace | `swift` |
+| Key | `wishlist` |
+| Owner | Customer |
+| Type | List of product references (`list.product_reference`) |
+| Setup | `npm run setup:wishlist` |
+
+**Purpose:** Persistent per-customer wishlist for the headless storefront.
+Stores product GIDs only; product cards hydrate via Storefront `nodes(ids:)`.
+
+**Access:** Enable Customer Account API **Read and write** on the definition
+(Admin → Settings → Custom data → Customers → Wishlist). Until that is set,
+runtime falls back to Admin API `metafieldsSet` (requires `read_customers` /
+`write_customers`). Shopify remains the single source of truth — no custom DB.
+
+### Customer Back in Stock
+
+| | |
+| --- | --- |
+| Namespace | `swift` |
+| Key | `back_in_stock` |
+| Owner | Customer |
+| Type | JSON (`[{ productId, subscribedAt }]`) |
+| Setup | `npm run setup:back-in-stock` |
+
+**Purpose:** Per-customer sold-out alerts for the headless storefront (account
+UI + unsubscribe). Dates are required for `/account/notifications`.
+
+**Reverse index (scale):** Product metafield `swift.bis_subscribers` stores
+`[{ customerId, subscribedAt }]` so the cron can fan out without scanning all
+customers. Shop metafield `swift.bis_watched_products` lists product GIDs with
+active subscribers so inventory checks stay O(watched products).
+
+**Access:** Enable Customer Account API **Read and write** on the customer
+definition. Product/shop indexes always use Admin API (`read_products` /
+`write_products`, `read_customers` / `write_customers`).
+
+**Automation:** Vercel Cron `GET /api/cron/back-in-stock` (every 15m) claims
+subscribers via `compareDigest`, sends Resend email
+(“Your item is back in stock!”), then removes the subscription. Failed sends
+are re-queued; successful sends never email twice.
+
+### Product Reviews
+
+| | |
+| --- | --- |
+| Metaobject type | `swift_product_review` (Shopify reserves `product_review`) |
+| Product aggregates | `swift.review_rating`, `swift.review_count`, `swift.review_breakdown` |
+| Customer helpful votes | `swift.review_helpful_votes` (JSON array of metaobject GIDs) |
+| Setup | `npm run setup:reviews` |
+| Docs | `docs/PRODUCT_REVIEWS.md` |
+
+**Purpose:** Moderated customer reviews. Metaobjects are Admin-only (pending
+reviews never leak via Storefront). Approved aggregates are denormalized onto
+products for card/PDP performance. Purchase verification uses Admin order
+line items (`read_orders`).
+
+**Moderation:** Status field `pending` → `approved` | `rejected` in Admin
+(Content → Metaobjects). `npm run setup:reviews` registers webhooks to
+`/api/webhooks/reviews`; hourly cron `/api/cron/reviews` is a fallback for
+recomputing product aggregates after approval.
 
 ### Ships On
 
@@ -308,13 +447,24 @@ Internal use only.
 
 ## Homepage Rules
 
-Homepage sections that are wired today are powered by Shopify Storefront reads
-(`lib/shopify/homepage.ts`). No homepage products are hardcoded in page files.
+Homepage sections are powered by a single Shopify **Homepage** metaobject when
+present (`lib/shopify/homepage.ts` → `getHomepagePageData`). That entry
+references Hero / Promotion / Featured Product / Featured Collection
+metaobjects and toggles section visibility. When no Homepage entry exists,
+product rails prefer per-type merchandising metaobjects; otherwise they use
+catalog / collection fallbacks. No homepage products are hardcoded in page files.
 
-| Section (UI) | Current data source |
-| --- | --- |
-| Coming Soon | Shopify `preorders` collection (falls back to products tagged `preorder` / `pre-order` if the collection is empty) |
-| Newest Arrivals | Newest active products from the Storefront catalog (`custom.release_date` DESC, fallback `createdAt`; filtered to in-stock + priced) |
+| Section (UI) | Primary source (Homepage entry) | Fallback (no Homepage / empty refs) |
+| --- | --- | --- |
+| Hero carousel | `homepage.hero` → `storefront_hero` | Hardcoded slide keys → local `/public` hero art |
+| Featured / Coming Soon rail | `homepage.featured_products` (+ `show_coming_soon`) | All enabled `homepage_featured_product` → `preorders` / tags |
+| Shop by Category | `homepage.featured_collections` (+ `show_categories`) | All enabled `homepage_featured_collection` → `storefront_visual` `homepage-category-*` |
+| Promotion band | `homepage.promotion` | All enabled in-window `homepage_promotion` (or hidden) |
+| Newest Arrivals | Catalog when `show_latest_releases` | Always on when no Homepage entry |
+| Newsletter | `show_newsletter` | Always on when no Homepage entry |
+
+Loaders: `lib/shopify/homepage.ts`, `lib/shopify/homepageMerchandising.ts`,
+`lib/shopify/storefrontCms.ts`.
 
 ### Standard homepage collections
 
@@ -329,7 +479,8 @@ These collections are part of the Shopify data standard and are created/ensured 
 | Best Sellers | `best-sellers` | Merchant-curated only |
 | Sale | `sale` | Merchant-curated only |
 
-No homepage merchandising should require code changes once a rail is pointed at a collection.
+No homepage merchandising should require code changes once metaobject entries
+(or a wired collection rail) are populated in Shopify Admin.
 
 ---
 

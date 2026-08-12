@@ -7,7 +7,7 @@ import { getCustomerOrders } from "@/lib/shopify/customerAccount"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Orders | Swift TCG",
+  title: "Orders",
   robots: { index: false, follow: false },
 }
 

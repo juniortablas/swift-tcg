@@ -4,10 +4,10 @@ import { useId, useState, type ReactNode } from "react"
 import { ChevronDown, X } from "lucide-react"
 
 import {
-  getTypeFilterLabel,
+  getLanguageFilterLabel,
+  hasActiveFilters,
   type AvailabilityFilter,
   type CollectionFiltersState,
-  type ProductTypeFilter,
 } from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 import { formatUsdPrice } from "@/lib/pricing"
@@ -17,8 +17,9 @@ type CollectionFiltersProps = {
   onChange: (next: CollectionFiltersState) => void
   onReset: () => void
   priceBounds: { min: number; max: number }
-  availableTypes: ProductTypeFilter[]
+  availableTypes: string[]
   availableYears: number[]
+  availableLanguages: string[]
   className?: string
   /** Hide the "Filters" heading when the parent already provides one (mobile drawer). */
   hideHeading?: boolean
@@ -100,17 +101,13 @@ export default function CollectionFilters({
   priceBounds,
   availableTypes,
   availableYears,
+  availableLanguages,
   className,
   hideHeading = false,
 }: CollectionFiltersProps) {
   const minId = useId()
   const maxId = useId()
-  const active =
-    filters.availability.length > 0 ||
-    filters.types.length > 0 ||
-    filters.years.length > 0 ||
-    filters.priceMin != null ||
-    filters.priceMax != null
+  const active = hasActiveFilters(filters)
 
   const currentMin = filters.priceMin ?? priceBounds.min
   const currentMax = filters.priceMax ?? priceBounds.max
@@ -146,6 +143,46 @@ export default function CollectionFilters({
         </div>
       )}
 
+      {availableYears.length > 0 ? (
+        <FilterSection title="Release Year">
+          <div className="space-y-0.5">
+            {availableYears.map((year) => (
+              <CheckboxRow
+                key={year}
+                checked={filters.years.includes(year)}
+                label={String(year)}
+                onChange={() =>
+                  onChange({
+                    ...filters,
+                    years: toggleValue(filters.years, year),
+                  })
+                }
+              />
+            ))}
+          </div>
+        </FilterSection>
+      ) : null}
+
+      {availableLanguages.length > 0 ? (
+        <FilterSection title="Language">
+          <div className="space-y-0.5">
+            {availableLanguages.map((language) => (
+              <CheckboxRow
+                key={language}
+                checked={filters.languages.includes(language)}
+                label={getLanguageFilterLabel(language)}
+                onChange={() =>
+                  onChange({
+                    ...filters,
+                    languages: toggleValue(filters.languages, language),
+                  })
+                }
+              />
+            ))}
+          </div>
+        </FilterSection>
+      ) : null}
+
       <FilterSection title="Availability">
         <div className="space-y-0.5">
           {AVAILABILITY.map((option) => (
@@ -164,7 +201,27 @@ export default function CollectionFilters({
         </div>
       </FilterSection>
 
-      <FilterSection title="Price" defaultOpen={false}>
+      {availableTypes.length > 0 ? (
+        <FilterSection title="Product Type" defaultOpen={false}>
+          <div className="space-y-0.5">
+            {availableTypes.map((type) => (
+              <CheckboxRow
+                key={type}
+                checked={filters.types.includes(type)}
+                label={type}
+                onChange={() =>
+                  onChange({
+                    ...filters,
+                    types: toggleValue(filters.types, type),
+                  })
+                }
+              />
+            ))}
+          </div>
+        </FilterSection>
+      ) : null}
+
+      <FilterSection title="Price Range" defaultOpen={false}>
         <div className="space-y-3 px-1">
           <div className="flex items-center justify-between text-xs font-medium tabular-nums text-black/50">
             <span>{formatUsdPrice(currentMin)}</span>
@@ -183,9 +240,11 @@ export default function CollectionFilters({
               value={currentMin}
               onChange={(event) => {
                 const next = Number(event.target.value)
+                const clamped = Math.min(next, currentMax)
                 onChange({
                   ...filters,
-                  priceMin: Math.min(next, currentMax),
+                  priceMin:
+                    clamped <= priceBounds.min ? null : clamped,
                   priceMax: filters.priceMax,
                 })
               }}
@@ -203,10 +262,12 @@ export default function CollectionFilters({
               value={currentMax}
               onChange={(event) => {
                 const next = Number(event.target.value)
+                const clamped = Math.max(next, currentMin)
                 onChange({
                   ...filters,
                   priceMin: filters.priceMin,
-                  priceMax: Math.max(next, currentMin),
+                  priceMax:
+                    clamped >= priceBounds.max ? null : clamped,
                 })
               }}
               className="pointer-events-none absolute inset-x-0 top-1/2 z-20 h-1.5 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-green-600 [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-green-600"
@@ -226,46 +287,6 @@ export default function CollectionFilters({
           </div>
         </div>
       </FilterSection>
-
-      {availableTypes.length > 0 ? (
-        <FilterSection title="Category" defaultOpen={false}>
-          <div className="space-y-0.5">
-            {availableTypes.map((type) => (
-              <CheckboxRow
-                key={type}
-                checked={filters.types.includes(type)}
-                label={getTypeFilterLabel(type)}
-                onChange={() =>
-                  onChange({
-                    ...filters,
-                    types: toggleValue(filters.types, type),
-                  })
-                }
-              />
-            ))}
-          </div>
-        </FilterSection>
-      ) : null}
-
-      {availableYears.length > 0 ? (
-        <FilterSection title="Release Year" defaultOpen={false}>
-          <div className="space-y-0.5">
-            {availableYears.map((year) => (
-              <CheckboxRow
-                key={year}
-                checked={filters.years.includes(year)}
-                label={String(year)}
-                onChange={() =>
-                  onChange({
-                    ...filters,
-                    years: toggleValue(filters.years, year),
-                  })
-                }
-              />
-            ))}
-          </div>
-        </FilterSection>
-      ) : null}
 
       {active ? (
         <button

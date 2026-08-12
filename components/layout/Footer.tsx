@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import BrandLogo from "@/components/brand/BrandLogo"
 import FooterNewsletter from "@/components/layout/FooterNewsletter"
 import SocialIcon from "@/components/content/SocialIcon"
 import {
@@ -77,13 +78,12 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
       <div className="mx-auto max-w-[1920px] px-4 pt-10 pb-8 sm:px-6 sm:pt-16 sm:pb-12 lg:px-8 xl:px-10">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-12 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-10">
           <div className="sm:col-span-2 lg:col-span-3">
-            <Link href="/" className="inline-flex flex-col leading-none">
-              <span className="text-lg font-bold tracking-tight text-black dark:text-white">
-                SWIFT
-              </span>
-              <span className="mt-0.5 text-[0.7rem] font-bold tracking-[0.18em] text-green-600 dark:text-green-400">
-                TCG
-              </span>
+            <Link
+              href="/"
+              className="inline-flex items-center"
+              aria-label="Swift TCG home"
+            >
+              <BrandLogo height={44} />
             </Link>
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-black/50 dark:text-white/50">
               Swift TCG imports authentic factory-sealed Pokémon and One Piece

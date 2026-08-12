@@ -1,0 +1,230 @@
+<!--
+  Customer account invite — Swift TCG branded
+  Sent to the customer with account activation instructions. You can edit this email before you send it.
+  Subject: Activate your Swift TCG account
+  Paste into: Settings → Notifications → Customer account invite
+-->
+{% capture email_title %}Activate your account{% endcapture %}
+{% capture email_body %}Hi {{ customer.first_name }}, you've created a new customer account at <a href="{{ shop.url }}">{{ shop.name }}</a>. All you have to do is activate it.{% endcapture %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <title>{{ email_title }}</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" type="text/css" href="/assets/notifications/styles.css">
+  <style>
+    /* Swift TCG brand — presentation only */
+    .body, .body > tr > td {
+      background-color: #ffffff !important;
+    }
+    .header__cell {
+      background-color: #ffffff;
+      padding: 28px 0 20px;
+      border-bottom: 3px solid #0EA54B;
+    }
+    .content__cell {
+      background-color: #ffffff;
+      padding-top: 32px;
+      padding-bottom: 8px;
+    }
+    .section__cell {
+      background-color: #ffffff;
+      padding-top: 8px;
+    }
+    .footer__cell {
+      background-color: #ffffff;
+      padding: 28px 0 8px;
+      border-top: 1px solid #e8e8e8;
+    }
+    .shop-name__text a {
+      color: #111111 !important;
+      text-decoration: none !important;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-wordmark {
+      display: inline-block;
+      text-decoration: none !important;
+      line-height: 1;
+    }
+    .brand-wordmark__swift {
+      display: block;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #111111 !important;
+      line-height: 1.05;
+    }
+    .brand-wordmark__tcg {
+      display: block;
+      margin-top: 3px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: #0EA54B !important;
+      line-height: 1;
+    }
+    .order-number__text {
+      color: #666666;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+    h2 {
+      color: #111111;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      color: #111111;
+      font-weight: 600;
+    }
+    .button__cell {
+      background: #0EA54B;
+      border-radius: 6px;
+    }
+    .button__text {
+      color: #ffffff !important;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    a, a:hover, a:active, a:visited {
+      color: #0EA54B;
+    }
+    .disclaimer__subtext {
+      color: #666666;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .footer-brand {
+      margin: 0 0 8px;
+      color: #666666;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .footer-brand a {
+      color: #0EA54B;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+  <body>
+    <table class="body">
+      <tr>
+        <td>
+          <table class="header row">
+  <tr>
+    <td class="header__cell">
+      <center>
+
+        <table class="container">
+          <tr>
+            <td>
+
+              <table class="row">
+                <tr>
+                  <td class="shop-name__cell">
+                    {%- if shop.email_logo_url %}
+                      <a href="{{ shop.url }}" class="brand-wordmark">
+                        <img src="{{ shop.email_logo_url }}" alt="{{ shop.name }}" width="{{ shop.email_logo_width }}" style="display:block;border:0;outline:none;text-decoration:none;">
+                      </a>
+                    {%- else %}
+                      <a href="{{ shop.url }}" class="brand-wordmark">
+                        <img src="https://swifttcg.com/brand/swift-tcg-logo-email.png" alt="Swift TCG" width="160" height="49" style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-width:160px;">
+                      </a>
+                    {%- endif %}
+                  </td>
+
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+        </table>
+
+      </center>
+    </td>
+  </tr>
+</table>
+
+          <table class="row content">
+  <tr>
+    <td class="content__cell">
+      <center>
+        <table class="container">
+          <tr>
+            <td>
+
+            <h2>{{ email_title }}</h2>
+            {% if custom_message != blank %}
+              <p>{{ custom_message }}</p>
+            {% else %}
+              <p>{{ email_body }}</p>
+            {% endif %}
+            <table class="row actions">
+  <tr>
+    <td class="empty-line"> </td>
+  </tr>
+  <tr>
+    <td class="actions__cell">
+      <table class="button main-action-cell">
+        <tr>
+          <td class="button__cell"><a href="{{ customer.account_activation_url }}" class="button__text">Activate your account</a></td>
+        </tr>
+      </table>
+      {% if shop.url %}
+    <table class="link secondary-action-cell">
+      <tr>
+        <td class="link__cell">or <a href="{{ shop.url }}">Visit our store</a></td>
+      </tr>
+    </table>
+{% endif %}
+
+    </td>
+  </tr>
+</table>
+
+
+            </td>
+          </tr>
+        </table>
+      </center>
+    </td>
+  </tr>
+</table>
+          <table class="row footer">
+  <tr>
+    <td class="footer__cell">
+      <center>
+        <table class="container">
+          <tr>
+            <td>
+
+              <p class="footer-brand">
+                Questions? Email us at <a href="mailto:support@swifttcg.com">support@swifttcg.com</a>
+              </p>
+              <p class="footer-brand">
+                <a href="https://swifttcg.com">https://swifttcg.com</a>
+              </p>
+              <p class="disclaimer__subtext">
+                Authentic Japanese TCG imports — factory sealed, shipped from California.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </center>
+    </td>
+  </tr>
+</table>
+
+<img src="{{ 'notifications/spacer.png' | shopify_asset_url }}" class="spacer" height="1" />
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

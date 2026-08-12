@@ -5,9 +5,14 @@ import type { HomepageCategoryCard } from "@/lib/shopify/storefrontCms"
 
 type ShopByCategoryProps = {
   categories: HomepageCategoryCard[]
+  /** Section heading — defaults to Shop by Category. */
+  title?: string
 }
 
-export default function ShopByCategory({ categories }: ShopByCategoryProps) {
+export default function ShopByCategory({
+  categories,
+  title = "Shop by Category",
+}: ShopByCategoryProps) {
   const gridCols =
     categories.length <= 1
       ? "lg:grid-cols-1"
@@ -22,7 +27,7 @@ export default function ShopByCategory({ categories }: ShopByCategoryProps) {
       <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-end justify-between gap-4">
           <h2 className="text-[1.1rem] font-semibold tracking-tight text-black sm:text-[1.65rem]">
-            Shop by Category
+            {title}
           </h2>
           <Link
             href="/pokemon"

@@ -76,17 +76,24 @@ Shopify Admin API          Shopify Storefront API
 
 | Route | Loader |
 | --- | --- |
-| `/` | `getShopifyComingSoonProducts` / `getShopifyNewestArrivals` + `getHomepageHeroSlides` / `getHomepageCategoryCards` |
+| `/` | `getHomepagePageData` (Homepage metaobject orchestration → nested refs; legacy per-type fallbacks when no entry) |
 | `/[game]`, `/[game]/[language]` | `loadTcgCollectionPage` |
 | `/preorders`, `/preorders/[game]`, `/preorders/[game]/[language]` | `loadMerchCollectionPage({ merchKey: "preorders" })` |
 | `/new-releases`, … | `loadMerchCollectionPage({ merchKey: "new-releases" })` → Shopify handle `new-arrivals` |
 | `/products/[slug]` | `getShopifyProductByHandle` + `getShopifyRelatedProducts` |
 | `/pages/[handle]` | `getShopifyPageByHandle` (About, Contact, FAQ, Preorder Policy, …) |
 | `/policies/[handle]` | `getShopifyPolicyByHandle` (Shipping, Refund, Privacy, Terms) |
-| `/account`, `/account/orders`, `/account/addresses`, `/account/profile` | Customer Account API (New Customer Accounts OAuth) |
+| `/account`, `/account/orders`, `/account/wishlist`, `/account/notifications`, `/account/reviews`, `/account/addresses`, `/account/profile` | Customer Account API (New Customer Accounts OAuth) |
 | `/account/login`, `/account/authorize`, `/account/logout` | Shopify Customer Account OAuth (PKCE) |
 | `/api/search` | `searchShopifyProducts` |
 | `/api/cart` | Shopify cart mutations (+ `attachCustomer` for buyer identity) |
+| `/api/wishlist` | Customer wishlist metafield (CA API, Admin fallback) |
+| `/api/back-in-stock` | Back-in-stock subscriptions (customer + product metafields) |
+| `/api/cron/back-in-stock` | Inventory poll → branded Resend email (Vercel Cron) |
+| `/api/reviews` | Product reviews (metaobjects + aggregates) |
+| `/api/reviews/[id]` | Helpful vote / edit / delete pending review |
+| `/api/webhooks/reviews` | Metaobject change → recompute product aggregates |
+| `/api/cron/reviews` | Hourly aggregate sync after Admin moderation |
 
 ## Component Organization
 
@@ -96,6 +103,7 @@ components/
   home/        → Hero and homepage sections
   catalog/     → Collection browse, product cards, quick view
   product/     → PDP gallery, purchase panel, details
+  reviews/     → Stars, summary, cards, modal, gallery, filters
   content/     → Shopify pages / policies (rich HTML, contact, FAQ)
   cart/        → Cart drawer, line items, mixed-cart dialog
   search/      → Search dialog

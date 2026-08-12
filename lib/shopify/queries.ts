@@ -16,6 +16,25 @@ const PRODUCT_FIELDS = `
   releaseDate: metafield(namespace: "custom", key: "release_date") {
     value
   }
+  language: metafield(namespace: "custom", key: "language") {
+    value
+  }
+  reviewRating: metafield(namespace: "swift", key: "review_rating") {
+    value
+  }
+  reviewCount: metafield(namespace: "swift", key: "review_count") {
+    value
+  }
+  reviewBreakdown: metafield(namespace: "swift", key: "review_breakdown") {
+    value
+  }
+  homepagePosition: metafield(namespace: "swift", key: "homepage_position") {
+    value
+  }
+  seo {
+    title
+    description
+  }
   featuredImage {
     url
     altText
@@ -58,6 +77,12 @@ const COLLECTION_FIELDS = `
   handle
   title
   description
+  descriptionHtml
+  updatedAt
+  seo {
+    title
+    description
+  }
   image {
     url
     altText
@@ -96,11 +121,109 @@ export const GET_PRODUCTS = `
   }
 `
 
-/** Single product by handle (slug). */
+/** Single product by handle (slug). Includes body HTML + PDP metafields. */
 export const GET_PRODUCT_BY_HANDLE = `
   query GetProductByHandle($handle: String!) {
     product(handle: $handle) {
       ${PRODUCT_FIELDS}
+      description
+      descriptionHtml
+      series: metafield(namespace: "custom", key: "series") {
+        value
+      }
+      condition: metafield(namespace: "custom", key: "condition") {
+        value
+      }
+      rarity: metafield(namespace: "custom", key: "rarity") {
+        value
+      }
+      productCode: metafield(namespace: "custom", key: "product_code") {
+        value
+      }
+    }
+  }
+`
+
+/** Lightweight product handles + images for sitemap generation. */
+export const GET_PRODUCTS_SITEMAP = `
+  query GetProductsSitemap($first: Int!, $after: String) {
+    products(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          handle
+          updatedAt
+          featuredImage {
+            url
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+/** Lightweight collection list for sitemap + SEO lookups. */
+export const GET_COLLECTIONS_SITEMAP = `
+  query GetCollectionsSitemap($first: Int!, $after: String) {
+    collections(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          handle
+          title
+          updatedAt
+          image {
+            url
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+/** Online Store pages for sitemap. */
+export const GET_PAGES = `
+  query GetPages($first: Int!, $after: String) {
+    pages(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          handle
+          updatedAt
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+/** Single collection by handle (SEO + presentation). */
+export const GET_COLLECTION_BY_HANDLE = `
+  query GetCollectionByHandle($handle: String!) {
+    collection(handle: $handle) {
+      ${COLLECTION_FIELDS}
+    }
+  }
+`
+
+/** Resolve products by GID for wishlist hydration (preserves caller order). */
+export const GET_PRODUCTS_BY_IDS = `
+  query GetProductsByIds($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        ${PRODUCT_FIELDS}
+      }
     }
   }
 `
@@ -234,8 +357,11 @@ export const GET_SHOP_CONTENT = `
   }
 `
 
-/** Shared fields for storefront marketing metaobjects (Hero / Visual). */
-const METAOBJECT_FIELDS = `
+/**
+ * Leaf metaobject fields (file / product / collection refs).
+ * Used for nested Homepage references — one level deep.
+ */
+const METAOBJECT_LEAF_FIELDS = `
   id
   handle
   type
@@ -243,6 +369,7 @@ const METAOBJECT_FIELDS = `
     key
     value
     reference {
+      __typename
       ... on MediaImage {
         image {
           url
@@ -251,12 +378,49 @@ const METAOBJECT_FIELDS = `
           height
         }
       }
+      ... on Product {
+        ${PRODUCT_FIELDS}
+      }
+      ... on Collection {
+        ${COLLECTION_FIELDS}
+      }
     }
   }
 `
 
 /**
- * Paginated metaobjects by type (`storefront_hero` / `storefront_visual`).
+ * Shared fields for storefront marketing metaobjects.
+ * Expands file, product, and collection references for homepage merchandising.
+ */
+const METAOBJECT_FIELDS = `
+  id
+  handle
+  type
+  fields {
+    key
+    value
+    reference {
+      __typename
+      ... on MediaImage {
+        image {
+          url
+          altText
+          width
+          height
+        }
+      }
+      ... on Product {
+        ${PRODUCT_FIELDS}
+      }
+      ... on Collection {
+        ${COLLECTION_FIELDS}
+      }
+    }
+  }
+`
+
+/**
+ * Paginated metaobjects by type (heroes, visuals, homepage merchandising).
  * Requires Storefront permission `unauthenticated_read_metaobjects` and
  * storefront-accessible metaobject definitions.
  */
@@ -267,6 +431,48 @@ export const GET_METAOBJECTS_BY_TYPE = `
         cursor
         node {
           ${METAOBJECT_FIELDS}
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+/**
+ * Homepage orchestration metaobject — nested hero / promotion / featured refs.
+ * List fields use `references`; singletons use `reference`.
+ */
+export const GET_HOMEPAGE = `
+  query GetHomepage($type: String!, $first: Int!) {
+    metaobjects(type: $type, first: $first) {
+      edges {
+        node {
+          id
+          handle
+          type
+          fields {
+            key
+            value
+            reference {
+              __typename
+              ... on Metaobject {
+                ${METAOBJECT_LEAF_FIELDS}
+              }
+            }
+            references(first: 50) {
+              edges {
+                node {
+                  __typename
+                  ... on Metaobject {
+                    ${METAOBJECT_LEAF_FIELDS}
+                  }
+                }
+              }
+            }
+          }
         }
       }
       pageInfo {

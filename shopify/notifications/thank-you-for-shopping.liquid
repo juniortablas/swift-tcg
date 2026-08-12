@@ -1,0 +1,210 @@
+<!--
+  Thank you for shopping with us — Swift TCG branded (mobile-friendly)
+  Shopify Messaging: Post-purchase / Thank you automation.
+  Paste into Custom Liquid (or Code your own).
+
+  Uses: customer.first_name, customer.orders_count, shop.url, open_tracking_block
+  Unsubscribe comes from the Shopify Messaging footer — do not add another one.
+-->
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+    <title>Thank you for shopping with us!</title>
+    <!--[if mso]>
+    <noscript>
+      <xml>
+        <o:OfficeDocumentSettings>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+      </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      body, table, td, div, p, a, span, h1, h2, h3 {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
+      }
+      table, td {
+        border-collapse: collapse;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        border: 0;
+        outline: none;
+        text-decoration: none;
+        -ms-interpolation-mode: bicubic;
+        display: block;
+      }
+      a { color: #0EA54B; text-decoration: none; }
+      a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: inherit !important;
+        font-family: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+      }
+
+      @media only screen and (max-width: 620px) {
+        .email-shell {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        .content-pad {
+          padding-left: 20px !important;
+          padding-right: 20px !important;
+        }
+        .header-pad {
+          padding: 24px 20px 18px !important;
+        }
+        .hero-pad {
+          padding: 28px 20px 8px !important;
+        }
+        .footer-pad {
+          padding: 24px 20px 28px !important;
+        }
+        .hero-title {
+          font-size: 24px !important;
+          line-height: 1.25 !important;
+        }
+        .hero-body {
+          font-size: 15px !important;
+        }
+        .btn-cell {
+          width: 100% !important;
+        }
+        .btn-link {
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+          padding: 16px 20px !important;
+          text-align: center !important;
+        }
+        .logo-img {
+          width: 140px !important;
+          max-width: 140px !important;
+          height: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background-color:#ffffff;width:100%;">
+    {{ open_tracking_block }}
+
+    <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+      Thanks for your order — we’re on it.
+      &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;margin:0;padding:0;width:100%;">
+      <tr>
+        <td align="center" style="padding:0;">
+
+          <table role="presentation" class="email-shell" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff;">
+
+            <!-- Header / logo -->
+            <tr>
+              <td class="header-pad content-pad" align="left" style="padding:32px 40px 24px;border-bottom:3px solid #0EA54B;">
+                <a href="{{ shop.url }}" target="_blank" style="display:inline-block;text-decoration:none;line-height:1;">
+                  <img
+                    class="logo-img"
+                    src="https://swifttcg.com/brand/swift-tcg-logo-email.png"
+                    alt="Swift TCG"
+                    width="160"
+                    height="49"
+                    style="display:block;border:0;outline:none;text-decoration:none;width:160px;max-width:100%;height:auto;"
+                  >
+                </a>
+              </td>
+            </tr>
+
+            <!-- Hero -->
+            <tr>
+              <td class="hero-pad content-pad" align="left" style="padding:36px 40px 12px;">
+                <h1 class="hero-title" style="margin:0 0 14px;color:#111111;font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1.25;">
+                  Thank you for shopping with us!
+                </h1>
+
+                {% if customer.first_name != blank %}
+                  <p class="hero-body" style="margin:0 0 12px;color:#444444;font-size:16px;line-height:1.6;">
+                    Hi {{ customer.first_name }},
+                  </p>
+                {% else %}
+                  <p class="hero-body" style="margin:0 0 12px;color:#444444;font-size:16px;line-height:1.6;">
+                    Hi,
+                  </p>
+                {% endif %}
+
+                {% if customer.orders_count == 1 %}
+                  <p class="hero-body" style="margin:0 0 8px;color:#444444;font-size:16px;line-height:1.6;">
+                    Welcome to Swift TCG. We’re glad your first order is with us.
+                  </p>
+                  <p class="hero-body" style="margin:0 0 8px;color:#444444;font-size:16px;line-height:1.6;">
+                    We’ll keep you posted as your order moves. In the meantime, explore what’s new in the shop.
+                  </p>
+                {% elsif customer.orders_count == 2 %}
+                  <p class="hero-body" style="margin:0 0 8px;color:#444444;font-size:16px;line-height:1.6;">
+                    Great to have you back for round two. Thanks for trusting Swift TCG again — we’re packing your order with the same care as the first.
+                  </p>
+                  <p class="hero-body" style="margin:0 0 8px;color:#444444;font-size:16px;line-height:1.6;">
+                    Keep an eye out for shipping updates, and swing by anytime for the latest sealed product.
+                  </p>
+                {% else %}
+                  <p class="hero-body" style="margin:0 0 8px;color:#444444;font-size:16px;line-height:1.6;">
+                    Thanks again for choosing Swift TCG. We appreciate your continued support — and we’re already packing your latest order with care.
+                  </p>
+                  <p class="hero-body" style="margin:0 0 8px;color:#444444;font-size:16px;line-height:1.6;">
+                    Whenever you’re ready for the next pull, the shop is waiting.
+                  </p>
+                {% endif %}
+
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:28px 0 8px;border-collapse:separate !important;">
+                  <tr>
+                    <td class="btn-cell" align="left" style="background-color:#0EA54B;border-radius:8px;text-align:center;">
+                      <!--[if mso]>
+                      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ shop.url }}" style="height:48px;v-text-anchor:middle;width:220px;" arcsize="17%" stroke="f" fillcolor="#0EA54B">
+                        <w:anchorlock/>
+                        <center style="color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;">Visit Our Store</center>
+                      </v:roundrect>
+                      <![endif]-->
+                      <!--[if !mso]><!-- -->
+                      <a class="btn-link" href="{{ shop.url }}" target="_blank" style="display:inline-block;padding:16px 28px;color:#ffffff !important;font-size:15px;font-weight:700;letter-spacing:0.01em;text-decoration:none;line-height:1.2;border-radius:8px;background-color:#0EA54B;">
+                        Visit Our Store
+                      </a>
+                      <!--<![endif]-->
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class="footer-pad content-pad" align="left" style="padding:32px 40px 28px;border-top:1px solid #e8e8e8;">
+                <p style="margin:0 0 8px;color:#666666;font-size:13px;line-height:1.55;">
+                  Questions? Email us at <a href="mailto:support@swifttcg.com" style="color:#0EA54B;text-decoration:none;">support@swifttcg.com</a>
+                </p>
+                <p style="margin:0;color:#666666;font-size:13px;line-height:1.55;">
+                  <a href="https://swifttcg.com" target="_blank" style="color:#0EA54B;text-decoration:none;">swifttcg.com</a>
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

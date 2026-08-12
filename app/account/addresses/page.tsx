@@ -12,7 +12,7 @@ import { getCustomerAddresses } from "@/lib/shopify/customerAccount"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Addresses | Swift TCG",
+  title: "Addresses",
   robots: { index: false, follow: false },
 }
 

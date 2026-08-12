@@ -5,6 +5,7 @@
  */
 
 import { isProductTypeLabel } from "@/lib/catalog/productMeta"
+import { parseBreakdown } from "@/lib/reviews/constants"
 import type { Product as AppProduct, ProductStatus } from "@/types/product"
 import type { Product as ShopifyProduct } from "./types"
 
@@ -17,6 +18,13 @@ function parsePrice(amount: string | undefined): number | null {
   if (amount == null || amount === "") return null
   const value = Number.parseFloat(amount)
   return Number.isFinite(value) ? value : null
+}
+
+function metafieldValue(
+  field: { value?: string | null } | null | undefined
+): string | null {
+  const value = field?.value?.trim()
+  return value ? value : null
 }
 
 function mapStatus(product: ShopifyProduct): ProductStatus {
@@ -84,7 +92,30 @@ export function mapShopifyProduct(
 ): AppProduct {
   const slug = product.handle
   const vendor = product.vendor?.trim() || null
-  const releaseDate = product.releaseDate?.value?.trim() || null
+  const productType = product.productType?.trim() || null
+  const releaseDate = metafieldValue(product.releaseDate)
+  const descriptionHtml = product.descriptionHtml?.trim() || null
+  const language = metafieldValue(product.language)
+  const series = metafieldValue(product.series)
+  const condition = metafieldValue(product.condition)
+  const rarity = metafieldValue(product.rarity)
+  const productCode = metafieldValue(product.productCode)
+  const reviewRatingRaw = metafieldValue(product.reviewRating)
+  const reviewCountRaw = metafieldValue(product.reviewCount)
+  const reviewRating = reviewRatingRaw
+    ? Number.parseFloat(reviewRatingRaw)
+    : null
+  const reviewCount = reviewCountRaw
+    ? Number.parseInt(reviewCountRaw, 10)
+    : null
+  const breakdownRaw = metafieldValue(product.reviewBreakdown)
+  const reviewBreakdown = breakdownRaw ? parseBreakdown(breakdownRaw) : null
+  const seoTitle = product.seo?.title?.trim() || null
+  const seoDescription = product.seo?.description?.trim() || null
+  const description = product.description?.trim() || null
+  const imageAlt = product.featuredImage?.altText?.trim() || null
+  const currencyCode =
+    product.priceRange.minVariantPrice.currencyCode?.trim() || null
 
   return {
     id: product.id,
@@ -96,8 +127,28 @@ export function mapShopifyProduct(
     url: `/products/${slug}`,
     status: mapStatus(product),
     vendor,
+    productType,
     tags: product.tags ?? [],
     releaseDate,
+    createdAt: product.createdAt || null,
+    ...(descriptionHtml ? { descriptionHtml } : {}),
+    ...(description ? { description } : {}),
+    ...(seoTitle ? { seoTitle } : {}),
+    ...(seoDescription ? { seoDescription } : {}),
+    ...(imageAlt ? { imageAlt } : {}),
+    ...(currencyCode ? { currencyCode } : {}),
+    ...(language ? { language } : {}),
+    ...(series ? { series } : {}),
+    ...(condition ? { condition } : {}),
+    ...(rarity ? { rarity } : {}),
+    ...(productCode ? { productCode } : {}),
+    ...(reviewRating != null && Number.isFinite(reviewRating)
+      ? { reviewRating }
+      : {}),
+    ...(reviewCount != null && Number.isFinite(reviewCount)
+      ? { reviewCount }
+      : {}),
+    ...(reviewBreakdown ? { reviewBreakdown } : {}),
   }
 }
 

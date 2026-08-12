@@ -1,29 +1,40 @@
 import type { Product } from "@/types/product"
 
-import { getProductReleaseDate } from "./homepage"
-import { getProductBrand, getProductTypeLabel } from "./productMeta"
+import { getProductLanguageLabel } from "./productMeta"
 
 export type ProductSpec = {
   label: string
   value: string
 }
 
-function resolveManufacturer(product: Product): string {
-  const brand = getProductBrand(product)
-  if (brand === "Pokémon") return "The Pokémon Company"
-  if (brand === "One Piece") return "Bandai"
-  return "Official Japanese distributor"
-}
-
-function resolveSetCode(product: Product): string | null {
-  const bracket = product.title.match(/\[([A-Z0-9-]+)\]/i)
-  if (bracket?.[1]) return bracket[1].toUpperCase()
-
-  const trailing = product.title.match(/\b([A-Z]{1,3}\d{1,3})\b/)
-  if (trailing?.[1]) return trailing[1].toUpperCase()
-
-  return null
-}
+/** Tags that are organizational — never treat as Series / Set codes. */
+const NON_SET_TAGS = new Set([
+  "sora",
+  "pokemon",
+  "pokémon",
+  "one-piece",
+  "onepiece",
+  "japanese",
+  "english",
+  "korean",
+  "chinese",
+  "preorder",
+  "pre-order",
+  "soldout",
+  "sold-out",
+  "coming-soon",
+  "ready-to-release",
+  "release-approved",
+  "released",
+  "booster-box",
+  "starter-deck",
+  "premium",
+  "accessories",
+  "case",
+  "limited",
+  "restock",
+  "pokemon-center",
+])
 
 function formatReleaseDate(iso: string): string {
   const date = new Date(`${iso}T12:00:00`)
@@ -37,32 +48,54 @@ function formatReleaseDate(iso: string): string {
 }
 
 /**
- * Derive a clean specifications table from catalog fields.
- * Does not invent SKU-specific facts beyond shared storefront defaults.
+ * Series / Set from Shopify: prefer `custom.series`, else a set-code tag.
+ */
+function resolveSeries(product: Product): string | null {
+  if (product.series?.trim()) {
+    return product.series.trim()
+  }
+
+  for (const tag of product.tags ?? []) {
+    const normalized = tag.trim().toLowerCase()
+    if (!normalized || NON_SET_TAGS.has(normalized)) continue
+    // Set codes look like sv11b, op11, sv8a — short alphanumeric with digits.
+    if (/^[a-z]{1,4}\d{1,4}[a-z0-9-]*$/i.test(normalized)) {
+      return tag.trim().toUpperCase()
+    }
+  }
+
+  return null
+}
+
+function pushSpec(
+  specs: ProductSpec[],
+  label: string,
+  value: string | null | undefined
+) {
+  const trimmed = value?.trim()
+  if (!trimmed) return
+  specs.push({ label, value: trimmed })
+}
+
+/**
+ * Build the PDP specifications table from Shopify product + metafield data.
+ * Only includes rows with real values — nothing is invented or hardcoded.
  */
 export function getProductSpecs(product: Product): ProductSpec[] {
-  const brand = getProductBrand(product)
-  const release = getProductReleaseDate(product)
-  const setCode = resolveSetCode(product)
+  const specs: ProductSpec[] = []
 
-  const specs: ProductSpec[] = [
-    { label: "Language", value: "Japanese" },
-    { label: "Brand", value: brand ?? product.category },
-    { label: "Condition", value: "Factory Sealed" },
-  ]
-
-  if (release) {
-    specs.push({ label: "Release Date", value: formatReleaseDate(release) })
-  }
-
-  specs.push(
-    { label: "Manufacturer", value: resolveManufacturer(product) },
-    { label: "Product Type", value: getProductTypeLabel(product) }
+  pushSpec(
+    specs,
+    "Release Date",
+    product.releaseDate ? formatReleaseDate(product.releaseDate) : null
   )
-
-  if (setCode) {
-    specs.push({ label: "Set Code", value: setCode })
-  }
+  pushSpec(specs, "Language", getProductLanguageLabel(product))
+  pushSpec(specs, "Series / Set", resolveSeries(product))
+  pushSpec(specs, "Manufacturer", product.vendor)
+  pushSpec(specs, "Product Type", product.productType)
+  pushSpec(specs, "Condition", product.condition)
+  pushSpec(specs, "Rarity", product.rarity)
+  pushSpec(specs, "Product Code", product.productCode)
 
   return specs
 }

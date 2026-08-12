@@ -2,7 +2,9 @@ import CollectionBrowseSection from "@/components/catalog/CollectionBrowseSectio
 import CollectionHero from "@/components/catalog/CollectionHero"
 import Newsletter from "@/components/home/Newsletter"
 import StoreChrome from "@/components/layout/StoreChrome"
+import CollectionJsonLd from "@/components/seo/CollectionJsonLd"
 import type { CollectionPresentation } from "@/lib/catalog"
+import type { BreadcrumbItem } from "@/lib/seo"
 import type { BrowseFacet } from "@/lib/shopify/browseHierarchy"
 import type { CollectionLanguageFacet } from "@/lib/shopify/collectionFacets"
 import type { Product } from "@/types/product"
@@ -27,6 +29,11 @@ type CollectionViewProps = {
   requiresLanguagePick?: boolean
   selectedLanguageLabel?: string | null
   hideEmptyLanguages?: boolean
+  /** Canonical path for CollectionPage JSON-LD. */
+  canonicalPath?: string
+  collectionDescription?: string
+  collectionImage?: string | null
+  breadcrumbs?: BreadcrumbItem[]
 }
 
 export default function CollectionView({
@@ -43,11 +50,31 @@ export default function CollectionView({
   selectedLanguage = null,
   requiresLanguagePick = false,
   hideEmptyLanguages = false,
+  canonicalPath,
+  collectionDescription,
+  collectionImage,
+  breadcrumbs,
 }: CollectionViewProps) {
   const count = heroProductCount ?? products.length
+  const path = canonicalPath || "/"
+  const description =
+    collectionDescription?.trim() || presentation.description
+  const crumbs: BreadcrumbItem[] = breadcrumbs?.length
+    ? breadcrumbs
+    : [
+        { name: "Home", path: "/" },
+        { name: presentation.breadcrumb || presentation.title, path },
+      ]
 
   return (
     <StoreChrome>
+      <CollectionJsonLd
+        name={presentation.title}
+        description={description}
+        path={path}
+        image={collectionImage || presentation.images[0]?.src}
+        breadcrumbs={crumbs}
+      />
       <main className="bg-white">
         <div className="mx-auto max-w-[1920px] px-4 pt-3 pb-6 sm:px-6 sm:pt-8 sm:pb-12 lg:px-8 lg:pt-10 lg:pb-14 xl:px-10">
           <CollectionHero collection={presentation} productCount={count} />

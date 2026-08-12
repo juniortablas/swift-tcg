@@ -1,11 +1,14 @@
 # Storefront CMS (Shopify Metaobjects)
 
-Marketing heroes, category cards, language cards, and promotional artwork are
-managed in Shopify as Metaobjects. The Next.js storefront reads them at runtime
-and falls back to local `/public` assets when an entry or image is missing.
+Marketing heroes, category cards, language cards, promotional artwork, and
+homepage merchandising (featured products, featured collections, timed
+promotions) are managed in Shopify as Metaobjects. A single **Homepage**
+metaobject orchestrates which of those entries appear on `/`. The Next.js
+storefront reads them at runtime and falls back to local `/public` assets or
+catalog queries when an entry or image is missing.
 
 Product **Release Date** (`custom.release_date`) is a Product metafield created
-by the same setup script — see [§8](#8-product-release-date-metafield).
+by the same setup script — see [§9](#9-product-release-date-metafield).
 
 After this setup, changing a hero banner or category image never requires a
 code change or redeploy.
@@ -18,11 +21,15 @@ npm run setup:cms
 
 This runs `scripts/setup-storefront-cms.ts` against the Admin GraphQL API and:
 
-1. Creates (or verifies) the `storefront_hero` and `storefront_visual` definitions
+1. Creates (or verifies) metaobject definitions:
+   - `storefront_hero`, `storefront_visual`
+   - `homepage_featured_product`, `homepage_featured_collection`, `homepage_promotion`
+   - `homepage` (orchestration — references the merchandising types above)
 2. Creates (or verifies) the Product metafield `custom.release_date` (Date)
 3. Seeds hero + visual entries by stable `key` (idempotent — no duplicates)
-4. Uploads matching `/public` images to Shopify Files and attaches them when missing
-5. Verifies the Storefront API returns Shopify data for sample keys
+4. Seeds one Homepage entry (handle `homepage`) with section toggles on
+5. Uploads matching `/public` images to Shopify Files and attaches them when missing
+6. Verifies the Storefront API returns Shopify data for sample keys (and that merchandising types are readable)
 
 Dry-run:
 
@@ -44,10 +51,10 @@ Required Storefront permission (Headless channel):
 Helpers:
 
 ```ts
-import { getStorefrontHero, getStorefrontVisual } from "@/lib/shopify"
+import { getHomepagePageData, getStorefrontHero } from "@/lib/shopify"
 
+const page = await getHomepagePageData()
 const hero = await getStorefrontHero("pokemon-hero")
-const visual = await getStorefrontVisual("homepage-category-pokemon")
 ```
 
 ---
@@ -92,6 +99,77 @@ Storefront access: `PUBLIC_READ` (set by the setup script).
 | Link | `link` | Single line text | Optional card destination |
 
 Storefront access: `PUBLIC_READ`.
+
+### Homepage Featured Product (`homepage_featured_product`)
+
+Curated product rail entries (sort order + optional badge). When **any** enabled
+entries exist, they power the first homepage product carousel. When none exist,
+the storefront falls back to Coming Soon (`preorders` collection / preorder tags).
+
+| Field | Key | Type | Notes |
+| --- | --- | --- | --- |
+| Product | `product` | Product reference | **Required**. Published product on the Storefront channel. |
+| Badge | `badge` | Single line text | Optional card badge override (e.g. `Staff Pick`) |
+| Sort order | `sort_order` | Integer | Lower numbers first (default `0`) |
+| Enabled | `enabled` | Boolean | Disabled entries are skipped |
+
+### Homepage Featured Collection (`homepage_featured_collection`)
+
+Curated Shop by Category cards. When **any** enabled entries resolve (collection
++ image), they replace Visual-based category cards. When none exist, the
+storefront falls back to Storefront Visual keys (`homepage-category-*`).
+
+| Field | Key | Type | Notes |
+| --- | --- | --- | --- |
+| Collection | `collection` | Collection reference | **Required** |
+| Title override | `title_override` | Single line text | Optional; defaults to collection title |
+| Description override | `description_override` | Multi-line text | Optional card subtitle |
+| Image override | `image_override` | File (image) | Optional; defaults to collection image |
+| Sort order | `sort_order` | Integer | Lower numbers first |
+| Enabled | `enabled` | Boolean | Disabled entries are skipped |
+
+### Homepage Promotion (`homepage_promotion`)
+
+Optional mid-page promo band. Renders only when an entry is **enabled**, within
+`start_date` / `end_date` (when set), and has at least one image. Otherwise the
+homepage layout is unchanged (no empty promo slot).
+
+| Field | Key | Type | Notes |
+| --- | --- | --- | --- |
+| Title | `title` | Single line text | **Required** |
+| Description | `description` | Multi-line text | Supporting copy |
+| Desktop image | `desktop_image` | File (image) | Primary art (≥ sm) |
+| Mobile image | `mobile_image` | File (image) | Optional; falls back to desktop |
+| CTA text | `cta_text` | Single line text | Button label (default `Shop Now`) |
+| CTA link | `cta_link` | Single line text | Button href |
+| Start date | `start_date` | Date and time | Optional schedule start |
+| End date | `end_date` | Date and time | Optional schedule end |
+| Enabled | `enabled` | Boolean | Master switch |
+
+### Homepage (`homepage`)
+
+**Orchestration layer only** — does not redefine Hero / Promotion / Featured
+content. One entry (prefer handle `homepage`) is the single source of truth for
+`/`. The storefront fetches this metaobject and resolves nested references.
+
+When **no** Homepage entry exists, the storefront keeps legacy behavior:
+scan enabled Featured Product / Collection / Promotion entries, use the
+hardcoded hero carousel keys, and show all sections.
+
+| Field | Key | Type | Notes |
+| --- | --- | --- | --- |
+| Hero | `hero` | Metaobject reference → `storefront_hero` | Optional. When set + enabled, powers the hero (single slide). When empty, falls back to the multi-slide carousel (`pokemon-hero`, `onepiece-hero`, `preorders-hero`). |
+| Promotion | `promotion` | Metaobject reference → `homepage_promotion` | Optional. Empty → no promo band (does not scan other promotions). |
+| Featured Products | `featured_products` | List of metaobject references → `homepage_featured_product` | List order is display order. Empty + Show Coming Soon → Coming Soon catalog fallback. |
+| Featured Collections | `featured_collections` | List of metaobject references → `homepage_featured_collection` | List order is display order. Empty → Storefront Visual category cards. |
+| Featured Products Title | `featured_products_title` | Single line text | Heading when the first rail is curated (default `Featured`). Coming Soon fallback still uses `Coming Soon`. |
+| Featured Collections Title | `featured_collections_title` | Single line text | Shop by Category heading (default `Shop by Category`). |
+| Show Latest Releases | `show_latest_releases` | Boolean | Newest Arrivals rail (default on when unset) |
+| Show Coming Soon | `show_coming_soon` | Boolean | Coming Soon rail when Featured Products is empty (default on). Featured Products still show when referenced. |
+| Show Categories | `show_categories` | Boolean | Shop by Category section |
+| Show Newsletter | `show_newsletter` | Boolean | Newsletter section |
+
+Storefront access: `PUBLIC_READ`. Setup seeds handle `homepage`.
 
 ---
 
@@ -183,7 +261,29 @@ code (or a new entry) matches again.
 
 ---
 
-## 5. Add a new TCG without storefront architecture changes
+## 5. Merchandising homepage products, collections, and promotions
+
+1. Run `npm run setup:cms` so the homepage merchandising + **Homepage**
+   orchestration definitions and the seeded `homepage` entry exist.
+2. Create leaf entries under **Content → Metaobjects** as needed:
+   - **Homepage Featured Product** — pick products, set sort order / badge / enabled
+   - **Homepage Featured Collection** — pick collections, optional overrides
+   - **Homepage Promotion** — copy, images, CTA, schedule, enabled
+3. Open the **Homepage** entry (handle `homepage`):
+   - Attach Hero / Promotion / Featured Products / Featured Collections
+   - Set Featured Products Title / Featured Collections Title
+   - Toggle Show Latest Releases / Coming Soon / Categories / Newsletter
+4. Save. The next homepage request picks up changes (`cache: "no-store"`).
+
+No code change is required for routine merchandising. Leave Featured Product /
+Featured Collection empty on Homepage to keep Coming Soon + Visual category
+fallbacks. Leave Hero empty to keep the multi-slide carousel. Leave Promotion
+empty (or disabled / out of window) to hide the promo band. If the Homepage
+entry is deleted, the storefront falls back to scanning leaf types independently.
+
+---
+
+## 6. Add a new TCG without storefront architecture changes
 
 Example: Digimon.
 
@@ -207,7 +307,7 @@ marketing assets themselves.
 
 ---
 
-## 6. Add language cards
+## 7. Add language cards
 
 1. Add a Visual entry with key `{gamePrefix}-{language}` (e.g. `pokemon-spanish`).
 2. Set `alt`, `link` (`/pokemon/spanish`), and `image`.
@@ -218,11 +318,15 @@ language cards. Otherwise the collection / first-product image is kept.
 
 ---
 
-## 7. Fallbacks & developer notes
+## 8. Fallbacks & developer notes
 
 - Local fallbacks live in `lib/shopify/storefrontCms.ts` (`HERO_FALLBACKS` /
   `VISUAL_FALLBACKS`) and mirror the previous hardcoded `/public/products/…`
-  paths.
+  paths. Homepage merchandising fallbacks live in `lib/shopify/homepage.ts`
+  (Coming Soon / Visual category cards) when the Homepage entry is missing or
+  its featured lists are empty.
+- `getHomepagePageData()` is the homepage entry point — one Homepage fetch when
+  present, otherwise per-type loaders.
 - `getStorefrontHero(key)` / `getStorefrontVisual(key)` always return a typed
   object. Missing Shopify content is non-fatal.
 - Atmosphere gradients and CSS layout classNames stay in code — only image URLs
@@ -234,7 +338,7 @@ language cards. Otherwise the collection / first-product image is kept.
 
 ---
 
-## 8. Product Release Date metafield
+## 9. Product Release Date metafield
 
 Official product release dates are stored as a Shopify **Product** metafield.
 The storefront reads it on every product fetch and uses it to sort the homepage

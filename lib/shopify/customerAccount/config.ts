@@ -33,7 +33,7 @@ function normalizeOrigin(url: string): string {
     parsed = new URL(trimmed)
   } catch {
     throw new ShopifyClientError(
-      "SHOPIFY_APP_URL must be an absolute URL (e.g. https://swifttcg.com or an HTTPS tunnel)."
+      "SHOPIFY_APP_URL must be an absolute URL (e.g. https://www.swifttcg.com or an HTTPS tunnel)."
     )
   }
   if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") {
@@ -77,7 +77,7 @@ export function getCustomerAccountConfig(): CustomerAccountConfig {
 
   if (!appUrlRaw) {
     throw new ShopifyClientError(
-      "Missing SHOPIFY_APP_URL. Set your public HTTPS origin (production domain or ngrok tunnel). Shopify rejects localhost callbacks."
+      "Missing SHOPIFY_APP_URL. Set the public HTTPS origin users browse (e.g. https://www.swifttcg.com). It must match Headless callback/logout URLs exactly — do not use an apex that redirects to www."
     )
   }
 

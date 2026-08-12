@@ -4,6 +4,8 @@ import AnnouncementBar from "@/components/layout/AnnouncementBar"
 import Footer from "@/components/layout/Footer"
 import Navbar from "@/components/layout/Navbar"
 import { CartProvider } from "@/lib/cart/CartProvider"
+import { BackInStockProvider } from "@/lib/back-in-stock/BackInStockProvider"
+import { WishlistProvider } from "@/lib/wishlist/WishlistProvider"
 import { getShopContentSettings } from "@/lib/shopify/content"
 import { isCustomerLoggedIn } from "@/lib/shopify/customerAccount"
 
@@ -19,10 +21,14 @@ export default async function StoreChrome({
 
   return (
     <CartProvider customerLoggedIn={loggedIn}>
-      <AnnouncementBar />
-      <Navbar isLoggedIn={loggedIn} />
-      {children}
-      <Footer socialLinks={shop.contact.social} />
+      <WishlistProvider customerLoggedIn={loggedIn}>
+        <BackInStockProvider customerLoggedIn={loggedIn}>
+          <AnnouncementBar />
+          <Navbar isLoggedIn={loggedIn} />
+          {children}
+          <Footer socialLinks={shop.contact.social} />
+        </BackInStockProvider>
+      </WishlistProvider>
     </CartProvider>
   )
 }

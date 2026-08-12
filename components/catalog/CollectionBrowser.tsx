@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useRef, useState } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { X } from "lucide-react"
 
 import CollectionFilters from "@/components/catalog/CollectionFilters"
@@ -11,14 +12,20 @@ import CollectionToolbar, {
 import ProductCard from "@/components/catalog/ProductCard"
 import {
   DEFAULT_FILTERS,
+  DEFAULT_SORT,
   PAGE_SIZE,
+  collectionUrlSearch,
+  collectionUrlStatesEqual,
   filterProducts,
+  getAvailableLanguages,
   getAvailableTypes,
   getAvailableYears,
   getPriceBounds,
+  parseCollectionUrlState,
   searchProducts,
   sortProducts,
   type CollectionFiltersState,
+  type CollectionUrlState,
   type SortOption,
 } from "@/lib/catalog"
 import type { Product } from "@/types/product"
@@ -35,20 +42,62 @@ const GRID_COLS: Record<GridColumns, string> = {
   4: "lg:grid-cols-4",
 }
 
-export default function CollectionBrowser({
+function CollectionBrowserInner({
   products,
   searchPlaceholder,
 }: CollectionBrowserProps) {
-  const [query, setQuery] = useState("")
-  const [sort, setSort] = useState<SortOption>("newest")
-  const [filters, setFilters] = useState<CollectionFiltersState>(DEFAULT_FILTERS)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const urlState = useMemo(
+    () => parseCollectionUrlState(searchParams),
+    [searchParams]
+  )
+
+  const [query, setQuery] = useState(urlState.query)
+  const [sort, setSort] = useState<SortOption>(urlState.sort)
+  const [filters, setFilters] = useState<CollectionFiltersState>(urlState.filters)
+  const [page, setPage] = useState(urlState.page)
   const [columns, setColumns] = useState<GridColumns>(4)
-  const [page, setPage] = useState(1)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
+  const skipUrlWrite = useRef(false)
+
+  // Sync local state when the URL changes (back/forward / shared links).
+  useEffect(() => {
+    skipUrlWrite.current = true
+    setQuery(urlState.query)
+    setSort(urlState.sort)
+    setFilters(urlState.filters)
+    setPage(urlState.page)
+  }, [urlState])
+
+  const browseState: CollectionUrlState = useMemo(
+    () => ({ sort, query, page, filters }),
+    [sort, query, page, filters]
+  )
+
+  // Keep the URL shareable without full navigation.
+  useEffect(() => {
+    if (skipUrlWrite.current) {
+      skipUrlWrite.current = false
+      return
+    }
+
+    if (collectionUrlStatesEqual(browseState, urlState)) return
+
+    const search = collectionUrlSearch(browseState)
+    router.replace(`${pathname}${search}`, { scroll: false })
+  }, [browseState, urlState, pathname, router])
 
   const priceBounds = useMemo(() => getPriceBounds(products), [products])
   const availableTypes = useMemo(() => getAvailableTypes(products), [products])
   const availableYears = useMemo(() => getAvailableYears(products), [products])
+  const availableLanguages = useMemo(
+    () => getAvailableLanguages(products),
+    [products]
+  )
 
   const filtered = useMemo(() => {
     return sortProducts(
@@ -59,6 +108,10 @@ export default function CollectionBrowser({
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
+
+  useEffect(() => {
+    if (page !== safePage) setPage(safePage)
+  }, [page, safePage])
 
   const pageItems = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE
@@ -97,6 +150,13 @@ export default function CollectionBrowser({
     setPage(1)
   }
 
+  function resetAll() {
+    setFilters(DEFAULT_FILTERS)
+    setQuery("")
+    setSort(DEFAULT_SORT)
+    setPage(1)
+  }
+
   const filterPanel = (hideHeading = false) => (
     <CollectionFilters
       filters={filters}
@@ -105,6 +165,7 @@ export default function CollectionBrowser({
       priceBounds={priceBounds}
       availableTypes={availableTypes}
       availableYears={availableYears}
+      availableLanguages={availableLanguages}
       hideHeading={hideHeading}
     />
   )
@@ -143,10 +204,7 @@ export default function CollectionBrowser({
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  resetFilters()
-                  setQuery("")
-                }}
+                onClick={resetAll}
                 className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-green-700"
               >
                 Reset Filters
@@ -240,5 +298,39 @@ export default function CollectionBrowser({
         </div>
       </div>
     </div>
+  )
+}
+
+function CollectionBrowserSkeleton({ products }: { products: Product[] }) {
+  const preview = products.slice(0, PAGE_SIZE)
+
+  return (
+    <div aria-busy="true" aria-label="Loading collection filters">
+      <div className="h-16 border-b border-black/[0.06]" />
+      <div className="mt-3 lg:mt-8 lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-10">
+        <div className="hidden lg:block" />
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+          {preview.map((product) => (
+            <div key={product.id} className="min-w-0">
+              <ProductCard product={product} showQuickActions />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function CollectionBrowser({
+  products,
+  searchPlaceholder,
+}: CollectionBrowserProps) {
+  return (
+    <Suspense fallback={<CollectionBrowserSkeleton products={products} />}>
+      <CollectionBrowserInner
+        products={products}
+        searchPlaceholder={searchPlaceholder}
+      />
+    </Suspense>
   )
 }

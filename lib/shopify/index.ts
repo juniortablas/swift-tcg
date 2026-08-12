@@ -18,12 +18,18 @@ export {
 export {
   GET_PRODUCTS,
   GET_PRODUCT_BY_HANDLE,
+  GET_PRODUCTS_BY_IDS,
   GET_PRODUCT_COLLECTIONS,
   GET_COLLECTIONS,
   GET_COLLECTION_PRODUCTS,
+  GET_COLLECTION_BY_HANDLE,
+  GET_PRODUCTS_SITEMAP,
+  GET_COLLECTIONS_SITEMAP,
+  GET_PAGES,
   GET_PAGE_BY_HANDLE,
   GET_SHOP_CONTENT,
   GET_METAOBJECTS_BY_TYPE,
+  GET_HOMEPAGE,
 } from "./queries"
 export {
   getShopContentSettings,
@@ -32,6 +38,16 @@ export {
   CONTENT_PAGE_PATHS,
   POLICY_PATHS,
 } from "./content"
+export {
+  getShopifyCollectionByHandle,
+  listSitemapProducts,
+  listSitemapCollections,
+  listSitemapPages,
+  type ShopifyCollectionSeo,
+  type SitemapProductEntry,
+  type SitemapCollectionEntry,
+  type SitemapPageEntry,
+} from "./collectionSeo"
 export { sanitizeShopifyHtml } from "./sanitizeHtml"
 export {
   mapShopifyProduct,
@@ -41,6 +57,7 @@ export {
 export {
   getShopifyProducts,
   getShopifyProductByHandle,
+  getShopifyProductsByIds,
   getShopifyRelatedProducts,
   type GetShopifyProductsOptions,
   type GetShopifyRelatedProductsOptions,
@@ -48,7 +65,25 @@ export {
 export {
   getShopifyComingSoonProducts,
   getShopifyNewestArrivals,
+  getHomepageFeaturedProducts,
+  getHomepageFeaturedCollections,
+  getHomepagePageData,
+  type HomepageFeaturedProductsResult,
+  type HomepagePageData,
 } from "./homepage"
+export {
+  getHomepageActivePromotion,
+  getHomepageConfig,
+  getHomepageFeaturedProductEntries,
+  getHomepageFeaturedCollectionEntries,
+  HOMEPAGE_TYPE,
+  HOMEPAGE_FEATURED_PRODUCT_TYPE,
+  HOMEPAGE_FEATURED_COLLECTION_TYPE,
+  HOMEPAGE_PROMOTION_TYPE,
+  type HomepageFeaturedProductEntry,
+  type HomepagePromotion,
+  type HomepageConfig,
+} from "./homepageMerchandising"
 export {
   getStorefrontHero,
   getStorefrontVisual,
@@ -56,6 +91,8 @@ export {
   getStorefrontVisualMap,
   getHomepageHeroSlides,
   getHomepageCategoryCards,
+  homepageHeroSlideFromHero,
+  storefrontHeroFromMetaobject,
   applyStorefrontHeroToPresentation,
   resolveVisualImage,
   heroKeyForCollection,
@@ -144,6 +181,7 @@ export type {
   MetaobjectsByTypeQueryResult,
   ShopifyMetaobject,
   ShopifyMetaobjectField,
+  ShopifyMetaobjectReference,
   ShopifyPage,
   ShopifyShopPolicy,
   ShopifyCart,

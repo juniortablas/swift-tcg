@@ -20,6 +20,7 @@ import {
   filterProductsByLanguage,
   type BrowseFacet,
 } from "@/lib/shopify/browseHierarchy"
+import { getShopifyCollectionByHandle } from "@/lib/shopify/collectionSeo"
 import { getShopifyProducts } from "@/lib/shopify/products"
 import {
   applyStorefrontHeroToPresentation,
@@ -29,6 +30,7 @@ import {
   visualKeyForLanguageFacet,
 } from "@/lib/shopify/storefrontCms"
 import type { Product } from "@/types/product"
+import { cache } from "react"
 
 export type MerchCollectionKey = "preorders" | "new-releases"
 
@@ -54,6 +56,11 @@ export type MerchCollectionPayload = {
   merchKey: MerchCollectionKey
   basePath: string
   presentation: CollectionPresentation
+  shopifySeoTitle: string | null
+  shopifySeoDescription: string | null
+  shopifyDescription: string | null
+  collectionImageUrl: string | null
+  collectionImageAlt: string | null
   /** All products in the merchandising collection. */
   allProducts: Product[]
   /** Products to show in the grid (empty until game + language chosen). */
@@ -129,110 +136,145 @@ async function applyLanguageVisuals(
 /**
  * Resolve a merchandising browse page from URL segments.
  * Returns null when a selected game/language is invalid for this merch set.
+ * Cached per request so `generateMetadata` + page share one load.
  */
 export async function loadMerchCollectionPage(options: {
   merchKey: MerchCollectionKey
   gameHandle?: string | null
   languageSlug?: string | null
 }): Promise<MerchCollectionPayload | null> {
-  const { merchKey } = options
-  const config = MERCH_CONFIG[merchKey]
-  const basePath = `/${merchKey}`
-  const presentation = await presentationFor(merchKey)
-
-  const allProducts = await getShopifyProducts({
-    collectionHandle: config.shopifyHandle,
-  })
-
-  const primaryGames = await discoverPrimaryTcgCollections()
-  const gameFacets = await applyGameVisuals(
-    buildGameFacetsFromProducts(primaryGames, allProducts)
+  return loadMerchCollectionPageCached(
+    options.merchKey,
+    options.gameHandle?.trim().toLowerCase() || null,
+    options.languageSlug?.trim().toLowerCase() || null
   )
-  const requiresGamePick = gameFacets.length >= 1
+}
 
-  const gameHandle = options.gameHandle?.trim().toLowerCase() || null
-  const languageSlug = options.languageSlug?.trim().toLowerCase() || null
+const loadMerchCollectionPageCached = cache(
+  async (
+    merchKey: MerchCollectionKey,
+    gameHandle: string | null,
+    languageSlug: string | null
+  ): Promise<MerchCollectionPayload | null> => {
+    const config = MERCH_CONFIG[merchKey]
+    const basePath = `/${merchKey}`
+    const presentation = await presentationFor(merchKey)
+    const shopifyCollection = await getShopifyCollectionByHandle(
+      config.shopifyHandle
+    )
 
-  if (!gameHandle) {
-    if (languageSlug) return null
-
-    return {
-      merchKey,
-      basePath,
-      presentation,
-      allProducts,
-      // Fall back to a flat product grid when no TCG facets can be derived.
-      products: requiresGamePick ? [] : allProducts,
-      gameFacets,
-      languageFacets: [],
-      selectedGame: null,
-      selectedLanguage: null,
-      selectedGameLabel: null,
-      selectedLanguageLabel: null,
-      heroProductCount: allProducts.length,
-      requiresGamePick,
-      requiresLanguagePick: false,
+    const seoFields = {
+      shopifySeoTitle: shopifyCollection?.seo.title ?? null,
+      shopifySeoDescription: shopifyCollection?.seo.description ?? null,
+      shopifyDescription:
+        shopifyCollection?.description ||
+        shopifyCollection?.descriptionHtml ||
+        null,
+      collectionImageUrl:
+        presentation.images.find((image) => image.alt)?.src ||
+        presentation.images[0]?.src ||
+        shopifyCollection?.imageUrl ||
+        null,
+      collectionImageAlt:
+        presentation.images.find((image) => image.alt)?.alt ||
+        shopifyCollection?.imageAlt ||
+        presentation.title,
     }
-  }
 
-  const gameFacet = gameFacets.find((facet) => facet.slug === gameHandle)
-  if (!gameFacet) return null
-
-  const gameProducts = filterProductsByGame(allProducts, gameHandle)
-  const languageFacets = await applyLanguageVisuals(
-    gameHandle,
-    await buildLanguageFacetsForGame(gameHandle, gameProducts, {
-      hideEmpty: true,
+    const allProducts = await getShopifyProducts({
+      collectionHandle: config.shopifyHandle,
     })
-  )
-  const requiresLanguagePick = languageFacets.length >= 1
 
-  if (!languageSlug) {
+    const primaryGames = await discoverPrimaryTcgCollections()
+    const gameFacets = await applyGameVisuals(
+      buildGameFacetsFromProducts(primaryGames, allProducts)
+    )
+    const requiresGamePick = gameFacets.length >= 1
+
+    if (!gameHandle) {
+      if (languageSlug) return null
+
+      return {
+        merchKey,
+        basePath,
+        presentation,
+        ...seoFields,
+        allProducts,
+        // Fall back to a flat product grid when no TCG facets can be derived.
+        products: requiresGamePick ? [] : allProducts,
+        gameFacets,
+        languageFacets: [],
+        selectedGame: null,
+        selectedLanguage: null,
+        selectedGameLabel: null,
+        selectedLanguageLabel: null,
+        heroProductCount: allProducts.length,
+        requiresGamePick,
+        requiresLanguagePick: false,
+      }
+    }
+
+    const gameFacet = gameFacets.find((facet) => facet.slug === gameHandle)
+    if (!gameFacet) return null
+
+    const gameProducts = filterProductsByGame(allProducts, gameHandle)
+    const languageFacets = await applyLanguageVisuals(
+      gameHandle,
+      await buildLanguageFacetsForGame(gameHandle, gameProducts, {
+        hideEmpty: true,
+      })
+    )
+    const requiresLanguagePick = languageFacets.length >= 1
+
+    if (!languageSlug) {
+      return {
+        merchKey,
+        basePath,
+        presentation: {
+          ...presentation,
+          searchPlaceholder: `Search ${gameFacet.label} ${presentation.breadcrumb.toLowerCase()}...`,
+        },
+        ...seoFields,
+        allProducts,
+        products: requiresLanguagePick ? [] : gameProducts,
+        gameFacets,
+        languageFacets,
+        selectedGame: gameFacet.slug,
+        selectedLanguage: null,
+        selectedGameLabel: gameFacet.label,
+        selectedLanguageLabel: null,
+        heroProductCount: allProducts.length,
+        requiresGamePick,
+        requiresLanguagePick,
+      }
+    }
+
+    const languageFacet = languageFacets.find(
+      (facet) => facet.slug === languageSlug
+    )
+    if (!languageFacet) return null
+
+    const products = filterProductsByLanguage(gameProducts, languageSlug)
+
     return {
       merchKey,
       basePath,
       presentation: {
         ...presentation,
-        searchPlaceholder: `Search ${gameFacet.label} ${presentation.breadcrumb.toLowerCase()}...`,
+        searchPlaceholder: `Search ${languageFacet.label} ${gameFacet.label} ${presentation.breadcrumb.toLowerCase()}...`,
       },
+      ...seoFields,
       allProducts,
-      products: requiresLanguagePick ? [] : gameProducts,
+      products,
       gameFacets,
       languageFacets,
       selectedGame: gameFacet.slug,
-      selectedLanguage: null,
+      selectedLanguage: languageFacet.slug,
       selectedGameLabel: gameFacet.label,
-      selectedLanguageLabel: null,
+      selectedLanguageLabel: languageFacet.label,
       heroProductCount: allProducts.length,
       requiresGamePick,
       requiresLanguagePick,
     }
   }
-
-  const languageFacet = languageFacets.find(
-    (facet) => facet.slug === languageSlug
-  )
-  if (!languageFacet) return null
-
-  const products = filterProductsByLanguage(gameProducts, languageSlug)
-
-  return {
-    merchKey,
-    basePath,
-    presentation: {
-      ...presentation,
-      searchPlaceholder: `Search ${languageFacet.label} ${gameFacet.label} ${presentation.breadcrumb.toLowerCase()}...`,
-    },
-    allProducts,
-    products,
-    gameFacets,
-    languageFacets,
-    selectedGame: gameFacet.slug,
-    selectedLanguage: languageFacet.slug,
-    selectedGameLabel: gameFacet.label,
-    selectedLanguageLabel: languageFacet.label,
-    heroProductCount: allProducts.length,
-    requiresGamePick,
-    requiresLanguagePick,
-  }
-}
+)

@@ -61,3 +61,15 @@ Never use marketing hype.
 ## Brand Test
 
 If the homepage could belong to another TCG seller after removing the logo, branding is too weak. Swift TCG should be recognizable through restraint, product focus, and premium presentation — not through visual clutter.
+
+## Logo
+
+Official lockup and mark live in `public/brand/`:
+
+| Asset | Path |
+| --- | --- |
+| Full lockup | `/brand/swift-tcg-logo.png` |
+| Email lockup | `/brand/swift-tcg-logo-email.png` |
+| Icon mark (favicon) | `/brand/swift-tcg-mark.png` |
+
+Use `components/brand/BrandLogo.tsx` on the storefront (navbar, footer, maintenance). The lockup is dark ink + green accents on transparent — place it on light surfaces only.

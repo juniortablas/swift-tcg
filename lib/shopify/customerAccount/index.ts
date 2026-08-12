@@ -43,6 +43,16 @@ export {
   deleteCustomerAddress,
 } from "./account"
 export {
+  getAuthenticatedCustomerId,
+  getCustomerWishlistMetafield,
+  setCustomerWishlistMetafield,
+} from "./wishlist"
+export {
+  getCustomerBackInStockMetafield,
+  setCustomerBackInStockMetafield,
+} from "./backInStock"
+export type { CustomerBisState } from "./backInStock"
+export {
   attachCustomerToCart,
   withSilentCheckoutSso,
   CART_BUYER_IDENTITY_UPDATE,

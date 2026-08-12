@@ -1,0 +1,102 @@
+<!--
+  Back in Stock — Swift TCG branded reference template
+
+  This notification is sent by the storefront cron (`/api/cron/back-in-stock`)
+  via Resend using `lib/back-in-stock/email.ts` — it is NOT pasted into Shopify
+  Admin Notifications (Shopify has no native back-in-stock Liquid hook for
+  headless).
+
+  Keep this file as the visual source of truth matching our transactional emails.
+  Subject: Your item is back in stock!
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Your item is back in stock!</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width">
+    <style>
+      .body, .body > tr > td { background-color: #ffffff !important; }
+      .header__cell {
+        background-color: #ffffff;
+        padding: 28px 0 20px;
+        border-bottom: 3px solid #0EA54B;
+      }
+      .brand-wordmark__swift {
+        display: block;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #111111 !important;
+        line-height: 1.05;
+      }
+      .brand-wordmark__tcg {
+        display: block;
+        margin-top: 3px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: #0EA54B !important;
+        line-height: 1;
+      }
+      .button__cell {
+        background: #0EA54B;
+        border-radius: 6px;
+      }
+      .button__text {
+        color: #ffffff !important;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      a { color: #0EA54B; }
+      .footer__cell {
+        background-color: #ffffff;
+        padding: 28px 0 8px;
+        border-top: 1px solid #e8e8e8;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="body" width="100%">
+      <tr>
+        <td align="center">
+          <table width="560" style="max-width:560px;">
+            <tr>
+              <td class="header__cell">
+                <a href="https://swifttcg.com" style="display:inline-block;text-decoration:none;line-height:1;">
+                  <img src="https://swifttcg.com/brand/swift-tcg-logo-email.png" alt="Swift TCG" width="160" height="49" style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-width:160px;" />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+                <h1 style="margin:0 0 12px;font-size:22px;font-weight:600;color:#111;">Your item is back in stock!</h1>
+                <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#444;">
+                  Good news — a product on your alert list is available again. Quantities can go fast.
+                </p>
+                <!-- product_image -->
+                <p style="margin:0 0 6px;font-size:16px;font-weight:600;text-align:center;color:#111;">{{ product_title }}</p>
+                <p style="margin:0 0 24px;font-size:15px;font-weight:600;text-align:center;color:#111;">{{ product_price }}</p>
+                <table role="presentation" style="margin:0 auto;">
+                  <tr>
+                    <td class="button__cell">
+                      <a class="button__text" href="{{ product_url }}" style="display:inline-block;padding:14px 28px;text-decoration:none;color:#fff;">Shop Now</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer__cell" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#666;">
+                Questions? <a href="mailto:support@swifttcg.com">support@swifttcg.com</a><br>
+                <a href="https://swifttcg.com">swifttcg.com</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

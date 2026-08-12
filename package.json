@@ -12,7 +12,10 @@
     "shopify:test-content": "tsx scripts/test-shopify-content.ts",
     "shopify:seed-content": "tsx scripts/seed-shopify-content.ts",
     "shopify:verify-accounts": "tsx scripts/verify-customer-accounts.ts",
-    "setup:cms": "tsx scripts/setup-storefront-cms.ts"
+    "setup:cms": "tsx scripts/setup-storefront-cms.ts",
+    "setup:wishlist": "tsx scripts/setup-wishlist-metafield.ts",
+    "setup:back-in-stock": "tsx scripts/setup-back-in-stock-metafields.ts",
+    "setup:reviews": "tsx scripts/setup-product-reviews.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

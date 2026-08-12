@@ -20,7 +20,6 @@
  */
 
 import type { Product, ProductStatus } from "@/types/product"
-import { getProductDescription } from "@/lib/catalog/getProductDescription"
 import {
   getProductBrand,
   getProductTypeFilter,
@@ -1185,14 +1184,6 @@ export function isShopifyDryRun(options?: { dryRun?: boolean }): boolean {
   return process.argv.includes("--dry-run")
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
 function asProductLike(product: SyncableProduct): Product {
   return {
     id: product.id,
@@ -1231,11 +1222,6 @@ function resolveShopifyProductType(product: SyncableProduct): string {
 
 function resolveVendor(product: SyncableProduct): string {
   return getProductBrand(asProductLike(product)) ?? "Swift TCG"
-}
-
-function resolveDescriptionHtml(product: SyncableProduct): string {
-  const { paragraphs } = getProductDescription(asProductLike(product))
-  return paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join("\n")
 }
 
 function resolveSetCodeTag(title: string): string | null {
@@ -1327,7 +1313,6 @@ export async function findProductByHandle(
 type ProductFieldInput = {
   title: string
   handle: string
-  descriptionHtml: string
   vendor: string
   productType: string
   tags: string[]
@@ -1335,8 +1320,8 @@ type ProductFieldInput = {
 
 /**
  * Catalog-owned product fields written to Shopify.
- * Merchandising owned by Shopify (not written on update): selling price,
- * compare-at price, product status, SEO title, SEO description.
+ * Merchandising owned by Shopify (not written on create/update): product
+ * description body, selling price, compare-at price, product status, SEO.
  */
 function buildProductFields(
   product: SyncableProduct,
@@ -1345,7 +1330,6 @@ function buildProductFields(
   return {
     title: product.title,
     handle: product.slug,
-    descriptionHtml: resolveDescriptionHtml(product),
     vendor: resolveVendor(product),
     productType: resolveShopifyProductType(product),
     tags: buildProductTags(product, context),
@@ -1366,19 +1350,6 @@ function mediaInput(product: SyncableProduct): Array<{
       mediaContentType: "IMAGE",
     },
   ]
-}
-
-function normalizeComparableHtml(html: string): string {
-  return normalizeComparableText(
-    html
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&amp;/gi, "&")
-      .replace(/&lt;/gi, "<")
-      .replace(/&gt;/gi, ">")
-      .replace(/&quot;/gi, '"')
-      .replace(/&#39;/g, "'")
-  )
 }
 
 function normalizeComparableText(value: string | null | undefined): string {
@@ -1433,11 +1404,12 @@ export type ProductChangeDiff = {
 
 /**
  * Diff local catalog product vs Shopify product for idempotent sync.
- * Synced fields: title, description, handle, vendor, product type, tags,
- * images (upload-needed), collections. Availability is expressed via tags.
+ * Synced fields: title, handle, vendor, product type, tags, images
+ * (upload-needed), collections. Availability is expressed via tags.
  *
- * Shopify-owned (ignored for updates + idempotency): selling price,
- * compare-at price, product status, SEO title, SEO description.
+ * Shopify-owned (ignored for updates + idempotency): product description
+ * body, selling price, compare-at price, product status, SEO title,
+ * SEO description.
  */
 export function diffProductChanges(
   existing: ExistingShopifyProduct,
@@ -1460,13 +1432,6 @@ export function diffProductChanges(
     reasons.push(
       `Title changed (${existing.title || "∅"} → ${fields.title || "∅"})`
     )
-  }
-
-  if (
-    normalizeComparableHtml(existing.descriptionHtml ?? "") !==
-    normalizeComparableHtml(fields.descriptionHtml)
-  ) {
-    reasons.push("Description changed")
   }
 
   if (normalizeComparableText(existing.handle) !== normalizeComparableText(fields.handle)) {
@@ -1939,9 +1904,10 @@ async function setInitialVariantPriceAndSku(
 
 /**
  * Create a new Shopify product (matched later by handle).
- * Seeds title, description, vendor, type, tags, handle, media, and an initial
- * selling price. Status defaults to ACTIVE on create only — later imports never
- * overwrite price, compare-at, status, or SEO.
+ * Seeds title, vendor, type, tags, handle, media, and an initial selling price.
+ * Product description is left empty for Shopify Admin editing.
+ * Status defaults to ACTIVE on create only — later imports never overwrite
+ * description, price, compare-at, status, or SEO.
  * Caller should call `ensurePublishedToHeadless` / `ensurePublishedToShop`
  * (via `ensurePublishedToSalesChannels`) after create.
  */
@@ -1988,8 +1954,8 @@ export async function createProduct(
 
 /**
  * Update an existing Shopify product by GID.
- * Syncs title, description, vendor, type, tags, handle.
- * Does not overwrite selling price, compare-at, status, or SEO.
+ * Syncs title, vendor, type, tags, handle.
+ * Does not overwrite description, selling price, compare-at, status, or SEO.
  * Does not remove existing media — call `uploadImages` when media is empty.
  */
 export async function updateProduct(
@@ -2017,11 +1983,10 @@ export async function updateProduct(
         id: productId,
         title: fields.title,
         handle: fields.handle,
-        descriptionHtml: fields.descriptionHtml,
         vendor: fields.vendor,
         productType: fields.productType,
         tags: fields.tags,
-        // Intentionally omit: status, seo — Shopify-owned merchandising.
+        // Intentionally omit: descriptionHtml, status, seo — Shopify-owned.
       },
     },
   })

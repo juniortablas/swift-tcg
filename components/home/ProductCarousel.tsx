@@ -11,6 +11,8 @@ interface ProductCarouselProps {
   href?: string
   linkLabel?: string
   icon?: LucideIcon
+  /** Optional CMS merchandising badges keyed by product id. */
+  badges?: Record<string, string>
 }
 
 export default function ProductCarousel({
@@ -19,6 +21,7 @@ export default function ProductCarousel({
   href = "/products",
   linkLabel = "View all",
   icon: Icon = Sparkles,
+  badges,
 }: ProductCarouselProps) {
   if (products.length === 0) return null
 
@@ -48,7 +51,6 @@ export default function ProductCarousel({
         <div className="mt-2 sm:mt-6">
           <CarouselScroller
             label={title}
-            showNext={products.length > 5}
             gapClassName="gap-2 sm:gap-4"
             gapPx={gapPx}
           >
@@ -58,7 +60,12 @@ export default function ProductCarousel({
                 data-carousel-item
                 className="w-[calc((100%-0.5rem)/2.2)] shrink-0 snap-start sm:w-[260px] lg:w-[calc((100%-4rem)/5)]"
               >
-                <ProductCard product={product} variant="featured" density="rail" />
+                <ProductCard
+                  product={product}
+                  variant="featured"
+                  density="rail"
+                  badgeOverride={badges?.[product.id]}
+                />
               </div>
             ))}
           </CarouselScroller>

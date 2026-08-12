@@ -4,10 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, Search, User, X } from "lucide-react"
 
+import BrandLogo from "@/components/brand/BrandLogo"
 import CartButton from "@/components/cart/CartButton"
 import CartDrawer from "@/components/cart/CartDrawer"
 import SearchDialog from "@/components/search/SearchDialog"
 import { Button } from "@/components/ui/button"
+import { getCustomerLoginHref } from "@/lib/account/customerLogin"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
@@ -27,7 +29,7 @@ type NavbarProps = {
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const accountHref = isLoggedIn ? "/account" : "/account/login?return_to=/account"
+  const accountHref = isLoggedIn ? "/account" : getCustomerLoginHref("/account")
   const accountLabel = isLoggedIn ? "Account" : "Login"
 
   return (
@@ -36,14 +38,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         <div className="relative mx-auto flex h-12 w-full max-w-[1920px] items-center justify-between px-3 sm:h-20 sm:px-6 lg:px-8 xl:px-10">
           <Link
             href="/"
-            className="relative z-10 flex shrink-0 flex-col leading-none"
+            className="relative z-10 flex shrink-0 items-center"
+            aria-label="Swift TCG home"
           >
-            <span className="text-[1rem] font-bold tracking-tight text-black sm:text-xl">
-              SWIFT
-            </span>
-            <span className="text-[0.6rem] font-bold tracking-[0.18em] text-green-600 sm:text-[0.75rem]">
-              TCG
-            </span>
+            <BrandLogo height={36} priority />
           </Link>
 
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 lg:flex">

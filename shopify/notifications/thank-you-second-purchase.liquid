@@ -1,0 +1,82 @@
+<!--
+  Thank you - second purchase (We're happy to see you again)
+  Swift TCG branded Custom Liquid for Shopify Messaging.
+
+  Keep your Charizard / thank-you image:
+  1. In the email editor, click the image and Copy image address
+  2. Paste that URL into IMAGE_URL below
+  Or keep the Image block above/below this Custom Liquid and delete the image row here.
+
+  Keep Shopify's product recommendation block below this section if you want it.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;margin:0;padding:0;width:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <tr>
+    <td align="center" style="padding:0;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#ffffff;">
+
+        <tr>
+          <td style="padding:32px 40px 24px;border-bottom:3px solid #0EA54B;">
+            <a href="{{ shop.url }}" style="display:inline-block;text-decoration:none;line-height:1;">
+              <img src="https://swifttcg.com/brand/swift-tcg-logo-email.png" alt="Swift TCG" width="160" height="49" style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-width:160px;" />
+            </a>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:36px 40px 8px;text-align:center;">
+            <h1 style="margin:0 0 20px;color:#111111;font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1.25;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+              You're the best!
+            </h1>
+
+            <!-- KEEP IMAGE: replace IMAGE_URL with your thank-you image address from the editor -->
+            <img
+              src="IMAGE_URL"
+              alt="Thank you"
+              width="360"
+              style="display:block;margin:0 auto 24px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;"
+            >
+
+            {% if customer.first_name %}
+              <p style="margin:0 0 12px;color:#444444;font-size:15px;line-height:1.6;text-align:center;">
+                Hi {{ customer.first_name }},
+              </p>
+            {% endif %}
+
+            <p style="margin:0 0 8px;color:#444444;font-size:15px;line-height:1.6;text-align:center;">
+              Thanks for shopping with us again. Your loyalty means the world to us.
+            </p>
+            <p style="margin:0 0 8px;color:#444444;font-size:15px;line-height:1.6;text-align:center;">
+              If you have any questions or feedback, reach out anytime - we are always happy to help. Hope to see you again soon!
+            </p>
+
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 8px;">
+              <tr>
+                <td style="background-color:#0EA54B;border-radius:6px;text-align:center;">
+                  <a href="{{ shop.url }}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:700;letter-spacing:0.01em;text-decoration:none;line-height:1.2;">
+                    Visit store
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:32px 40px 28px;border-top:1px solid #e8e8e8;">
+            <p style="margin:0 0 8px;color:#666666;font-size:13px;line-height:1.55;text-align:center;">
+              Questions? Email us at <a href="mailto:support@swifttcg.com" style="color:#0EA54B;text-decoration:none;">support@swifttcg.com</a>
+            </p>
+            <p style="margin:0 0 8px;color:#666666;font-size:13px;line-height:1.55;text-align:center;">
+              <a href="https://swifttcg.com" style="color:#0EA54B;text-decoration:none;">https://swifttcg.com</a>
+            </p>
+            <p style="margin:0;color:#666666;font-size:13px;line-height:1.55;text-align:center;">
+              Authentic Japanese TCG imports - factory sealed, shipped from California.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+{{ open_tracking_block }}

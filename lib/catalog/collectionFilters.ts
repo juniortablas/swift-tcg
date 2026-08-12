@@ -3,26 +3,30 @@ import type { Product } from "@/types/product"
 import { getProductReleaseDate } from "./homepage"
 import {
   type AvailabilityFilter,
-  type ProductTypeFilter,
   getAvailability,
   getProductBrand,
-  getProductTypeFilter,
+  getProductLanguageSlug,
   getReleaseYear,
+  getShopifyProductType,
+  SHOPIFY_PRODUCT_TYPES,
 } from "./productMeta"
 
 export type SortOption =
   | "newest"
+  | "oldest"
   | "price-asc"
   | "price-desc"
-  | "release-date"
   | "alphabetical"
 
 export type CollectionFiltersState = {
   availability: AvailabilityFilter[]
   priceMin: number | null
   priceMax: number | null
-  types: ProductTypeFilter[]
+  /** Shopify `productType` values (e.g. "Booster Box"). */
+  types: string[]
   years: number[]
+  /** Language slugs: japanese, english, korean, chinese. */
+  languages: string[]
 }
 
 export const DEFAULT_FILTERS: CollectionFiltersState = {
@@ -31,7 +35,10 @@ export const DEFAULT_FILTERS: CollectionFiltersState = {
   priceMax: null,
   types: [],
   years: [],
+  languages: [],
 }
+
+export const DEFAULT_SORT: SortOption = "newest"
 
 export const PAGE_SIZE = 24
 
@@ -53,7 +60,13 @@ export function searchProducts(products: Product[], query: string): Product[] {
   if (!q) return products
 
   return products.filter((product) =>
-    [product.title, product.slug, product.category, getProductBrand(product)]
+    [
+      product.title,
+      product.slug,
+      product.category,
+      product.productType,
+      getProductBrand(product),
+    ]
       .filter((value): value is string => Boolean(value))
       .some((value) => value.toLowerCase().includes(q))
   )
@@ -78,8 +91,13 @@ export function filterProducts(
     }
 
     if (filters.types.length > 0) {
-      const type = getProductTypeFilter(product)
+      const type = getShopifyProductType(product)
       if (!type || !filters.types.includes(type)) return false
+    }
+
+    if (filters.languages.length > 0) {
+      const language = getProductLanguageSlug(product)
+      if (!language || !filters.languages.includes(language)) return false
     }
 
     if (filters.years.length > 0) {
@@ -100,6 +118,20 @@ export function filterProducts(
   })
 }
 
+/** Prefer `custom.release_date`, then Shopify `createdAt`. */
+function releaseSortKey(product: Product): string {
+  return (
+    getProductReleaseDate(product) ??
+    product.createdAt ??
+    "1970-01-01T00:00:00Z"
+  )
+}
+
+function compareByRelease(a: Product, b: Product, direction: "asc" | "desc"): number {
+  const cmp = releaseSortKey(a).localeCompare(releaseSortKey(b))
+  return direction === "desc" ? -cmp : cmp
+}
+
 export function sortProducts(products: Product[], sort: SortOption): Product[] {
   const next = [...products]
 
@@ -110,31 +142,26 @@ export function sortProducts(products: Product[], sort: SortOption): Product[] {
       )
     case "price-asc":
       return next.sort((a, b) => {
-        if (a.price == null && b.price == null) return 0
+        if (a.price == null && b.price == null) return compareByRelease(a, b, "desc")
         if (a.price == null) return 1
         if (b.price == null) return -1
-        return a.price - b.price
+        if (a.price !== b.price) return a.price - b.price
+        return compareByRelease(a, b, "desc")
       })
     case "price-desc":
       return next.sort((a, b) => {
-        if (a.price == null && b.price == null) return 0
+        if (a.price == null && b.price == null) return compareByRelease(a, b, "desc")
         if (a.price == null) return 1
         if (b.price == null) return -1
-        return b.price - a.price
+        if (a.price !== b.price) return b.price - a.price
+        return compareByRelease(a, b, "desc")
       })
-    case "release-date":
-      return next.sort((a, b) => {
-        const aDate = getProductReleaseDate(a)
-        const bDate = getProductReleaseDate(b)
-        if (aDate && bDate) return bDate.localeCompare(aDate)
-        if (aDate) return -1
-        if (bDate) return 1
-        return b.id.localeCompare(a.id)
-      })
+    case "oldest":
+      return next.sort((a, b) => compareByRelease(a, b, "asc"))
     case "newest":
     default:
-      // Shopify collection / catalog order is already newest-first.
-      return next
+      // Newest Release — primary sort on custom.release_date (DESC).
+      return next.sort((a, b) => compareByRelease(a, b, "desc"))
   }
 }
 
@@ -145,20 +172,42 @@ export function getAvailableYears(products: Product[]): number[] {
   return Array.from(new Set(years)).sort((a, b) => b - a)
 }
 
-export function getAvailableTypes(products: Product[]): ProductTypeFilter[] {
+/** Distinct Shopify product types present in the catalog, data-standard order first. */
+export function getAvailableTypes(products: Product[]): string[] {
   const present = new Set(
     products
-      .map(getProductTypeFilter)
-      .filter((type): type is ProductTypeFilter => type != null)
+      .map(getShopifyProductType)
+      .filter((type): type is string => Boolean(type))
   )
 
+  const ordered = SHOPIFY_PRODUCT_TYPES.filter((type) => present.has(type))
+  const extras = Array.from(present)
+    .filter((type) => !(SHOPIFY_PRODUCT_TYPES as readonly string[]).includes(type))
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+
+  return [...ordered, ...extras]
+}
+
+/** Distinct language slugs present in the catalog. */
+export function getAvailableLanguages(products: Product[]): string[] {
+  const present = new Set<string>()
+  for (const product of products) {
+    const language = getProductLanguageSlug(product)
+    if (language) present.add(language)
+  }
+
+  return (["japanese", "english", "korean", "chinese"] as const).filter(
+    (slug) => present.has(slug)
+  )
+}
+
+export function hasActiveFilters(filters: CollectionFiltersState): boolean {
   return (
-    [
-      "booster-boxes",
-      "starter-decks",
-      "premium-collections",
-      "accessories",
-      "cases",
-    ] as const
-  ).filter((type) => present.has(type))
+    filters.availability.length > 0 ||
+    filters.types.length > 0 ||
+    filters.years.length > 0 ||
+    filters.languages.length > 0 ||
+    filters.priceMin != null ||
+    filters.priceMax != null
+  )
 }

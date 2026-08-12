@@ -233,3 +233,56 @@ export const CUSTOMER_ADDRESS_DELETE_MUTATION = `
     }
   }
 `
+
+/** Authenticated customer GID (no metafield access required). */
+export const CUSTOMER_ID_QUERY = `
+  query CustomerId {
+    customer {
+      id
+    }
+  }
+`
+
+/** Wishlist product GIDs stored on the authenticated customer metafield. */
+export const CUSTOMER_WISHLIST_QUERY = `
+  query CustomerWishlist($namespace: String!, $key: String!) {
+    customer {
+      id
+      wishlist: metafield(namespace: $namespace, key: $key) {
+        value
+        compareDigest
+      }
+    }
+  }
+`
+
+/** Back-in-stock subscriptions JSON on the authenticated customer metafield. */
+export const CUSTOMER_BACK_IN_STOCK_QUERY = `
+  query CustomerBackInStock($namespace: String!, $key: String!) {
+    customer {
+      id
+      backInStock: metafield(namespace: $namespace, key: $key) {
+        value
+        compareDigest
+      }
+    }
+  }
+`
+
+export const CUSTOMER_METAFIELDS_SET_MUTATION = `
+  mutation CustomerMetafieldsSet($metafields: [MetafieldsSetInput!]!) {
+    metafieldsSet(metafields: $metafields) {
+      metafields {
+        namespace
+        key
+        value
+        compareDigest
+      }
+      userErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`

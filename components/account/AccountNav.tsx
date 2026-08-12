@@ -5,6 +5,13 @@ import { cn } from "@/lib/utils"
 const NAV_ITEMS = [
   { href: "/account", label: "Dashboard", match: "exact" as const },
   { href: "/account/orders", label: "Orders", match: "prefix" as const },
+  { href: "/account/wishlist", label: "Wishlist", match: "exact" as const },
+  {
+    href: "/account/notifications",
+    label: "Notifications",
+    match: "exact" as const,
+  },
+  { href: "/account/reviews", label: "Reviews", match: "exact" as const },
   { href: "/account/addresses", label: "Addresses", match: "exact" as const },
   { href: "/account/profile", label: "Profile", match: "exact" as const },
 ] as const
@@ -41,12 +48,13 @@ export default function AccountNav({ pathname }: AccountNavProps) {
           </Link>
         )
       })}
-      <Link
+      {/* Plain <a>: Next.js <Link> prefetches /account/logout and would clear the session. */}
+      <a
         href="/account/logout"
         className="shrink-0 rounded-lg px-3 py-2.5 text-sm font-medium text-black/55 transition-colors hover:bg-black/[0.03] hover:text-black sm:mt-3 sm:min-h-10"
       >
         Logout
-      </Link>
+      </a>
     </nav>
   )
 }

@@ -19,7 +19,7 @@ export async function generateMetadata({
     () => null
   )
   return {
-    title: order ? `${order.name} | Swift TCG` : "Order | Swift TCG",
+    title: order ? order.name : "Order",
     robots: { index: false, follow: false },
   }
 }

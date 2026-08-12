@@ -14,6 +14,8 @@ import type {
   SocialPlatform,
 } from "@/types/content"
 
+import { cache } from "react"
+
 import { ShopifyClientError, shopifyFetch } from "./client"
 import { GET_PAGE_BY_HANDLE, GET_SHOP_CONTENT } from "./queries"
 import { sanitizeShopifyHtml } from "./sanitizeHtml"
@@ -114,89 +116,91 @@ function emptyShopContent(): ShopContentSettings {
  * Shop-level contact/social metafields and native policy summaries.
  * Safe to call from layout chrome — returns empty defaults on failure.
  */
-export async function getShopContentSettings(): Promise<ShopContentSettings> {
-  try {
-    const data = await shopifyFetch<ShopContentQueryResult>({
-      query: GET_SHOP_CONTENT,
-    })
+export const getShopContentSettings = cache(
+  async (): Promise<ShopContentSettings> => {
+    try {
+      const data = await shopifyFetch<ShopContentQueryResult>({
+        query: GET_SHOP_CONTENT,
+      })
 
-    const policies = (
-      [
-        mapPolicy("privacyPolicy", data.shop.privacyPolicy),
-        mapPolicy("refundPolicy", data.shop.refundPolicy),
-        mapPolicy("shippingPolicy", data.shop.shippingPolicy),
-        mapPolicy("termsOfService", data.shop.termsOfService),
-      ] as Array<ShopPolicy | null>
-    ).filter((policy): policy is ShopPolicy => policy !== null)
+      const policies = (
+        [
+          mapPolicy("privacyPolicy", data.shop.privacyPolicy),
+          mapPolicy("refundPolicy", data.shop.refundPolicy),
+          mapPolicy("shippingPolicy", data.shop.shippingPolicy),
+          mapPolicy("termsOfService", data.shop.termsOfService),
+        ] as Array<ShopPolicy | null>
+      ).filter((policy): policy is ShopPolicy => policy !== null)
 
-    return {
-      shopName: data.shop.name?.trim() || "Swift TCG",
-      contact: mapContactDetails(data.shop),
-      policies,
+      return {
+        shopName: data.shop.name?.trim() || "Swift TCG",
+        contact: mapContactDetails(data.shop),
+        policies,
+      }
+    } catch (error) {
+      if (error instanceof ShopifyClientError) {
+        console.error("[shopify/content] getShopContentSettings:", error.message)
+        return emptyShopContent()
+      }
+      throw error
     }
-  } catch (error) {
-    if (error instanceof ShopifyClientError) {
-      console.error("[shopify/content] getShopContentSettings:", error.message)
-      return emptyShopContent()
-    }
-    throw error
   }
-}
+)
 
 /**
  * Load a Shopify Online Store page by handle.
  * Returns null when the page does not exist.
  */
-export async function getShopifyPageByHandle(
-  handle: string
-): Promise<ContentPage | null> {
-  const normalized = handle.trim().toLowerCase()
-  if (!normalized) return null
+export const getShopifyPageByHandle = cache(
+  async (handle: string): Promise<ContentPage | null> => {
+    const normalized = handle.trim().toLowerCase()
+    if (!normalized) return null
 
-  const pageData = await shopifyFetch<PageByHandleQueryResult>({
-    query: GET_PAGE_BY_HANDLE,
-    variables: { handle: normalized },
-  })
+    const pageData = await shopifyFetch<PageByHandleQueryResult>({
+      query: GET_PAGE_BY_HANDLE,
+      variables: { handle: normalized },
+    })
 
-  const page = pageData.page
-  if (!page) return null
+    const page = pageData.page
+    if (!page) return null
 
-  const shop = await getShopContentSettings()
-  const pageContact = mapContactDetails(page)
-  const contact = mergeContactDetails(pageContact, shop.contact)
+    const shop = await getShopContentSettings()
+    const pageContact = mapContactDetails(page)
+    const contact = mergeContactDetails(pageContact, shop.contact)
 
-  return {
-    id: page.id,
-    handle: page.handle,
-    title: page.title,
-    bodyHtml: sanitizeShopifyHtml(page.body ?? ""),
-    bodySummary: page.bodySummary?.trim() ?? "",
-    seo: {
-      title: page.seo?.title ?? null,
-      description: page.seo?.description ?? null,
-    },
-    contact,
+    return {
+      id: page.id,
+      handle: page.handle,
+      title: page.title,
+      bodyHtml: sanitizeShopifyHtml(page.body ?? ""),
+      bodySummary: page.bodySummary?.trim() ?? "",
+      seo: {
+        title: page.seo?.title ?? null,
+        description: page.seo?.description ?? null,
+      },
+      contact,
+    }
   }
-}
+)
 
 /**
  * Resolve a Shopify native policy by its handle (e.g. `shipping-policy`).
  */
-export async function getShopifyPolicyByHandle(
-  handle: string
-): Promise<ShopPolicy | null> {
-  const normalized = handle.trim().toLowerCase()
-  if (!normalized) return null
+export const getShopifyPolicyByHandle = cache(
+  async (handle: string): Promise<ShopPolicy | null> => {
+    const normalized = handle.trim().toLowerCase()
+    if (!normalized) return null
 
-  const shop = await getShopContentSettings()
-  const direct = shop.policies.find((policy) => policy.handle === normalized)
-  if (direct) return direct
+    const shop = await getShopContentSettings()
+    const direct = shop.policies.find((policy) => policy.handle === normalized)
+    if (direct) return direct
 
-  const kind = POLICY_KIND_BY_HANDLE[normalized]
-  if (!kind) return null
+    const kind = POLICY_KIND_BY_HANDLE[normalized]
+    if (!kind) return null
 
-  return shop.policies.find((policy) => policy.kind === kind) ?? null
-}
+    return shop.policies.find((policy) => policy.kind === kind) ?? null
+  }
+)
 
 /** Canonical storefront paths for known content handles (footer / nav). */
 export const CONTENT_PAGE_PATHS = {

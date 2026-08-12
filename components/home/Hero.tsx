@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { ArrowLeft, ArrowRight, Star } from "lucide-react"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -12,12 +12,6 @@ import type { HomepageHeroSlide } from "@/lib/shopify/storefrontCms"
 type HeroProps = {
   slides: HomepageHeroSlide[]
 }
-
-const AVATARS = [
-  "/placeholders/avatar-1.svg",
-  "/placeholders/avatar-2.svg",
-  "/placeholders/avatar-3.svg",
-] as const
 
 const AUTO_MS = 6000
 
@@ -53,8 +47,8 @@ function HeadingLines({ heading }: { heading: string }) {
  * Homepage hero — low-profile cinematic banner + overlaid copy.
  *
  * Desktop / tablet: short fixed-height banner (≈240–300px). Art fills with
- * object-cover and may crop horizontally. Copy is vertically centered; trust
- * + pagination sit on the bottom edge.
+ * object-cover and may crop horizontally. Copy is vertically centered;
+ * pagination sits on the bottom edge.
  *
  * Mobile: unchanged stacked layout (art slot above copy).
  */
@@ -108,7 +102,7 @@ export default function Hero({ slides }: HeroProps) {
                 <div className="hero-art-float relative h-full w-full animate-[hero-float_7s_ease-in-out_infinite] motion-reduce:animate-none">
                   <Image
                     src={slide.desktopImage}
-                    alt=""
+                    alt={slide.imageAlt || slide.heading || "Swift TCG"}
                     fill
                     unoptimized
                     priority={i === 0}
@@ -128,7 +122,7 @@ export default function Hero({ slides }: HeroProps) {
                 >
                   <Image
                     src={slide.mobileImage}
-                    alt=""
+                    alt={slide.imageAlt || slide.heading || "Swift TCG"}
                     fill
                     unoptimized
                     priority={i === 0}
@@ -218,46 +212,6 @@ export default function Hero({ slides }: HeroProps) {
 
         {/* Bottom controls — pinned to banner baseline; reserves height so copy centers above */}
         <div className="relative z-20 mt-9 min-h-11 sm:mt-0 sm:h-9 sm:shrink-0">
-          {/* Trusted collectors — left baseline */}
-          <div className="absolute bottom-0 left-0 hidden items-center gap-2 sm:flex sm:gap-2.5">
-            <div className="flex -space-x-2" aria-hidden="true">
-              {AVATARS.map((src, avatarIndex) => (
-                <div
-                  key={src}
-                  className="relative size-7 overflow-hidden rounded-full border-2 border-white bg-neutral-200 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.2)]"
-                  style={{ zIndex: AVATARS.length - avatarIndex }}
-                >
-                  <Image
-                    src={src}
-                    alt=""
-                    width={28}
-                    height={28}
-                    unoptimized
-                    className="size-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <div
-                className="flex items-center gap-0.5 text-green-600"
-                aria-label="5 out of 5 stars"
-              >
-                {Array.from({ length: 5 }).map((_, starIndex) => (
-                  <Star
-                    key={starIndex}
-                    className="size-2.5 fill-current"
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-              <p className="text-[12px] font-medium leading-none text-black/50">
-                Trusted by 2,000+ collectors
-              </p>
-            </div>
-          </div>
-
           {/*
             Progress sits between the copy band (~540px) and the art focal area.
             42% of the content width lands in that gap on typical desktop widths.
@@ -314,7 +268,6 @@ export default function Hero({ slides }: HeroProps) {
         <p className="sr-only">
           Slide {index + 1} of {slideCount}: {active.id}
         </p>
-        <p className="sr-only">{active.imageAlt}</p>
       </div>
 
       <style>{`

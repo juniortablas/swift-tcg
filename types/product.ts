@@ -16,8 +16,49 @@ export interface Product {
   status: ProductStatus
   /** Shopify vendor — manufacturer / brand when set. */
   vendor?: string | null
+  /** Shopify `productType` (Booster Box, Starter Deck, …). */
+  productType?: string | null
   /** Shopify tags — used for language facets and status. */
   tags?: string[]
   /** ISO date (YYYY-MM-DD) from Shopify `custom.release_date` when set. */
   releaseDate?: string | null
+  /** Shopify `createdAt` — fallback when sorting by release date. */
+  createdAt?: string | null
+  /**
+   * Sanitized-ready product body HTML from Shopify Admin.
+   * Present on PDP fetches (`getShopifyProductByHandle`); omitted from list queries.
+   */
+  descriptionHtml?: string | null
+  /**
+   * `custom.language` metafield when set.
+   * Collection list queries include this metafield; tags remain a fallback.
+   */
+  language?: string | null
+  /** `custom.series` metafield (Series / Set). */
+  series?: string | null
+  /** `custom.condition` metafield. */
+  condition?: string | null
+  /** `custom.rarity` metafield. */
+  rarity?: string | null
+  /** `custom.product_code` metafield. */
+  productCode?: string | null
+  /** Average approved review rating (`swift.review_rating`). */
+  reviewRating?: number | null
+  /** Count of approved reviews (`swift.review_count`). */
+  reviewCount?: number | null
+  /**
+   * Star breakdown from `swift.review_breakdown`
+   * (`{ "1": n, "2": n, ... "5": n }`).
+   */
+  reviewBreakdown?: Record<"1" | "2" | "3" | "4" | "5", number> | null
+  /** Shopify SEO title when set in Admin. */
+  seoTitle?: string | null
+  /** Shopify SEO description when set in Admin. */
+  seoDescription?: string | null
+  /** Plain-text product description (Storefront `description`). */
+  description?: string | null
+  /** Featured image alt text from Shopify. */
+  imageAlt?: string | null
+  /** ISO 4217 currency for `price` (defaults to USD in SEO helpers). */
+  currencyCode?: string | null
 }

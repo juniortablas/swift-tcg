@@ -19,9 +19,8 @@ import {
   getShopifyCollectionLanguageFacets,
   type CollectionLanguageFacet,
 } from "@/lib/shopify/collectionFacets"
-import { shopifyFetch } from "@/lib/shopify/client"
+import { getShopifyCollectionByHandle } from "@/lib/shopify/collectionSeo"
 import { getShopifyProducts } from "@/lib/shopify/products"
-import { GET_COLLECTIONS } from "@/lib/shopify/queries"
 import { RESERVED_GAME_HANDLES } from "@/lib/shopify/reservedHandles"
 import {
   applyStorefrontHeroToPresentation,
@@ -30,8 +29,8 @@ import {
   storefrontCmsKeyPrefix,
   visualKeyForLanguageFacet,
 } from "@/lib/shopify/storefrontCms"
-import type { CollectionsQueryResult } from "@/lib/shopify/types"
 import type { Product } from "@/types/product"
+import { cache } from "react"
 
 export { RESERVED_GAME_HANDLES }
 
@@ -41,6 +40,12 @@ const DEFAULT_ATMOSPHERE =
 export type TcgCollectionPayload = {
   gameHandle: string
   presentation: CollectionPresentation
+  /** Shopify collection SEO when available. */
+  shopifySeoTitle: string | null
+  shopifySeoDescription: string | null
+  shopifyDescription: string | null
+  collectionImageUrl: string | null
+  collectionImageAlt: string | null
   /** All products in the parent TCG collection (for counts / single-language). */
   parentProducts: Product[]
   /** Products to show in the grid (language-filtered or parent). */
@@ -114,105 +119,109 @@ async function applyLanguageVisuals(
   )
 }
 
-async function findShopifyCollectionTitle(
-  handle: string
-): Promise<string | null> {
-  const target = handle.trim().toLowerCase()
-  let after: string | null | undefined
-  let hasNextPage = true
-
-  while (hasNextPage) {
-    const data = await shopifyFetch<CollectionsQueryResult>({
-      query: GET_COLLECTIONS,
-      variables: { first: 50, ...(after ? { after } : {}) },
-    })
-
-    for (const edge of data.collections.edges) {
-      if (edge.node.handle.trim().toLowerCase() === target) {
-        return edge.node.title
-      }
-    }
-
-    hasNextPage = data.collections.pageInfo?.hasNextPage ?? false
-    after = data.collections.pageInfo?.endCursor ?? undefined
-  }
-
-  return null
-}
-
 /**
  * Resolve a TCG game landing or language page from the URL segments.
  * Returns null when the game (or language) is not a valid Shopify TCG collection.
+ * Cached per request so `generateMetadata` + page share one load.
  */
 export async function loadTcgCollectionPage(options: {
   gameHandle: string
   languageSlug?: string | null
 }): Promise<TcgCollectionPayload | null> {
-  const gameHandle = options.gameHandle.trim().toLowerCase()
-  if (!gameHandle || RESERVED_GAME_HANDLES.has(gameHandle)) {
-    return null
-  }
-
-  const shopifyTitle = await findShopifyCollectionTitle(gameHandle)
-  if (!shopifyTitle) return null
-
-  const basePresentation = resolveTcgPresentation(gameHandle, shopifyTitle)
-  const presentation = await applyStorefrontHeroToPresentation(
-    heroKeyForGame(gameHandle),
-    basePresentation
+  return loadTcgCollectionPageCached(
+    options.gameHandle.trim().toLowerCase(),
+    options.languageSlug?.trim().toLowerCase() || null
   )
-  const category = presentation.title
+}
 
-  const [parentProducts, rawFacets] = await Promise.all([
-    getShopifyProducts({
-      collectionHandle: gameHandle,
-      category,
-    }),
-    getShopifyCollectionLanguageFacets(gameHandle),
-  ])
+const loadTcgCollectionPageCached = cache(
+  async (
+    gameHandle: string,
+    languageSlug: string | null
+  ): Promise<TcgCollectionPayload | null> => {
+    if (!gameHandle || RESERVED_GAME_HANDLES.has(gameHandle)) {
+      return null
+    }
 
-  const languageFacets = await applyLanguageVisuals(
-    gameHandle,
-    enrichLanguageFacets(rawFacets, parentProducts)
-  )
-  // Multi-language TCGs require an explicit language pick before the grid.
-  // Single-language TCGs still show the language card but load products immediately.
-  const requiresLanguagePick = languageFacets.length >= 2
+    const shopifyCollection = await getShopifyCollectionByHandle(gameHandle)
+    if (!shopifyCollection) return null
 
-  const languageSlug = options.languageSlug?.trim().toLowerCase() || null
+    const basePresentation = resolveTcgPresentation(
+      gameHandle,
+      shopifyCollection.title
+    )
+    const presentation = await applyStorefrontHeroToPresentation(
+      heroKeyForGame(gameHandle),
+      basePresentation
+    )
+    const category = presentation.title
 
-  if (languageSlug) {
-    const facet = languageFacets.find((entry) => entry.slug === languageSlug)
-    // Allow Coming Soon facets to 404 only when empty and navigated directly
-    // with zero products — language cards stay visible as disabled otherwise.
-    if (!facet || facet.productCount === 0) return null
+    const [parentProducts, rawFacets] = await Promise.all([
+      getShopifyProducts({
+        collectionHandle: gameHandle,
+        category,
+      }),
+      getShopifyCollectionLanguageFacets(gameHandle),
+    ])
 
-    const products = await getShopifyProducts({
-      collectionHandle: facet.handle,
-      category,
-    })
+    const languageFacets = await applyLanguageVisuals(
+      gameHandle,
+      enrichLanguageFacets(rawFacets, parentProducts)
+    )
+    // Multi-language TCGs require an explicit language pick before the grid.
+    // Single-language TCGs still show the language card but load products immediately.
+    const requiresLanguagePick = languageFacets.length >= 2
+
+    const seoFields = {
+      shopifySeoTitle: shopifyCollection.seo.title,
+      shopifySeoDescription: shopifyCollection.seo.description,
+      shopifyDescription:
+        shopifyCollection.description ||
+        shopifyCollection.descriptionHtml ||
+        null,
+      collectionImageUrl:
+        presentation.images[0]?.src || shopifyCollection.imageUrl || null,
+      collectionImageAlt:
+        presentation.images[0]?.alt ||
+        shopifyCollection.imageAlt ||
+        presentation.title,
+    }
+
+    if (languageSlug) {
+      const facet = languageFacets.find((entry) => entry.slug === languageSlug)
+      // Allow Coming Soon facets to 404 only when empty and navigated directly
+      // with zero products — language cards stay visible as disabled otherwise.
+      if (!facet || facet.productCount === 0) return null
+
+      const products = await getShopifyProducts({
+        collectionHandle: facet.handle,
+        category,
+      })
+
+      return {
+        gameHandle,
+        presentation: {
+          ...presentation,
+          searchPlaceholder: `Search ${facet.label} ${presentation.breadcrumb} products...`,
+        },
+        ...seoFields,
+        parentProducts,
+        products,
+        languageFacets,
+        selectedLanguage: facet.slug,
+        requiresLanguagePick,
+      }
+    }
 
     return {
       gameHandle,
-      presentation: {
-        ...presentation,
-        searchPlaceholder: `Search ${facet.label} ${presentation.breadcrumb} products...`,
-      },
+      presentation,
+      ...seoFields,
       parentProducts,
-      products,
+      products: requiresLanguagePick ? [] : parentProducts,
       languageFacets,
-      selectedLanguage: facet.slug,
+      selectedLanguage: null,
       requiresLanguagePick,
     }
   }
-
-  return {
-    gameHandle,
-    presentation,
-    parentProducts,
-    products: requiresLanguagePick ? [] : parentProducts,
-    languageFacets,
-    selectedLanguage: null,
-    requiresLanguagePick,
-  }
-}
+)

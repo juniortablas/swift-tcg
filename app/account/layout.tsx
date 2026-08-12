@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
 
 import StoreChrome from "@/components/layout/StoreChrome"
+import { getCustomerLoginHref } from "@/lib/account/customerLogin"
 import {
   isCustomerAccountConfigured,
   isCustomerLoggedIn,
@@ -47,7 +48,7 @@ export default async function AccountLayout({
 
   const loggedIn = await isCustomerLoggedIn()
   if (!loggedIn) {
-    redirect("/account/login?return_to=/account")
+    redirect(getCustomerLoginHref("/account"))
   }
 
   return <StoreChrome>{children}</StoreChrome>

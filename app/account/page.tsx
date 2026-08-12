@@ -8,7 +8,7 @@ import { getCustomerDashboard } from "@/lib/shopify/customerAccount"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Account | Swift TCG",
+  title: "Account",
   robots: { index: false, follow: false },
 }
 
@@ -34,6 +34,12 @@ export default async function AccountDashboardPage() {
             ) : null}
           </p>
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
+            <Link
+              href="/account/wishlist"
+              className="font-medium text-green-700 hover:text-green-800"
+            >
+              Wishlist
+            </Link>
             <Link
               href="/account/profile"
               className="font-medium text-green-700 hover:text-green-800"

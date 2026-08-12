@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import { getCustomerLoginHref } from "@/lib/account/customerLogin"
 
 export default function AccountError({
   error,
@@ -30,7 +31,7 @@ export default function AccountError({
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         {unauthorized ? (
-          <Button render={<Link href="/account/login?return_to=/account" />}>
+          <Button render={<Link href={getCustomerLoginHref("/account")} />}>
             Sign in
           </Button>
         ) : (

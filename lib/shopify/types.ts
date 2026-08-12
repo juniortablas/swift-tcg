@@ -151,6 +151,30 @@ export interface Product {
   createdAt: string
   /** Official release date metafield (`custom.release_date`), YYYY-MM-DD when set. */
   releaseDate: ShopifyMetafieldValue
+  /** Product body HTML from Shopify Admin (PDP-only queries). */
+  descriptionHtml?: string | null
+  /** Plain-text description (PDP / SEO). */
+  description?: string | null
+  /** Shopify Admin SEO fields. */
+  seo?: ShopifySeo | null
+  /** Language metafield (`custom.language`) — included on catalog + PDP queries. */
+  language?: ShopifyMetafieldValue
+  /** Aggregate review rating (`swift.review_rating`). */
+  reviewRating?: ShopifyMetafieldValue
+  /** Aggregate review count (`swift.review_count`). */
+  reviewCount?: ShopifyMetafieldValue
+  /** Star breakdown JSON (`swift.review_breakdown`). */
+  reviewBreakdown?: ShopifyMetafieldValue
+  /**
+   * Manual homepage Coming Soon rail order (`swift.homepage_position`).
+   * Only consumed by `getShopifyComingSoonProducts` — not mapped to app Product.
+   */
+  homepagePosition?: ShopifyMetafieldValue
+  /** PDP-only metafields — present on `getShopifyProductByHandle` only. */
+  series?: ShopifyMetafieldValue
+  condition?: ShopifyMetafieldValue
+  rarity?: ShopifyMetafieldValue
+  productCode?: ShopifyMetafieldValue
   featuredImage: Image | null
   priceRange: {
     minVariantPrice: Money
@@ -167,7 +191,10 @@ export interface Collection {
   handle: string
   title: string
   description: string
+  descriptionHtml?: string | null
+  seo?: ShopifySeo | null
   image: Image | null
+  updatedAt?: string | null
 }
 
 /** GraphQL connection helpers */
@@ -187,6 +214,10 @@ export interface Connection<T> {
 
 export interface ProductsQueryResult {
   products: Connection<Product>
+}
+
+export interface ProductsByIdsQueryResult {
+  nodes: Array<Product | null>
 }
 
 export interface ProductByHandleQueryResult {
@@ -256,13 +287,27 @@ export type ShopContentQueryResult = {
   } & ShopifyContentMetafields
 }
 
+/**
+ * Metaobject field `reference` / `references` union from the Storefront API.
+ * File fields resolve to MediaImage; homepage merch uses Product / Collection;
+ * Homepage orchestration nests Metaobject refs (hero, promotion, featured*).
+ */
+export type ShopifyMetaobjectReference =
+  | {
+      __typename: "MediaImage"
+      image?: Image | null
+    }
+  | (Product & { __typename: "Product" })
+  | (Collection & { __typename: "Collection" })
+  | (ShopifyMetaobject & { __typename: "Metaobject" })
+
 /** Metaobject field from the Storefront API. */
 export type ShopifyMetaobjectField = {
   key: string
   value: string
-  reference: {
-    image?: Image | null
-  } | null
+  reference: ShopifyMetaobjectReference | null
+  /** Populated for list reference fields (e.g. list.metaobject_reference). */
+  references?: Connection<ShopifyMetaobjectReference> | null
 }
 
 export type ShopifyMetaobject = {
