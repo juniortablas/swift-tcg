@@ -23,95 +23,26 @@ import {
   normalizeCartItemKind,
   wouldCreateMixedCart,
 } from "./mixedCart"
+import { weeklyRestockLimitMessage } from "@/lib/product/weeklyRestock"
+import {
+  cartGet,
+  cartPost,
+  mergePayloadWithPending,
+  payloadToState,
+  readStoredCartId,
+  writeStoredCartId,
+} from "./cartClient"
+import { CART_ID_COOKIE, CART_ID_STORAGE_KEY } from "./constants"
+import { createQuantityDebouncer } from "./quantityDebounce"
 import type {
   AddItemInput,
   CartApiResponse,
   CartContextValue,
-  CartState,
 } from "./types"
 
-/** Persists only the Shopify cart id — line items live on Shopify. */
-export const CART_ID_STORAGE_KEY = "swift-tcg-shopify-cart-id"
-export const CART_ID_COOKIE = "swift-tcg-shopify-cart-id"
+export { CART_ID_STORAGE_KEY, CART_ID_COOKIE }
 
 export const CartContext = createContext<CartContextValue | null>(null)
-
-function readStoredCartId(): string | null {
-  try {
-    const raw = window.localStorage.getItem(CART_ID_STORAGE_KEY)
-    if (!raw) return null
-    const trimmed = raw.trim()
-    return trimmed || null
-  } catch {
-    return null
-  }
-}
-
-function writeCartIdCookie(cartId: string | null) {
-  try {
-    const secure =
-      window.location.protocol === "https:" ? "; Secure" : ""
-    if (!cartId) {
-      document.cookie = `${CART_ID_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax${secure}`
-      return
-    }
-    document.cookie = `${CART_ID_COOKIE}=${encodeURIComponent(cartId)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${secure}`
-  } catch {
-    // Ignore cookie write failures.
-  }
-}
-
-function writeStoredCartId(cartId: string | null) {
-  try {
-    if (!cartId) {
-      window.localStorage.removeItem(CART_ID_STORAGE_KEY)
-      // Clean up legacy full-cart JSON if present.
-      window.localStorage.removeItem("swift-tcg-cart")
-      writeCartIdCookie(null)
-      return
-    }
-    window.localStorage.setItem(CART_ID_STORAGE_KEY, cartId)
-    window.localStorage.removeItem("swift-tcg-cart")
-    writeCartIdCookie(cartId)
-  } catch {
-    // Ignore quota / private-mode failures.
-  }
-}
-
-function payloadToState(payload: CartApiResponse): CartState {
-  return {
-    items: payload.items ?? [],
-    cartId: payload.cartId,
-    checkoutUrl: payload.checkoutUrl,
-  }
-}
-
-async function cartGet(cartId: string): Promise<CartApiResponse> {
-  const res = await fetch(`/api/cart?cartId=${encodeURIComponent(cartId)}`)
-  const payload = (await res.json()) as CartApiResponse
-  if (!res.ok) {
-    const error = new Error(payload.error?.message || "Cart fetch failed.")
-    ;(error as Error & { status?: number }).status = res.status
-    throw error
-  }
-  return payload
-}
-
-async function cartPost(
-  body: Record<string, unknown>
-): Promise<{ ok: boolean; payload: CartApiResponse; code?: string }> {
-  const res = await fetch("/api/cart", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  const payload = (await res.json()) as CartApiResponse
-  return {
-    ok: res.ok,
-    payload,
-    code: payload.error?.code,
-  }
-}
 
 type CartProviderProps = {
   children: ReactNode
@@ -129,19 +60,69 @@ export function CartProvider({ children }: CartProviderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
   const [pendingItem, setPendingItem] = useState<AddItemInput | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const cartIdRef = useRef<string | null>(null)
+  const itemsRef = useRef(state.items)
   const syncChain = useRef(Promise.resolve())
   const attachedRef = useRef(false)
+  const quantityDebouncer = useRef(createQuantityDebouncer())
+
+  itemsRef.current = state.items
 
   function applyPayload(payload: CartApiResponse) {
     cartIdRef.current = payload.cartId
     writeStoredCartId(payload.cartId)
-    dispatch({ type: "HYDRATE", payload: payloadToState(payload) })
+    const merged = mergePayloadWithPending(
+      payload,
+      quantityDebouncer.current.peek()
+    )
+    dispatch({ type: "HYDRATE", payload: payloadToState(merged) })
   }
 
   function enqueue(task: () => Promise<void>) {
-    syncChain.current = syncChain.current.then(task).catch(() => {
+    const next = syncChain.current.then(task).catch(() => {
       // Errors are handled inside each task; keep the chain alive.
+    })
+    syncChain.current = next
+    return next
+  }
+
+  function flushQuantityUpdates() {
+    const lines = quantityDebouncer.current.drain()
+    if (lines.length === 0) return Promise.resolve()
+
+    return enqueue(async () => {
+      const cartId = cartIdRef.current
+      if (!cartId) return
+
+      const result = await cartPost({
+        action: "update",
+        cartId,
+        lines,
+      })
+
+      if (result.ok) {
+        setActionError(null)
+        applyPayload(result.payload)
+        return
+      }
+
+      try {
+        applyPayload(await cartGet(cartId))
+      } catch {
+        // Keep optimistic lines if resync fails.
+      }
+
+      if (result.code === "inventory") {
+        setActionError(
+          result.payload.error?.message || "Not enough inventory."
+        )
+      } else if (result.code === "throttled") {
+        setActionError(
+          result.payload.error?.message ||
+            "Too many requests. Please try again in a moment."
+        )
+      }
     })
   }
 
@@ -151,7 +132,7 @@ export function CartProvider({ children }: CartProviderProps) {
     async function hydrate() {
       const storedId = readStoredCartId()
       cartIdRef.current = storedId
-      if (storedId) writeCartIdCookie(storedId)
+      if (storedId) writeStoredCartId(storedId)
 
       if (storedId) {
         try {
@@ -160,8 +141,6 @@ export function CartProvider({ children }: CartProviderProps) {
             applyPayload(payload)
           }
         } catch {
-          // Keep the stored cart id on transient failures so a Shopify blip
-          // cannot wipe the bag. Expired carts already return 200 + empty.
           if (!cancelled) {
             dispatch({ type: "HYDRATE", payload: initialCartState })
           }
@@ -174,10 +153,10 @@ export function CartProvider({ children }: CartProviderProps) {
     void hydrate()
     return () => {
       cancelled = true
+      quantityDebouncer.current.cancelTimer()
     }
   }, [])
 
-  // After sign-in (and on hydrate when already logged in), associate cart buyer identity.
   useEffect(() => {
     if (!isHydrated || !sessionHydrated || !customerLoggedIn) return
     const cartId = cartIdRef.current
@@ -255,6 +234,7 @@ export function CartProvider({ children }: CartProviderProps) {
       })
 
       if (result.ok) {
+        setActionError(null)
         applyPayload(result.payload)
         setIsOpen(true)
         return
@@ -263,8 +243,22 @@ export function CartProvider({ children }: CartProviderProps) {
       if (result.code === "mixed_cart") {
         setIsOpen(false)
         setPendingItem({ ...item, quantity, status })
+        return
       }
-      // sold_out / inventory / other: leave cart as-is
+
+      if (result.code === "inventory" || result.code === "sold_out") {
+        setActionError(
+          result.payload.error?.message || "This product is sold out."
+        )
+        return
+      }
+
+      if (result.code === "throttled") {
+        setActionError(
+          result.payload.error?.message ||
+            "Too many requests. Please try again in a moment."
+        )
+      }
     })
   }
 
@@ -275,6 +269,7 @@ export function CartProvider({ children }: CartProviderProps) {
     checkoutUrl,
     isOpen,
     isHydrated,
+    actionError,
     addItem: (item: AddItemInput) => {
       if (!isCartAddAllowed(item)) {
         return false
@@ -298,6 +293,9 @@ export function CartProvider({ children }: CartProviderProps) {
       const cartId = cartIdRef.current
       if (!cartId) return
 
+      quantityDebouncer.current.peek().delete(id)
+      dispatch({ type: "SET_LINE_QUANTITY", lineId: id, quantity: 0 })
+
       enqueue(async () => {
         const result = await cartPost({
           action: "remove",
@@ -311,9 +309,14 @@ export function CartProvider({ children }: CartProviderProps) {
       const cartId = cartIdRef.current
       if (!cartId) return
 
-      const line = state.items.find((item) => item.id === id)
+      const line = itemsRef.current.find((item) => item.id === id)
       const available = line?.quantityAvailable
-      if (
+      if (line?.weeklyRestock) {
+        if (available != null && quantity > available) {
+          setActionError(weeklyRestockLimitMessage(available))
+          return
+        }
+      } else if (
         available != null &&
         available > 0 &&
         quantity > available
@@ -321,18 +324,15 @@ export function CartProvider({ children }: CartProviderProps) {
         return
       }
 
-      enqueue(async () => {
-        const result = await cartPost({
-          action: "update",
-          cartId,
-          lineId: id,
-          quantity,
-        })
-        if (result.ok) applyPayload(result.payload)
+      dispatch({ type: "SET_LINE_QUANTITY", lineId: id, quantity })
+      quantityDebouncer.current.set(id, quantity)
+      quantityDebouncer.current.schedule(() => {
+        void flushQuantityUpdates()
       })
     },
     clearCart: () => {
       const cartId = cartIdRef.current
+      quantityDebouncer.current.drain()
       if (!cartId) {
         dispatch({ type: "HYDRATE", payload: initialCartState })
         return
@@ -345,6 +345,33 @@ export function CartProvider({ children }: CartProviderProps) {
         })
         if (result.ok) applyPayload(result.payload)
       })
+    },
+    prepareCheckout: async () => {
+      await flushQuantityUpdates()
+      const cartId = cartIdRef.current
+      if (!cartId) return false
+
+      let allowed = false
+      await enqueue(async () => {
+        const result = await cartPost({
+          action: "prepareCheckout",
+          cartId,
+        })
+        if (result.ok) {
+          setActionError(null)
+          applyPayload(result.payload)
+          allowed = true
+          return
+        }
+        if (result.payload.items?.length) {
+          applyPayload(result.payload)
+        }
+        setActionError(
+          result.payload.error?.message ||
+            "Reservation availability changed. Please review your bag."
+        )
+      })
+      return allowed
     },
     openCart: () => setIsOpen(true),
     closeCart: () => setIsOpen(false),

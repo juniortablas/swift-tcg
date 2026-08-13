@@ -216,6 +216,30 @@
 
             {% endif %}
 
+            {% assign weekly_restock_order = false %}
+            {% if attributes.weekly_restock == 'true' %}
+              {% assign weekly_restock_order = true %}
+            {% endif %}
+            {% unless weekly_restock_order %}
+              {% for line in line_items %}
+                {% if line.properties.weekly_restock == 'true' %}
+                  {% assign weekly_restock_order = true %}
+                {% endif %}
+                {% assign allow_weekly_restock = line.product.metafields.custom.allow_weekly_restock %}
+                {% if allow_weekly_restock == true or allow_weekly_restock == 'true' %}
+                  {% if line.variant.inventory_quantity <= 0 %}
+                    {% assign weekly_restock_order = true %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% endunless %}
+            {% if weekly_restock_order %}
+              <p class="disclaimer__subtext" style="margin-top: 16px; padding: 12px 14px; background-color: #fafafa; border: 1px solid #eeeeee; border-radius: 8px; color: #555555;">
+                Some items in your order are reserved for our upcoming weekly inventory shipment.<br>
+                We'll email you as soon as they are fulfilled.
+              </p>
+            {% endif %}
+
             </td>
           </tr>
         </table>

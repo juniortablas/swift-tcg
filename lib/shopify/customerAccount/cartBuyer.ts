@@ -7,6 +7,10 @@
 import { shopifyFetch } from "../client"
 import { CART_FIELDS } from "../cartFields"
 import { mapShopifyCart, type CartFetchOptions, type CartPayload } from "../cart"
+import {
+  overlayReservationRemaining,
+  peekReservationSession,
+} from "../weeklyRestockCartCache"
 import type { CartBuyerIdentityUpdateResult } from "../types"
 import { getCustomerAccessToken } from "./client"
 
@@ -58,7 +62,11 @@ export async function attachCustomerToCart(
     return null
   }
 
-  return mapShopifyCart(payload.cart)
+  const mapped = mapShopifyCart(payload.cart, { readRestockMetafields: false })
+  return overlayReservationRemaining(
+    mapped,
+    options?.reservationSession ?? peekReservationSession(id)
+  )
 }
 
 /** Append Shopify SSO silent auth for logged-in checkout when a session exists. */

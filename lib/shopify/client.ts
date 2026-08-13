@@ -9,6 +9,13 @@
  * - Public Storefront tokens → `X-Shopify-Storefront-Access-Token`
  */
 
+import {
+  isShopifyThrottledGraphQLErrors,
+  isShopifyThrottledHttpStatus,
+  isShopifyThrottledMessage,
+  withShopifyThrottleRetry,
+} from "./throttle"
+
 const PUBLIC_ACCESS_TOKEN_HEADER = "X-Shopify-Storefront-Access-Token"
 const PRIVATE_ACCESS_TOKEN_HEADER = "Shopify-Storefront-Private-Token"
 const BUYER_IP_HEADER = "Shopify-Storefront-Buyer-IP"
@@ -117,13 +124,22 @@ export type ShopifyFetchOptions = {
 
 type GraphQLResponse<T> = {
   data?: T
-  errors?: Array<{ message: string }>
+  errors?: Array<{ message: string; extensions?: { code?: string | null } }>
 }
 
-/**
- * Execute a Storefront API GraphQL request.
- */
-export async function shopifyFetch<T>({
+function storefrontGraphQLError(
+  errors: NonNullable<GraphQLResponse<unknown>["errors"]>,
+  httpStatus: number
+): ShopifyClientError {
+  const throttled = isShopifyThrottledGraphQLErrors(errors)
+  return new ShopifyClientError(
+    `Shopify GraphQL error: ${errors.map((error) => error.message).join("; ")}`,
+    throttled ? 429 : httpStatus,
+    errors
+  )
+}
+
+async function shopifyFetchOnce<T>({
   query,
   variables,
   config,
@@ -144,20 +160,19 @@ export async function shopifyFetch<T>({
 
   if (!response.ok) {
     const body = await response.text().catch(() => "")
+    const throttled =
+      isShopifyThrottledHttpStatus(response.status) ||
+      isShopifyThrottledMessage(body)
     throw new ShopifyClientError(
       `Shopify Storefront request failed (${response.status}): ${body || response.statusText}`,
-      response.status
+      throttled ? 429 : response.status
     )
   }
 
   const json = (await response.json()) as GraphQLResponse<T>
 
   if (json.errors?.length) {
-    throw new ShopifyClientError(
-      `Shopify GraphQL error: ${json.errors.map((e) => e.message).join("; ")}`,
-      response.status,
-      json.errors
-    )
+    throw storefrontGraphQLError(json.errors, response.status)
   }
 
   if (json.data === undefined) {
@@ -167,4 +182,14 @@ export async function shopifyFetch<T>({
   }
 
   return json.data
+}
+
+/**
+ * Execute a Storefront API GraphQL request.
+ * Retries Shopify throttle responses with exponential backoff.
+ */
+export async function shopifyFetch<T>(
+  options: ShopifyFetchOptions
+): Promise<T> {
+  return withShopifyThrottleRetry(() => shopifyFetchOnce<T>(options))
 }

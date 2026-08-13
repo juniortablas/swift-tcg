@@ -12,6 +12,7 @@ import { cache } from "react"
 import { catalogFetchOptions } from "./cache"
 import { shopifyFetch } from "./client"
 import { mapShopifyProduct, mapShopifyProducts } from "./mappers"
+import { applyWeeklyRestockLimit, applyWeeklyRestockLimits } from "./weeklyRestockAvailability"
 import {
   GET_COLLECTION_PRODUCTS,
   GET_PRODUCT_BY_HANDLE,
@@ -124,9 +125,11 @@ const getShopifyProductsCached = cache(
           ...(query ? { query } : {}),
         })
 
-    const products = mapShopifyProducts(nodes, {
-      ...(category ? { category } : {}),
-    })
+    const products = await applyWeeklyRestockLimits(
+      mapShopifyProducts(nodes, {
+        ...(category ? { category } : {}),
+      })
+    )
 
     if (process.env.NODE_ENV === "development") {
       console.log(
@@ -169,7 +172,7 @@ export const getShopifyProductByHandle = cache(
 
     if (!data.product) return null
 
-    return mapShopifyProduct(data.product)
+    return applyWeeklyRestockLimit(mapShopifyProduct(data.product))
   }
 )
 
@@ -207,9 +210,11 @@ export async function getShopifyProductsByIds(
     }
   }
 
-  return ids
+  const ordered = ids
     .map((id) => byId.get(id))
     .filter((product): product is Product => Boolean(product))
+
+  return applyWeeklyRestockLimits(ordered)
 }
 
 export type GetShopifyRelatedProductsOptions = {
@@ -339,7 +344,10 @@ export async function getShopifyRelatedProducts(
   const categoryHint =
     collectionHandle === "one-piece" ? "One Piece TCG" : "Pokémon TCG"
 
-  return mapShopifyProducts(nodes, { category: categoryHint })
-    .filter((product) => product.slug !== options.handle)
-    .slice(0, limit)
+  const mapped = await applyWeeklyRestockLimits(
+    mapShopifyProducts(nodes, { category: categoryHint }).filter(
+      (product) => product.slug !== options.handle
+    )
+  )
+  return mapped.slice(0, limit)
 }

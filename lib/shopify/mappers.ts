@@ -5,6 +5,12 @@
  */
 
 import { isProductTypeLabel } from "@/lib/catalog/productMeta"
+import {
+  parseBooleanMetafield,
+  parseIntegerMetafield,
+  parseReservationCounterMetafield,
+  shouldMapWeeklyRestock,
+} from "@/lib/product/weeklyRestock"
 import { parseBreakdown } from "@/lib/reviews/constants"
 import type { Product as AppProduct, ProductStatus } from "@/types/product"
 import type { Product as ShopifyProduct } from "./types"
@@ -34,6 +40,19 @@ function mapStatus(product: ShopifyProduct): ProductStatus {
   // storefront availability only changes when the `preorder` tag is removed.
   if (tags.includes("preorder") || tags.includes("pre-order")) {
     return "preorder"
+  }
+
+  if (
+    shouldMapWeeklyRestock({
+      tags: product.tags,
+      availableForSale: product.availableForSale,
+      totalInventory: product.totalInventory,
+      allowWeeklyRestock: parseBooleanMetafield(
+        product.allowWeeklyRestock?.value
+      ),
+    })
+  ) {
+    return "weekly_restock"
   }
 
   if (!product.availableForSale) {
@@ -120,6 +139,9 @@ export function mapShopifyProduct(
   const galleryImages = (product.images?.edges ?? [])
     .map((edge) => edge.node.url)
     .filter((url): url is string => Boolean(url))
+  const reserved = parseReservationCounterMetafield(
+    product.currentWeeklyReservations?.value
+  )
 
   return {
     id: product.id,
@@ -155,6 +177,10 @@ export function mapShopifyProduct(
     ...(reviewBreakdown ? { reviewBreakdown } : {}),
     ...(variantId ? { variantId } : {}),
     ...(galleryImages.length > 0 ? { images: galleryImages } : {}),
+    weeklyRestockLimit: parseIntegerMetafield(
+      product.weeklyRestockLimit?.value
+    ),
+    weeklyRestockReserved: reserved.ok ? reserved.value : null,
   }
 }
 

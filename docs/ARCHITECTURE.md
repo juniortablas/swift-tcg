@@ -88,6 +88,7 @@ Shopify Admin API          Shopify Storefront API
 | `/account`, `/account/orders`, `/account/wishlist`, `/account/notifications`, `/account/reviews`, `/account/addresses`, `/account/profile` | Customer Account API (New Customer Accounts OAuth) |
 | `/account/login`, `/account/authorize`, `/account/logout` | Shopify Customer Account OAuth (PKCE) |
 | `/api/search` | `searchShopifyProducts` |
+| `/api/newsletter` | Shopify Admin `customerCreate` / email marketing consent |
 | `/api/cart` | Shopify cart mutations (+ `attachCustomer` for buyer identity) |
 | `/api/wishlist` | Customer wishlist metafield (CA API, Admin fallback) |
 | `/api/back-in-stock` | Back-in-stock subscriptions (customer + product metafields) |
@@ -95,7 +96,7 @@ Shopify Admin API          Shopify Storefront API
 | `/api/reviews` | Product reviews (metaobjects + aggregates) |
 | `/api/reviews/[id]` | Helpful vote / edit / delete pending review |
 | `/api/webhooks/reviews` | Metaobject change → recompute product aggregates |
-| `/api/webhooks/cache` | Products/collections/inventory/CMS/shop → `revalidateTag` |
+| `/api/webhooks/cache` | Catalog/CMS/shop + orders/refunds → `revalidateTag` (see Cache invalidation webhooks) |
 | `/api/account/session` | Client session probe (logged-in) for cacheable chrome |
 | `/api/cron/reviews` | Hourly aggregate sync after Admin moderation |
 
@@ -146,6 +147,51 @@ mutation errors.
 If `quantityAvailable` ever returns `ACCESS_DENIED` again, re-check Headless
 permissions and rotate the private Storefront token if needed
 (see `.env.local.example`).
+
+### Cache invalidation webhooks
+
+`POST /api/webhooks/cache` is the single HTTPS receiver (`npm run setup:cache-webhooks`).
+
+`SHOPIFY_APP_URL` (`https://www.swifttcg.com`) is the customer-facing origin for
+SEO, canonicals, OAuth, Customer Accounts, robots.txt, sitemap, JSON-LD, and
+storefront links. Catalog webhooks keep using that origin:
+
+| Topics | Callback |
+| --- | --- |
+| Products, collections, inventory, CMS metaobjects, shop/update | `{SHOPIFY_APP_URL}/api/webhooks/cache` |
+| `ORDERS_CREATE`, `ORDERS_UPDATED`, `ORDERS_CANCELLED`, `REFUNDS_CREATE` | `{SHOPIFY_WEBHOOK_ORIGIN}/api/webhooks/cache` — also increment/decrement `custom.current_weekly_reservations` (idempotent via webhook IDs) |
+
+Shopify will not deliver order or refund webhooks to the shop’s myshopify
+domain or any custom domain attached to the store. `www.swifttcg.com` is that
+storefront domain, so it cannot be the Orders/Refund callback.
+
+`SHOPIFY_WEBHOOK_ORIGIN` defaults to unset. When it is missing, setup skips
+the four restricted topics, prints why, and still registers every other
+webhook. Set it to an HTTPS host that is **not** listed under Shopify Admin →
+Settings → Domains (same Vercel app, different hostname). Do not point it at
+`SHOPIFY_APP_URL`.
+
+### Weekly restock reservation counter
+
+Outstanding paid reservations live on the product metafield
+`custom.current_weekly_reservations`. Remaining spots are
+`custom.weekly_restock_limit − custom.current_weekly_reservations`.
+Catalog, PDP, and cart read those metafields once with the product.
+The storefront never searches Shopify orders at runtime.
+Cart quantity updates reuse a 60s cart/session snapshot of remaining
+spots and never re-read metafields or call Admin GraphQL. Remaining is
+refreshed when the cart loads, a reservation line is added, checkout
+starts, or the snapshot expires.
+
+Order/refund webhooks update the counter (clamped to `0…limit`) and skip
+duplicate Shopify deliveries via webhook/event IDs. If the counter cannot be
+read, reservation SKUs fail closed (Sold Out) and Sentry captures the error.
+
+One-time backfill from existing orders:
+
+```
+npm run sync:weekly-reservations
+```
 
 ## Styling Guidelines
 

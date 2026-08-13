@@ -1,0 +1,497 @@
+{% comment %}
+  Packing slip — Swift TCG branded (native Shopify printer)
+  Paste into: Settings → Shipping and delivery → Packing slips → Packing slip template
+  Upload public/brand/swift-tcg-logo.png to Settings → Files as swift-tcg-logo.png
+  Paper: US Letter. HTML / CSS / Liquid only.
+{% endcomment %}
+
+<div class="wrapper">
+  <div class="header">
+    <div class="shop-title">
+      {{ 'swift-tcg-logo.png' | file_img_url: 'medium' | img_tag: shop.name, 'brand-logo' }}
+    </div>
+    <div class="order-title">
+      <p class="doc-kicker">Packing slip</p>
+      <p class="order-number">{{ order.name }}</p>
+      <p class="text-align-right">
+        {{ order.created_at | date: "%B %e, %Y" }}
+      </p>
+    </div>
+  </div>
+
+  <hr class="brand-rule">
+
+  <div class="customer-addresses">
+    <div class="shipping-address">
+      <p class="subtitle-bold to-uppercase">
+        {% if delivery_method.instructions != blank %}
+          Delivery to
+        {% else %}
+          Ship to
+        {% endif %}
+      </p>
+      <p class="address-detail">
+        {% if shipping_address != blank %}
+          <strong>{{ shipping_address.name }}</strong>
+          {% if shipping_address.company != blank %}
+            <br>
+            {{ shipping_address.company }}
+          {% endif %}
+          <br>
+          {{ shipping_address.address1 }}
+          {% if shipping_address.address2 != blank %}
+            <br>
+            {{ shipping_address.address2 }}
+          {% endif %}
+          {% if shipping_address.city_province_zip != blank %}
+            <br>
+            {{ shipping_address.city_province_zip }}
+          {% endif %}
+          <br>
+          {{ shipping_address.country }}
+          {% if shipping_address.phone != blank %}
+            <br>
+            {{ shipping_address.phone }}
+          {% endif %}
+        {% else %}
+          No shipping address
+        {% endif %}
+      </p>
+    </div>
+    <div class="billing-address">
+      <p class="subtitle-bold to-uppercase">
+        From
+      </p>
+      <p class="address-detail">
+        <strong>{{ shop.name }}</strong>
+        <br>
+        {{ shop_address.summary }}
+        {% if shop.email != blank %}
+          <br>
+          {{ shop.email }}
+        {% endif %}
+        {% if shop.domain != blank %}
+          <br>
+          {{ shop.domain }}
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="order-container">
+    <div class="order-container-header">
+      <div class="order-container-header-left-content">
+        <p class="subtitle-bold to-uppercase">
+          Items
+        </p>
+      </div>
+      <div class="order-container-header-right-content">
+        <p class="subtitle-bold to-uppercase">
+          Quantity
+        </p>
+      </div>
+    </div>
+
+    {% comment %}
+      To adjust the size of line item images, change desired_image_size.
+      The other variables make sure your images print at high quality.
+    {% endcomment %}
+    {% assign desired_image_size = 58 %}
+    {% assign resolution_adjusted_size = desired_image_size | times: 300 | divided_by: 72 | ceil %}
+    {% capture effective_image_dimensions %}{{ resolution_adjusted_size }}x{{ resolution_adjusted_size }}{% endcapture %}
+
+    {% for line_item in line_items_in_shipment %}
+      <div class="flex-line-item">
+        <div class="flex-line-item-img">
+          {% if line_item.image != blank %}
+            <div class="aspect-ratio aspect-ratio-square" style="width: {{ desired_image_size }}px; height: {{ desired_image_size }}px;">
+              {{ line_item.image | img_url: effective_image_dimensions | img_tag: '', 'aspect-ratio__content' }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="flex-line-item-description">
+          <p>
+            <span class="line-item-description-line">
+              <strong>{{ line_item.title }}</strong>
+            </span>
+            {% if line_item.variant_title != blank %}
+              <span class="line-item-description-line">
+                {{ line_item.variant_title }}
+              </span>
+            {% endif %}
+            {% if line_item.sku != blank %}
+              <span class="line-item-description-line">
+                SKU {{ line_item.sku }}
+              </span>
+            {% endif %}
+            {% if line_item.vendor != blank %}
+              <span class="line-item-description-line">
+                {{ line_item.vendor }}
+              </span>
+            {% endif %}
+            {% for property in line_item.properties %}
+              {% assign property_first_char = property.first | slice: 0 %}
+              {% if property.last != blank and property_first_char != '_' %}
+                <span class="line-item-description-line">
+                  {{ property.first }}: {{ property.last }}
+                </span>
+              {% endif %}
+            {% endfor %}
+            {% if line_item.groups %}
+              {% for group in line_item.groups %}
+                <span class="line-item-description-line">
+                  {{ group.title }}
+                </span>
+              {% endfor %}
+            {% endif %}
+          </p>
+        </div>
+        <div class="flex-line-item-quantity">
+          <p class="text-align-right">
+            {{ line_item.shipping_quantity }} of {{ line_item.quantity }}
+          </p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% unless includes_all_line_items_in_order %}
+    <hr class="subdued-separator">
+    <p class="missing-line-items-text">
+      There are other items from your order not included in this shipment.
+    </p>
+  {% endunless %}
+
+  {% if order.note != blank %}
+    <div class="notes">
+      <p class="subtitle-bold to-uppercase">
+        Notes
+      </p>
+      <p class="notes-details">
+        {{ order.note }}
+      </p>
+    </div>
+  {% endif %}
+
+  {% if delivery_method.instructions != blank %}
+    <div class="notes">
+      <p class="subtitle-bold to-uppercase">
+        Delivery instructions
+      </p>
+      <p class="notes-details">
+        {{ delivery_method.instructions }}
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="notice">
+    <p class="subtitle-bold to-uppercase">Final sale</p>
+    <p class="notes-details">
+      Due to the collectible nature of trading card products, all sales are final except for damaged or incorrect items.
+    </p>
+  </div>
+
+  <div class="footer">
+    <p>
+      <strong>Thank you for your order.</strong>
+    </p>
+    <p>
+      Questions? Email support@swifttcg.com<br>
+      https://www.swifttcg.com
+    </p>
+    <p>
+      {{ shop.name }}<br>
+      {{ shop_address.summary }}<br>
+      {{ shop.email }}<br>
+      {{ shop.domain }}
+    </p>
+    <p class="tagline">
+      Authentic Japanese TCG imports — factory sealed, shipped from California.
+    </p>
+  </div>
+</div>
+
+<style>
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
+  body {
+    font-size: 15px;
+    color: #111111;
+    background: #ffffff;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .wrapper {
+    width: 831px;
+    max-width: 100%;
+    margin: auto;
+    padding: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 400;
+  }
+
+  .header {
+    width: 100%;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .header p {
+    margin: 0;
+  }
+
+  .brand-logo {
+    display: block;
+    max-width: 160px;
+    height: auto;
+  }
+
+  .shop-title {
+    -webkit-box-flex: 6;
+    -webkit-flex: 6;
+    flex: 6;
+  }
+
+  .order-title {
+    -webkit-box-flex: 4;
+    -webkit-flex: 4;
+    flex: 4;
+    text-align: right;
+  }
+
+  .doc-kicker {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #0EA54B;
+  }
+
+  .order-number {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-rule {
+    height: 3px;
+    border: none;
+    color: #0EA54B;
+    background-color: #0EA54B;
+    margin: 16px 0 20px;
+  }
+
+  .customer-addresses {
+    width: 100%;
+    display: inline-block;
+    margin: 0 0 1.5em;
+  }
+
+  .address-detail {
+    margin: 0.7em 0 0;
+    line-height: 1.5;
+  }
+
+  .subtitle-bold {
+    font-weight: 700;
+    margin: 0;
+    font-size: 0.75em;
+    letter-spacing: 0.12em;
+  }
+
+  .to-uppercase {
+    text-transform: uppercase;
+  }
+
+  .text-align-right {
+    text-align: right;
+  }
+
+  .shipping-address {
+    float: left;
+    min-width: 18em;
+    max-width: 50%;
+  }
+
+  .billing-address {
+    padding-left: 20em;
+    min-width: 18em;
+  }
+
+  .order-container {
+    padding: 0;
+  }
+
+  .order-container-header {
+    display: inline-block;
+    width: 100%;
+    margin-top: 0.4em;
+  }
+
+  .order-container-header-left-content {
+    float: left;
+  }
+
+  .order-container-header-right-content {
+    float: right;
+  }
+
+  .flex-line-item {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 1.1em 0;
+    page-break-inside: avoid;
+  }
+
+  .flex-line-item-img {
+    margin-right: 1.4em;
+    min-width: {{ desired_image_size }}px;
+  }
+
+  .flex-line-item-description {
+    -webkit-box-flex: 7;
+    -webkit-flex: 7;
+    flex: 7;
+  }
+
+  .line-item-description-line {
+    display: block;
+  }
+
+  .flex-line-item-description p {
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .flex-line-item-quantity {
+    -webkit-box-flex: 3;
+    -webkit-flex: 3;
+    flex: 3;
+    font-weight: 700;
+  }
+
+  .subdued-separator {
+    height: 1px;
+    border: none;
+    color: #dddddd;
+    background-color: #dddddd;
+    margin: 0;
+  }
+
+  .missing-line-items-text {
+    margin: 1.4em 0;
+    padding: 0;
+  }
+
+  .notes {
+    margin-top: 1.6em;
+  }
+
+  .notes p {
+    margin-bottom: 0;
+  }
+
+  .notes .notes-details {
+    margin-top: 0.5em;
+  }
+
+  .notice {
+    margin-top: 1.8em;
+    padding: 12px 14px;
+    border: 1px solid #dddddd;
+  }
+
+  .notice p {
+    margin: 0;
+  }
+
+  .notice .notes-details {
+    margin-top: 6px;
+    color: #333333;
+  }
+
+  .footer {
+    margin-top: 2em;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .footer p {
+    margin: 0 0 1em;
+  }
+
+  .tagline {
+    color: #333333;
+    font-size: 13px;
+  }
+
+  hr {
+    height: 1px;
+    border: none;
+    color: #111111;
+    background-color: #111111;
+    margin: 0;
+  }
+
+  .aspect-ratio {
+    position: relative;
+    display: block;
+    background: #ffffff;
+    padding: 0;
+  }
+
+  .aspect-ratio::before {
+    z-index: 1;
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border: 1px solid #e5e5e5;
+  }
+
+  .aspect-ratio--square {
+    width: 100%;
+    padding-bottom: 100%;
+  }
+
+  .aspect-ratio__content {
+    position: absolute;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+  }
+
+  @media print {
+    body,
+    .wrapper {
+      background: #ffffff;
+    }
+    .brand-rule {
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+</style>

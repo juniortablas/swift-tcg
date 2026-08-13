@@ -37,6 +37,12 @@ function stockLabel(product: Product): { label: string; className: string } {
       className: "bg-green-600/10 text-green-700",
     }
   }
+  if (product.status === "weekly_restock") {
+    return {
+      label: "Weekly Restock",
+      className: "bg-black/[0.06] text-black/70",
+    }
+  }
   if (product.status === "soldout") {
     return {
       label: "Sold out",

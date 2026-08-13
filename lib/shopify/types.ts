@@ -49,6 +49,8 @@ export interface CartMerchandise {
     handle: string
     title: string
     tags: string[]
+    weeklyRestockLimit?: { value?: string | null } | null
+    currentWeeklyReservations?: { value?: string | null } | null
     featuredImage: Image | null
   }
 }
@@ -64,6 +66,7 @@ export interface ShopifyCart {
   id: string
   checkoutUrl: string
   totalQuantity: number
+  attributes?: CartAttribute[]
   cost: {
     subtotalAmount: Money
   }
@@ -104,6 +107,10 @@ export type CartBuyerIdentityUpdateResult = {
   cartBuyerIdentityUpdate: CartMutationPayload
 }
 
+export type CartAttributesUpdateResult = {
+  cartAttributesUpdate: CartMutationPayload
+}
+
 export type GetCartResult = {
   cart: ShopifyCart | null
 }
@@ -122,6 +129,10 @@ export type ProductForCart = {
   title: string
   tags: string[]
   availableForSale: boolean
+  totalInventory?: number | null
+  allowWeeklyRestock?: { value?: string | null } | null
+  weeklyRestockLimit?: { value?: string | null } | null
+  currentWeeklyReservations?: { value?: string | null } | null
   featuredImage: Image | null
   variants: {
     edges: Array<{
@@ -147,6 +158,17 @@ export interface Product {
   vendor: string
   tags: string[]
   availableForSale: boolean
+  /**
+   * Sum of sellable inventory across locations.
+   * Requires `unauthenticated_read_product_inventory`; null when untracked.
+   */
+  totalInventory?: number | null
+  /** Paid weekly restock reservation opt-in (`custom.allow_weekly_restock`). */
+  allowWeeklyRestock?: ShopifyMetafieldValue
+  /** Max reservations while sold out (`custom.weekly_restock_limit`). */
+  weeklyRestockLimit?: ShopifyMetafieldValue
+  /** Outstanding reservations (`custom.current_weekly_reservations`). */
+  currentWeeklyReservations?: ShopifyMetafieldValue
   /** ISO-8601 datetime from Shopify. */
   createdAt: string
   /** Official release date metafield (`custom.release_date`), YYYY-MM-DD when set. */

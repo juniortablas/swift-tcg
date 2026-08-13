@@ -1,0 +1,228 @@
+{% comment %}
+  Pick list — Swift TCG branded (warehouse fulfillment)
+  Paste into: Apps → Order Printer → Templates → new custom template named "Pick List"
+  The built-in Pick list type does not accept custom Liquid; use a custom template.
+  Paper: US Letter. HTML / CSS / Liquid only.
+{% endcomment %}
+
+<style>
+  @page { size: letter; margin: 0.5in; }
+  * { box-sizing: border-box; }
+  .doc {
+    font-family: Helvetica, Arial, sans-serif;
+    color: #111111;
+    font-size: 12pt;
+    line-height: 1.4;
+    background: #ffffff;
+  }
+  .doc img { max-width: 100%; }
+  .brand-logo { display: block; width: 140px; height: auto; }
+  .header { width: 100%; border-collapse: collapse; }
+  .header td { vertical-align: top; padding: 0; }
+  .doc-kicker {
+    margin: 0 0 4px;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #0EA54B;
+  }
+  .doc-title {
+    margin: 0;
+    font-size: 28pt;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .meta { margin: 8px 0 0; color: #111111; font-size: 12pt; }
+  .rule {
+    height: 3px;
+    background: #0EA54B;
+    border: 0;
+    margin: 14px 0 16px;
+  }
+  .info { width: 100%; border-collapse: collapse; margin: 0 0 16px; }
+  .info td { width: 33%; vertical-align: top; padding: 0 16px 0 0; }
+  .info td:last-child { padding: 0; }
+  .label {
+    margin: 0 0 4px;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #111111;
+  }
+  .block { margin: 0; font-size: 12pt; }
+  .items { width: 100%; border-collapse: collapse; }
+  .items th {
+    text-align: left;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 2px solid #111111;
+    padding: 0 8px 8px 0;
+  }
+  .items th.check,
+  .items td.check { width: 36px; text-align: center; padding-right: 0; }
+  .items th.qty,
+  .items td.qty { width: 64px; text-align: right; padding-right: 0; font-size: 16pt; font-weight: 700; }
+  .items td {
+    border-bottom: 1px solid #cccccc;
+    padding: 12px 8px 12px 0;
+    vertical-align: middle;
+  }
+  .check-box {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #111111;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+  .thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+  }
+  .item-title { font-size: 13pt; font-weight: 700; }
+  .sku { display: block; margin-top: 2px; font-size: 11pt; letter-spacing: 0.02em; color: #111111; }
+  .props { margin: 4px 0 0; font-size: 10pt; color: #333333; }
+  .total {
+    margin-top: 18px;
+    padding-top: 12px;
+    border-top: 2px solid #111111;
+    font-size: 16pt;
+    font-weight: 700;
+  }
+  .total span { float: right; }
+  .notes { margin-top: 16px; font-size: 11pt; }
+  @media print {
+    .doc { background: #ffffff; }
+    .rule { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .items tr { page-break-inside: avoid; }
+  }
+</style>
+
+<div class="doc">
+  <table class="header">
+    <tr>
+      <td>
+        <img
+          class="brand-logo"
+          src="https://www.swifttcg.com/brand/swift-tcg-logo.png"
+          alt="{{ shop.name }}"
+          width="140"
+        />
+      </td>
+      <td style="text-align: right;">
+        <p class="doc-kicker">Pick list</p>
+        <h1 class="doc-title">{{ order.order_name }}</h1>
+        <p class="meta">{{ order.created_at | date: "%B %e, %Y" }}</p>
+      </td>
+    </tr>
+  </table>
+
+  <hr class="rule" />
+
+  <table class="info">
+    <tr>
+      <td>
+        <p class="label">Customer</p>
+        <p class="block">
+          <strong>
+            {% if order.shipping_address.name != blank %}
+              {{ order.shipping_address.name }}
+            {% elsif order.customer %}
+              {{ order.customer.name }}
+            {% else %}
+              {{ order.email }}
+            {% endif %}
+          </strong>
+          {% if order.email != blank %}<br />{{ order.email }}{% endif %}
+        </p>
+      </td>
+      <td>
+        <p class="label">Shipping method</p>
+        <p class="block">
+          {% if order.shipping_methods.size > 0 %}
+            {% for shipping_method in order.shipping_methods %}
+              {{ shipping_method.title }}{% unless forloop.last %}<br />{% endunless %}
+            {% endfor %}
+          {% elsif order.shipping_method %}
+            {{ order.shipping_method.title }}
+          {% else %}
+            —
+          {% endif %}
+        </p>
+      </td>
+      <td>
+        <p class="label">Ship to</p>
+        {% if order.shipping_address %}
+          <p class="block">{{ order.shipping_address | format_address }}</p>
+        {% else %}
+          <p class="block">—</p>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+
+  {% if order.note != blank or order.customer.note != blank %}
+    <div class="notes">
+      <p class="label">Notes</p>
+      {% if order.note != blank %}<p class="block">{{ order.note }}</p>{% endif %}
+      {% if order.customer.note != blank %}<p class="block">{{ order.customer.note }}</p>{% endif %}
+    </div>
+  {% endif %}
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th class="check">Pick</th>
+        <th style="width: 64px;">Image</th>
+        <th>Product / SKU</th>
+        <th class="qty">Qty</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line_item in order.line_items %}
+        <tr>
+          <td class="check"><span class="check-box"></span></td>
+          <td>
+            {% if line_item.image != blank %}
+              {{ line_item.image | img_url: '112x112' | img_tag: line_item.title, 'thumb' }}
+            {% elsif line_item.product.featured_image %}
+              {{ line_item.product.featured_image | product_img_url: 'small' | img_tag: line_item.title, 'thumb' }}
+            {% endif %}
+          </td>
+          <td>
+            <span class="item-title">{{ line_item.title }}</span>
+            {% if line_item.variant_title != blank and line_item.variant_title != 'Default Title' %}
+              <span class="sku">{{ line_item.variant_title }}</span>
+            {% endif %}
+            {% if line_item.sku != blank %}
+              <span class="sku">SKU {{ line_item.sku }}</span>
+            {% endif %}
+            {% if line_item.vendor != blank %}
+              <span class="sku">{{ line_item.vendor }}</span>
+            {% endif %}
+            {% for property in line_item.properties %}
+              {% assign property_first_char = property.first | slice: 0 %}
+              {% if property.last != blank and property_first_char != '_' %}
+                <div class="props">{{ property.first }}: {{ property.last }}</div>
+              {% endif %}
+            {% endfor %}
+          </td>
+          <td class="qty">{{ line_item.quantity }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="total">
+    Total items
+    <span>{{ order.item_count }}</span>
+  </p>
+</div>

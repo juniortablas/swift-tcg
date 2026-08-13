@@ -21,7 +21,17 @@ const PRODUCT_CARD_FIELDS = `
   vendor
   tags
   availableForSale
+  totalInventory
   createdAt
+  allowWeeklyRestock: metafield(namespace: "custom", key: "allow_weekly_restock") {
+    value
+  }
+  weeklyRestockLimit: metafield(namespace: "custom", key: "weekly_restock_limit") {
+    value
+  }
+  currentWeeklyReservations: metafield(namespace: "custom", key: "current_weekly_reservations") {
+    value
+  }
   releaseDate: metafield(namespace: "custom", key: "release_date") {
     value
   }

@@ -1,6 +1,11 @@
 export type CatalogCategory = "pokemon" | "onepiece"
 
-export type ProductStatus = "instock" | "preorder" | "soldout" | "unknown"
+export type ProductStatus =
+  | "instock"
+  | "preorder"
+  | "weekly_restock"
+  | "soldout"
+  | "unknown"
 
 /**
  * Storefront product record mapped from Shopify.
@@ -14,6 +19,20 @@ export interface Product {
   price: number | null
   url: string
   status: ProductStatus
+  /**
+   * Max paid reservations while sold out (`custom.weekly_restock_limit`).
+   * Present when the weekly restock metafields are set.
+   */
+  weeklyRestockLimit?: number | null
+  /**
+   * Outstanding reserved qty from `custom.current_weekly_reservations`.
+   * `null` means the metafield could not be read (fail closed).
+   */
+  weeklyRestockReserved?: number | null
+  /** Spots still available (limit minus `current_weekly_reservations`). */
+  weeklyRestockRemaining?: number | null
+  /** True when reservation was eligible but the limit has been reached. */
+  weeklyRestockLimitReached?: boolean
   /** Shopify vendor — manufacturer / brand when set. */
   vendor?: string | null
   /** Shopify `productType` (Booster Box, Starter Deck, …). */

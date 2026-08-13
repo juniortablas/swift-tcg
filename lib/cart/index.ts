@@ -1,4 +1,5 @@
-export { CartProvider, CART_ID_STORAGE_KEY, CartContext } from "./CartProvider"
+export { CartProvider, CartContext } from "./CartProvider"
+export { CART_ID_STORAGE_KEY, CART_ID_COOKIE } from "./constants"
 export { useCart } from "./useCart"
 export { cartReducer, initialCartState, getItemCount, getSubtotal } from "./cartReducer"
 export {

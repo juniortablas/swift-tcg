@@ -10,6 +10,12 @@
  */
 
 import { ShopifyClientError } from "./client"
+import {
+  isShopifyThrottledGraphQLErrors,
+  isShopifyThrottledHttpStatus,
+  isShopifyThrottledMessage,
+  withShopifyThrottleRetry,
+} from "./throttle"
 
 export type ShopifyAdminConfig = {
   storeDomain: string
@@ -278,14 +284,22 @@ export type ShopifyAdminFetchOptions = {
 
 type GraphQLResponse<T> = {
   data?: T
-  errors?: Array<{ message: string }>
+  errors?: Array<{ message: string; extensions?: { code?: string | null } }>
 }
 
-/**
- * Execute an Admin API GraphQL request.
- * Obtains (and caches) a client-credentials access token automatically.
- */
-export async function shopifyAdminFetch<T>({
+function adminGraphQLError(
+  errors: NonNullable<GraphQLResponse<unknown>["errors"]>,
+  httpStatus: number
+): ShopifyClientError {
+  const throttled = isShopifyThrottledGraphQLErrors(errors)
+  return new ShopifyClientError(
+    `Shopify Admin GraphQL error: ${errors.map((error) => error.message).join("; ")}`,
+    throttled ? 429 : httpStatus,
+    errors
+  )
+}
+
+async function shopifyAdminFetchOnce<T>({
   query,
   variables,
   config,
@@ -305,20 +319,19 @@ export async function shopifyAdminFetch<T>({
 
   if (!response.ok) {
     const body = await response.text().catch(() => "")
+    const throttled =
+      isShopifyThrottledHttpStatus(response.status) ||
+      isShopifyThrottledMessage(body)
     throw new ShopifyClientError(
       `Shopify Admin request failed (${response.status}): ${body || response.statusText}`,
-      response.status
+      throttled ? 429 : response.status
     )
   }
 
   const json = (await response.json()) as GraphQLResponse<T>
 
   if (json.errors?.length) {
-    throw new ShopifyClientError(
-      `Shopify Admin GraphQL error: ${json.errors.map((e) => e.message).join("; ")}`,
-      response.status,
-      json.errors
-    )
+    throw adminGraphQLError(json.errors, response.status)
   }
 
   if (json.data === undefined) {
@@ -328,4 +341,15 @@ export async function shopifyAdminFetch<T>({
   }
 
   return json.data
+}
+
+/**
+ * Execute an Admin API GraphQL request.
+ * Obtains (and caches) a client-credentials access token automatically.
+ * Retries Shopify throttle responses with exponential backoff.
+ */
+export async function shopifyAdminFetch<T>(
+  options: ShopifyAdminFetchOptions
+): Promise<T> {
+  return withShopifyThrottleRetry(() => shopifyAdminFetchOnce<T>(options))
 }

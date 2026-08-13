@@ -42,7 +42,11 @@ export type PredictiveSearchQueryResult = {
       vendor: string
       tags: string[]
       availableForSale: boolean
+      totalInventory?: number | null
       createdAt?: string | null
+      allowWeeklyRestock?: { value?: string | null } | null
+      weeklyRestockLimit?: { value?: string | null } | null
+      currentWeeklyReservations?: { value?: string | null } | null
       releaseDate?: { value?: string | null } | null
       language?: { value?: string | null } | null
       reviewRating?: { value?: string | null } | null

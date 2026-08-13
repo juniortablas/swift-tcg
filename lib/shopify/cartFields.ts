@@ -1,11 +1,29 @@
 /**
  * Shared GraphQL selection set for Storefront Cart responses.
+ *
+ * Mutations use `CART_FIELDS` (no reservation metafields). Cart loads,
+ * reservation adds, and checkout revalidation use `CART_FIELDS_WITH_RESTOCK`.
  */
 
-export const CART_FIELDS = `
+function cartSelection(includeRestockMetafields: boolean): string {
+  const restockMetafields = includeRestockMetafields
+    ? `
+              weeklyRestockLimit: metafield(namespace: "custom", key: "weekly_restock_limit") {
+                value
+              }
+              currentWeeklyReservations: metafield(namespace: "custom", key: "current_weekly_reservations") {
+                value
+              }`
+    : ""
+
+  return `
   id
   checkoutUrl
   totalQuantity
+  attributes {
+    key
+    value
+  }
   cost {
     subtotalAmount {
       amount
@@ -40,7 +58,7 @@ export const CART_FIELDS = `
               id
               handle
               title
-              tags
+              tags${restockMetafields}
               featuredImage {
                 url
                 altText
@@ -54,11 +72,18 @@ export const CART_FIELDS = `
     }
   }
 `
+}
+
+/** Light cart fields for mutations — no reservation metafield reads. */
+export const CART_FIELDS = cartSelection(false)
+
+/** Cart load / checkout revalidation — includes reservation counters. */
+export const CART_FIELDS_WITH_RESTOCK = cartSelection(true)
 
 export const GET_CART = `
   query GetCart($cartId: ID!) {
     cart(id: $cartId) {
-      ${CART_FIELDS}
+      ${CART_FIELDS_WITH_RESTOCK}
     }
   }
 `
@@ -73,6 +98,16 @@ export const GET_PRODUCT_FOR_CART = `
         title
         tags
         availableForSale
+        totalInventory
+        allowWeeklyRestock: metafield(namespace: "custom", key: "allow_weekly_restock") {
+          value
+        }
+        weeklyRestockLimit: metafield(namespace: "custom", key: "weekly_restock_limit") {
+          value
+        }
+        currentWeeklyReservations: metafield(namespace: "custom", key: "current_weekly_reservations") {
+          value
+        }
         featuredImage {
           url
           altText

@@ -1,16 +1,20 @@
 import { NextResponse } from "next/server"
 
-import { subscribeToNewsletter } from "@/lib/newsletter"
-import type {
-  NewsletterSource,
-  NewsletterSubscribeResult,
-} from "@/lib/newsletter"
+import { subscribeToNewsletter } from "@/lib/newsletter/subscribe"
+import {
+  NEWSLETTER_ERROR_MESSAGE,
+  NEWSLETTER_INVALID_EMAIL_MESSAGE,
+  parseNewsletterSource,
+} from "@/lib/newsletter/constants"
+import type { NewsletterSubscribeResult } from "@/lib/newsletter/types"
+import { captureRouteException } from "@/lib/observability/capture"
 
 export const dynamic = "force-dynamic"
 
 type NewsletterBody = {
   email?: unknown
   source?: unknown
+  website?: unknown
 }
 
 export async function POST(request: Request) {
@@ -20,43 +24,47 @@ export async function POST(request: Request) {
     body = (await request.json()) as NewsletterBody
   } catch {
     return jsonResult(
-      {
-        status: "invalid_email",
-        message: "Enter a valid email address.",
-      },
+      { success: false, message: NEWSLETTER_INVALID_EMAIL_MESSAGE },
       400
     )
   }
 
-  const email = typeof body.email === "string" ? body.email : ""
-  const source = parseSource(body.source)
+  try {
+    const result = await subscribeToNewsletter({
+      email: typeof body.email === "string" ? body.email : "",
+      source: parseNewsletterSource(body.source),
+      website: typeof body.website === "string" ? body.website : "",
+      ip: clientIpFromRequest(request),
+    })
 
-  const result = await subscribeToNewsletter({ email, source })
-  return jsonResult(result, statusCodeFor(result.status))
+    if (result.ok) {
+      return jsonResult({ success: true, message: result.message }, 200)
+    }
+
+    const status =
+      result.reason === "invalid_email"
+        ? 400
+        : result.reason === "rate_limited"
+          ? 429
+          : 500
+
+    return jsonResult({ success: false, message: result.message }, status)
+  } catch (error) {
+    captureRouteException(error, { route: "/api/newsletter", status: 500 })
+    return jsonResult(
+      { success: false, message: NEWSLETTER_ERROR_MESSAGE },
+      500
+    )
+  }
 }
 
-function parseSource(value: unknown): NewsletterSource | undefined {
-  if (value === "homepage" || value === "footer" || value === "unknown") {
-    return value
+function clientIpFromRequest(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for")
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim()
+    if (first) return first
   }
-  return undefined
-}
-
-function statusCodeFor(
-  status: NewsletterSubscribeResult["status"]
-): number {
-  switch (status) {
-    case "subscribed":
-    case "already_subscribed":
-      return 200
-    case "provider_not_configured":
-      return 503
-    case "invalid_email":
-      return 400
-    case "error":
-    default:
-      return 500
-  }
+  return request.headers.get("x-real-ip")?.trim() || "unknown"
 }
 
 function jsonResult(result: NewsletterSubscribeResult, status: number) {

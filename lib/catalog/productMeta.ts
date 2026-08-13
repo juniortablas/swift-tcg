@@ -1,5 +1,12 @@
 import type { Product, ProductStatus } from "@/types/product"
 
+import {
+  WEEKLY_RESTOCK_BADGE_LABEL,
+  WEEKLY_RESTOCK_CTA_CARD_LABEL,
+  WEEKLY_RESTOCK_CTA_LABEL,
+} from "@/lib/product/constants"
+import { isWeeklyRestockStatus } from "@/lib/product/weeklyRestock"
+
 import { getProductReleaseDate } from "./homepage"
 
 export type ProductBrand = string
@@ -299,6 +306,7 @@ export function statusMatchesAvailability(
 /**
  * Whether a product can be added to the cart.
  * Sold out, unknown, and unpriced (Coming Soon) products are not purchasable.
+ * Weekly restock reservations are paid cart adds (same checkout as in-stock).
  */
 export function isPurchasable(product: Product): boolean {
   return (
@@ -320,10 +328,82 @@ export function getPurchaseCtaLabel(
 ): string {
   if (product.status === "soldout") return "Sold Out"
   if (product.price == null || product.price <= 0) return "Coming Soon"
+  if (isWeeklyRestockStatus(product.status)) {
+    return variant === "card"
+      ? WEEKLY_RESTOCK_CTA_CARD_LABEL
+      : WEEKLY_RESTOCK_CTA_LABEL
+  }
   if (product.status === "preorder") {
     if (variant === "card") return "Preorder"
     return "Preorder Now"
   }
   if (variant === "bag") return "Add to Bag"
   return "Add to Cart"
+}
+
+export type AvailabilityBadge = {
+  label: string
+  className: string
+}
+
+export type AvailabilityBadgeSurface = "card" | "pdp"
+
+const WEEKLY_RESTOCK_BADGE: AvailabilityBadge = {
+  label: WEEKLY_RESTOCK_BADGE_LABEL,
+  className: "bg-green-600/10 text-green-800",
+}
+
+const CARD_STATUS_BADGES: Partial<Record<ProductStatus, AvailabilityBadge>> = {
+  instock: {
+    label: "In Stock",
+    className: "bg-green-600 text-white",
+  },
+  preorder: {
+    label: "Preorder",
+    className: "bg-black/[0.06] text-black/70",
+  },
+  weekly_restock: WEEKLY_RESTOCK_BADGE,
+  soldout: {
+    label: "Sold Out",
+    className: "bg-neutral-500/10 text-neutral-500",
+  },
+}
+
+const PDP_STATUS_BADGES: Partial<Record<ProductStatus, AvailabilityBadge>> = {
+  instock: {
+    label: "In Stock",
+    className: "bg-green-600 text-white",
+  },
+  preorder: {
+    label: "Preorder",
+    className: "bg-blue-600 text-white",
+  },
+  weekly_restock: WEEKLY_RESTOCK_BADGE,
+  soldout: {
+    label: "Sold Out",
+    className: "bg-neutral-500/15 text-neutral-500",
+  },
+}
+
+const COMING_SOON_BADGE: AvailabilityBadge = {
+  label: "Coming Soon",
+  className: "bg-black/[0.06] text-black/55",
+}
+
+/**
+ * Shared availability badge for cards, PDP, quick view, and search.
+ * Coming Soon (unpriced) wins over every status except Sold Out.
+ */
+export function getAvailabilityBadge(
+  product: Product,
+  surface: AvailabilityBadgeSurface = "card"
+): AvailabilityBadge | null {
+  if (
+    (product.price == null || product.price <= 0) &&
+    product.status !== "soldout"
+  ) {
+    return COMING_SOON_BADGE
+  }
+  const badges = surface === "pdp" ? PDP_STATUS_BADGES : CARD_STATUS_BADGES
+  return badges[product.status] ?? null
 }

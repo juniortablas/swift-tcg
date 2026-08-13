@@ -9,6 +9,7 @@ import type { Product } from "@/types/product"
 import { catalogFetchOptions } from "./cache"
 import { shopifyFetch } from "./client"
 import { mapShopifyProduct, mapShopifyProducts } from "./mappers"
+import { applyWeeklyRestockLimits } from "./weeklyRestockAvailability"
 import { GET_PRODUCT_CARD_BY_HANDLE, GET_PRODUCTS } from "./queries"
 import type {
   Product as ShopifyProduct,
@@ -118,11 +119,10 @@ export async function searchShopifyProducts(
   if (handleData.product && byId.has(handleData.product.id)) {
     const exact = handleData.product
     const rest = matched.filter((product) => product.id !== exact.id)
-    return [
-      mapShopifyProduct(exact),
-      ...mapShopifyProducts(rest),
-    ].slice(0, limit)
+    return applyWeeklyRestockLimits(
+      [mapShopifyProduct(exact), ...mapShopifyProducts(rest)].slice(0, limit)
+    )
   }
 
-  return mapShopifyProducts(matched).slice(0, limit)
+  return applyWeeklyRestockLimits(mapShopifyProducts(matched).slice(0, limit))
 }

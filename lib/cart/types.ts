@@ -22,6 +22,10 @@ export type CartItem = {
   quantity: number
   /** Whether this line is a preorder or in-stock purchase. */
   status: CartItemKind
+  /** True when this line is a paid weekly restock reservation. */
+  weeklyRestock?: boolean
+  /** Reservation cap from `custom.weekly_restock_limit` (reserved lines). */
+  weeklyRestockLimit?: number
   /** Tracked inventory remaining; null when untracked / CONTINUE at 0. */
   quantityAvailable?: number | null
   slug?: string
@@ -51,6 +55,7 @@ export type AddItemInput = {
 
 export type CartAction =
   | { type: "HYDRATE"; payload: CartState }
+  | { type: "SET_LINE_QUANTITY"; lineId: string; quantity: number }
   | { type: "SET_CHECKOUT_URL"; payload: string | null }
 
 export type CartContextValue = {
@@ -72,6 +77,13 @@ export type CartContextValue = {
   openCart: () => void
   closeCart: () => void
   toggleCart: () => void
+  /**
+   * Flush pending quantity mutations and revalidate reservation remaining
+   * before navigating to Shopify Checkout.
+   */
+  prepareCheckout: () => Promise<boolean>
+  /** Latest cart mutation error (inventory / sold out). Cleared on success. */
+  actionError: string | null
 }
 
 /** Shape returned by `/api/cart` — safe for client consumption. */

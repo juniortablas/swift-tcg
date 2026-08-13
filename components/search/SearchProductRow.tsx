@@ -4,6 +4,7 @@ import Image from "next/image"
 
 import ReviewStars from "@/components/reviews/ReviewStars"
 import { highlightMatch } from "@/lib/search/highlight"
+import { getAvailabilityBadge } from "@/lib/catalog"
 import { formatUsdPrice } from "@/lib/pricing"
 import type { Product } from "@/types/product"
 import { cn } from "@/lib/utils"
@@ -17,19 +18,6 @@ function gameBadge(category: string): string | null {
     return "Pokémon"
   }
   return null
-}
-
-function availabilityLabel(product: Product): string {
-  if (
-    (product.price == null || product.price <= 0) &&
-    product.status !== "soldout"
-  ) {
-    return "Coming Soon"
-  }
-  if (product.status === "preorder") return "Preorder"
-  if (product.status === "soldout") return "Sold Out"
-  if (product.status === "instock") return "In Stock"
-  return "Available"
 }
 
 type SearchProductRowProps = {
@@ -50,7 +38,7 @@ export default function SearchProductRow({
   onHover,
 }: SearchProductRowProps) {
   const badge = gameBadge(product.category)
-  const availability = availabilityLabel(product)
+  const availability = getAvailabilityBadge(product)
   const priceLabel =
     (product.price == null || product.price <= 0) &&
     product.status !== "soldout"
@@ -114,7 +102,18 @@ export default function SearchProductRow({
               {priceLabel}
             </span>
             <span aria-hidden>·</span>
-            <span>{availability}</span>
+            {availability ? (
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.06em] uppercase",
+                  availability.className
+                )}
+              >
+                {availability.label}
+              </span>
+            ) : (
+              <span>Available</span>
+            )}
             {hasReviews ? (
               <>
                 <span aria-hidden>·</span>

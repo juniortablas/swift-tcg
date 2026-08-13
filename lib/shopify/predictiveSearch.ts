@@ -7,6 +7,7 @@ import type { Product } from "@/types/product"
 import { catalogFetchOptions } from "./cache"
 import { shopifyFetch, ShopifyClientError } from "./client"
 import { mapShopifyProducts } from "./mappers"
+import { applyWeeklyRestockLimits } from "./weeklyRestockAvailability"
 import { PREDICTIVE_SEARCH } from "./queries"
 import { RESERVED_GAME_HANDLES } from "./reservedHandles"
 import { searchShopifyProducts } from "./search"
@@ -121,7 +122,9 @@ async function predictiveSearchShopify(
   if (!result) return null
 
   return {
-    products: mapShopifyProducts(result.products as ShopifyProduct[]),
+    products: await applyWeeklyRestockLimits(
+      mapShopifyProducts(result.products as ShopifyProduct[])
+    ),
     collections: mapCollections(result.collections),
     pages: mapPages(result.pages),
     queries: result.queries.map((item) => ({ text: item.text })),

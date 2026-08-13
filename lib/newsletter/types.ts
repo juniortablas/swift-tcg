@@ -1,26 +1,32 @@
 /**
  * Newsletter subscribe domain types.
- * Provider-agnostic so Klaviyo, Shopify Email, or another ESP can plug in later.
+ * Capture goes through Shopify Admin customer create / consent update.
  */
 
-export type NewsletterProviderId = "none" | "klaviyo" | "shopify"
-
-/** Where the signup form lives — useful for ESP source attribution. */
-export type NewsletterSource = "homepage" | "footer" | "maintenance" | "unknown"
-
-export type NewsletterSubscribeStatus =
-  | "subscribed"
-  | "already_subscribed"
-  | "invalid_email"
-  | "provider_not_configured"
-  | "error"
+/** Where the signup form lives — used for GA4 `placement`. */
+export type NewsletterSource = "homepage" | "footer" | "maintenance"
 
 export type NewsletterSubscribeInput = {
   email: string
   source?: NewsletterSource
+  /** Honeypot field. Any non-empty value is treated as a bot. */
+  website?: string
 }
 
 export type NewsletterSubscribeResult = {
-  status: NewsletterSubscribeStatus
+  success: boolean
   message: string
 }
+
+export type NewsletterSubscribeFailureReason =
+  | "invalid_email"
+  | "rate_limited"
+  | "error"
+
+export type NewsletterSubscribeOutcome =
+  | { ok: true; message: string }
+  | {
+      ok: false
+      reason: NewsletterSubscribeFailureReason
+      message: string
+    }

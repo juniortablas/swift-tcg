@@ -10,13 +10,20 @@ import { Button } from "@/components/ui/button"
 import { toCartItemKind } from "@/lib/cart/mixedCart"
 import { useCart } from "@/lib/cart/useCart"
 import {
+  getAvailabilityBadge,
   getProductDescription,
   getProductReleaseDate,
   getPurchaseCtaLabel,
   isPurchasable,
 } from "@/lib/catalog"
+import { trackWeeklyRestockLimitReached, trackWeeklyRestockReserved } from "@/lib/product/analytics"
+import {
+  isWeeklyRestockProduct,
+  weeklyRestockAddableQuantity,
+  weeklyRestockLimitMessage,
+} from "@/lib/product/weeklyRestock"
 import { formatUsdPrice } from "@/lib/pricing"
-import type { Product, ProductStatus } from "@/types/product"
+import type { Product } from "@/types/product"
 import { cn } from "@/lib/utils"
 
 type ProductQuickViewProps = {
@@ -24,43 +31,11 @@ type ProductQuickViewProps = {
   className?: string
 }
 
-const BADGES: Partial<
-  Record<ProductStatus, { label: string; className: string }>
-> = {
-  instock: {
-    label: "In Stock",
-    className: "bg-green-600 text-white",
-  },
-  preorder: {
-    label: "Preorder",
-    className: "bg-blue-600 text-white",
-  },
-  soldout: {
-    label: "Sold Out",
-    className: "bg-neutral-500/15 text-neutral-500",
-  },
-}
-
-const COMING_SOON = {
-  label: "Coming Soon",
-  className: "bg-black/[0.06] text-black/55",
-}
-
 const TRUST = [
   "Ships from California",
   "Factory Sealed",
   "Imported Weekly",
 ] as const
-
-function availabilityBadge(product: Product) {
-  if (
-    (product.price == null || product.price <= 0) &&
-    product.status !== "soldout"
-  ) {
-    return COMING_SOON
-  }
-  return BADGES[product.status] ?? null
-}
 
 function productHref(product: Product): string {
   if (product.url) return product.url
@@ -88,11 +63,14 @@ export default function ProductQuickView({
     () => true,
     () => false
   )
-  const { addItem } = useCart()
+  const { addItem, items } = useCart()
   const titleId = useId()
-  const badge = availabilityBadge(product)
+  const badge = getAvailabilityBadge(product, "pdp")
   const release = getProductReleaseDate(product)
   const purchasable = isPurchasable(product)
+  const isWeeklyRestock = isWeeklyRestockProduct(product)
+  const remaining = product.weeklyRestockRemaining ?? 0
+  const canReserveMore = weeklyRestockAddableQuantity(product, items) > 0
   const href = productHref(product)
   const { shortDescription } = getProductDescription(product)
   const isPreorder = product.status === "preorder" && product.price != null
@@ -122,8 +100,16 @@ export default function ProductQuickView({
 
   function handleAddToCart() {
     if (!purchasable) return
+    if (isWeeklyRestock && !canReserveMore) {
+      trackWeeklyRestockLimitReached(product)
+      setOpen(false)
+      return
+    }
     const status = toCartItemKind(product.status)
     if (!status) return
+    if (isWeeklyRestock) {
+      trackWeeklyRestockReserved(product)
+    }
     addItem({
       id: product.id,
       title: product.title,
@@ -261,14 +247,22 @@ export default function ProductQuickView({
               </ul>
 
               <div className="mt-auto flex flex-col gap-2.5 pt-6">
+                {isWeeklyRestock && !canReserveMore ? (
+                  <p
+                    role="status"
+                    className="text-xs font-medium text-amber-900"
+                  >
+                    {weeklyRestockLimitMessage(remaining)}
+                  </p>
+                ) : null}
                 <Button
                   type="button"
                   size="lg"
-                  disabled={!purchasable}
+                  disabled={!purchasable || !canReserveMore}
                   onClick={handleAddToCart}
                   className={cn(
                     "h-12 w-full rounded-full text-sm font-semibold transition-all duration-200",
-                    purchasable
+                    purchasable && canReserveMore
                       ? "bg-green-600 text-white shadow-[0_10px_28px_-14px_rgba(22,163,74,0.55)] hover:-translate-y-0.5 hover:bg-green-700"
                       : "bg-neutral-100 text-black/45"
                   )}

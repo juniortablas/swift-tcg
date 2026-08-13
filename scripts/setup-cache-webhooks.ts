@@ -11,6 +11,8 @@
  *   PRODUCTS_CREATE / UPDATE / DELETE          (no filter)
  *   COLLECTIONS_CREATE / UPDATE / DELETE       (no filter)
  *   INVENTORY_LEVELS_UPDATE                   (no filter)
+ *   ORDERS_CREATE / UPDATED / CANCELLED       (no filter)
+ *   REFUNDS_CREATE                            (no filter)
  *   METAOBJECTS_CREATE / UPDATE / DELETE       (required type:… filter)
  *   SHOP_UPDATE                              (no filter)
  *
@@ -24,6 +26,15 @@
  *
  * Required Admin scope: write_webhooks (or manage webhooks via Dev Dashboard app).
  * HMAC uses SHOPIFY_WEBHOOK_SECRET or SHOPIFY_CLIENT_SECRET.
+ *
+ * Order / refund destinations:
+ *   Shopify will not deliver ORDERS_* or REFUNDS_* to the shop's myshopify
+ *   domain or any custom domain attached to the store. SHOPIFY_APP_URL
+ *   (https://www.swifttcg.com) stays the catalog / CMS / shop callback and
+ *   the customer-facing origin (SEO, OAuth, Customer Accounts).
+ *   Restricted topics use SHOPIFY_WEBHOOK_ORIGIN when set:
+ *     ${SHOPIFY_WEBHOOK_ORIGIN}/api/webhooks/cache
+ *   When unset, those four topics are skipped and the rest still register.
  */
 
 import { existsSync, readFileSync } from "node:fs"
@@ -80,6 +91,10 @@ const UNFILTERED_TOPICS = [
   "COLLECTIONS_UPDATE",
   "COLLECTIONS_DELETE",
   "INVENTORY_LEVELS_UPDATE",
+  "ORDERS_CREATE",
+  "ORDERS_UPDATED",
+  "ORDERS_CANCELLED",
+  "REFUNDS_CREATE",
   "SHOP_UPDATE",
 ] as const
 
@@ -97,14 +112,57 @@ type UnfilteredTopic = (typeof UNFILTERED_TOPICS)[number]
 type MetaobjectTopic = (typeof METAOBJECT_TOPICS)[number]
 type CacheWebhookTopic = UnfilteredTopic | MetaobjectTopic
 
+const ORDER_REFUND_TOPICS = [
+  "ORDERS_CREATE",
+  "ORDERS_UPDATED",
+  "ORDERS_CANCELLED",
+  "REFUNDS_CREATE",
+] as const satisfies readonly UnfilteredTopic[]
+
+type OrderRefundTopic = (typeof ORDER_REFUND_TOPICS)[number]
+
 const DEFAULT_ORIGIN = "https://www.swifttcg.com"
 const CACHE_WEBHOOK_PATH = "/api/webhooks/cache"
 
+function isOrderRefundTopic(topic: CacheWebhookTopic): topic is OrderRefundTopic {
+  return (ORDER_REFUND_TOPICS as readonly string[]).includes(topic)
+}
+
+function configuredWebhookOrigin(): string | undefined {
+  const origin = process.env.SHOPIFY_WEBHOOK_ORIGIN?.trim()
+  return origin ? origin.replace(/\/$/, "") : undefined
+}
+
+/** Catalog / CMS / shop webhooks — existing subscriptions use this host. */
 function cacheWebhookUri(): string {
   const origin = (
     process.env.SHOPIFY_APP_URL?.trim() || DEFAULT_ORIGIN
   ).replace(/\/$/, "")
   return `${origin}${CACHE_WEBHOOK_PATH}`
+}
+
+/** Restricted topics only. `undefined` when SHOPIFY_WEBHOOK_ORIGIN is unset. */
+function orderRefundWebhookUri(): string | undefined {
+  const origin = configuredWebhookOrigin()
+  return origin ? `${origin}${CACHE_WEBHOOK_PATH}` : undefined
+}
+
+function missingWebhookOriginMessage(): string {
+  return [
+    "  Skipping ORDERS_CREATE, ORDERS_UPDATED, ORDERS_CANCELLED, REFUNDS_CREATE.",
+    "",
+    "  Shopify will not deliver order or refund webhooks to the shop's",
+    "  myshopify domain or any custom domain attached to the store",
+    "  (www.swifttcg.com). SHOPIFY_APP_URL stays https://www.swifttcg.com",
+    "  for SEO, canonicals, OAuth, Customer Accounts, robots.txt, sitemap,",
+    "  JSON-LD, and customer-facing links.",
+    "",
+    "  Set SHOPIFY_WEBHOOK_ORIGIN to an HTTPS origin that is not listed",
+    "  under Shopify Admin → Settings → Domains (same app, different host),",
+    "  then re-run. Catalog, CMS, and shop webhooks are unaffected.",
+    "",
+    "    SHOPIFY_WEBHOOK_ORIGIN=https://<host-not-on-the-shop> npm run setup:cache-webhooks",
+  ].join("\n")
 }
 
 type ExistingWebhook = {
@@ -114,11 +172,14 @@ type ExistingWebhook = {
   callbackUrl: string | null
 }
 
+function shopDomainDestinationError(message: string): boolean {
+  return /address cannot be any of the domains/i.test(message)
+}
+
 function assertNoUserErrors(label: string, errors: UserError[] | undefined) {
   if (!errors?.length) return
-  throw new ShopifyClientError(
-    `${label}: ${errors.map((e) => e.message).join("; ")}`
-  )
+  const message = errors.map((error) => error.message).join("; ")
+  throw new ShopifyClientError(`${label}: ${message}`)
 }
 
 function normalizeUrl(url: string): string {
@@ -299,10 +360,40 @@ async function ensureTopic(
   }
 }
 
+async function ensureOrderRefundWebhooks(
+  existing: ExistingWebhook[]
+): Promise<void> {
+  const uri = orderRefundWebhookUri()
+  if (!uri) {
+    console.log(missingWebhookOriginMessage())
+    return
+  }
+
+  console.log(`  Order/refund target: ${uri}`)
+
+  for (const topic of ORDER_REFUND_TOPICS) {
+    try {
+      await ensureTopic(existing, topic, uri, null)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (shopDomainDestinationError(message)) {
+        console.error(`  ${message}`)
+        console.log(
+          "  Skipping remaining ORDERS_* / REFUNDS_* topics.\n" +
+            "  SHOPIFY_WEBHOOK_ORIGIN must be an HTTPS host that is not listed\n" +
+            "  under Shopify Admin → Settings → Domains. Catalog webhooks are unchanged."
+        )
+        return
+      }
+      throw error
+    }
+  }
+}
+
 async function ensureCacheWebhooks(): Promise<void> {
-  const uri = cacheWebhookUri()
+  const catalogUri = cacheWebhookUri()
   const cmsFilter = storefrontCmsWebhookFilter()
-  console.log(`  Target: ${uri}`)
+  console.log(`  Catalog target: ${catalogUri}`)
   console.log(`  CMS types: ${STOREFRONT_CMS_METAOBJECT_TYPES.join(", ")}`)
   console.log(`  CMS filter: ${cmsFilter}`)
 
@@ -321,12 +412,15 @@ async function ensureCacheWebhooks(): Promise<void> {
   }
 
   for (const topic of UNFILTERED_TOPICS) {
-    await ensureTopic(existing, topic, uri, null)
+    if (isOrderRefundTopic(topic)) continue
+    await ensureTopic(existing, topic, catalogUri, null)
   }
 
   for (const topic of METAOBJECT_TOPICS) {
-    await ensureTopic(existing, topic, uri, cmsFilter)
+    await ensureTopic(existing, topic, catalogUri, cmsFilter)
   }
+
+  await ensureOrderRefundWebhooks(existing)
 }
 
 async function main() {
@@ -342,6 +436,12 @@ async function main() {
   )
   console.log(
     `  METAOBJECTS (CMS types only) → ${cacheWebhookUri()}`
+  )
+  const orderUri = orderRefundWebhookUri()
+  console.log(
+    orderUri
+      ? `  ORDERS / REFUNDS → ${orderUri}`
+      : "  ORDERS / REFUNDS → skipped (SHOPIFY_WEBHOOK_ORIGIN unset)"
   )
   console.log(
     "  Tags: shopify-catalog, storefront-cms, shopify-chrome, shopify-policies"

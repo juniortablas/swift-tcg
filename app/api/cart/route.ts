@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
+import * as Sentry from "@sentry/nextjs"
 
 import { MIXED_CART_MESSAGE } from "@/lib/cart/mixedCart"
 import type { CartItemKind } from "@/lib/cart/types"
@@ -7,14 +9,23 @@ import {
   clearShopifyCart,
   emptyCartPayload,
   fetchShopifyCart,
+  prepareShopifyCheckout,
   removeShopifyCartLines,
-  updateCartLineQuantity,
+  updateCartLineQuantities,
   type CartOperationError,
   type CartPayload,
 } from "@/lib/shopify/cart"
 import { ShopifyClientError } from "@/lib/shopify/client"
 import { attachCustomerToCart } from "@/lib/shopify/customerAccount"
+import { isShopifyThrottledError } from "@/lib/shopify/throttle"
 import { captureRouteException } from "@/lib/observability/capture"
+import {
+  parseReservationSessionCookie,
+  reservationCookieOptions,
+  RESERVATION_SESSION_COOKIE,
+  serializeReservationSessionCookie,
+  sessionFromCartPayload,
+} from "@/lib/shopify/weeklyRestockCartCache"
 
 export const dynamic = "force-dynamic"
 
@@ -75,6 +86,22 @@ function errorResponse(error: unknown) {
     )
   }
 
+  if (isShopifyThrottledError(error)) {
+    Sentry.captureException(error, {
+      tags: { route: "/api/cart", shopify: "throttled" },
+    })
+    return NextResponse.json(
+      {
+        error: {
+          code: "throttled",
+          message: "Too many requests. Please try again in a moment.",
+        },
+        ...emptyCartPayload(),
+      },
+      { status: 429 }
+    )
+  }
+
   if (error instanceof ShopifyClientError) {
     captureRouteException(error, { route: "/api/cart", status: 502 })
     return NextResponse.json(
@@ -98,8 +125,38 @@ function errorResponse(error: unknown) {
   )
 }
 
-function ok(payload: CartPayload) {
-  return NextResponse.json(payload)
+async function reservationSessionFromRequest() {
+  const jar = await cookies()
+  return parseReservationSessionCookie(
+    jar.get(RESERVATION_SESSION_COOKIE)?.value
+  )
+}
+
+function withReservationCookie(
+  response: NextResponse,
+  payload: CartPayload,
+  request: Request
+): NextResponse {
+  const session = sessionFromCartPayload(payload)
+  const secure = new URL(request.url).protocol === "https:"
+  if (!session) {
+    response.cookies.set(RESERVATION_SESSION_COOKIE, "", {
+      ...reservationCookieOptions(),
+      maxAge: 0,
+      secure,
+    })
+    return response
+  }
+  response.cookies.set(
+    RESERVATION_SESSION_COOKIE,
+    serializeReservationSessionCookie(session),
+    { ...reservationCookieOptions(), secure }
+  )
+  return response
+}
+
+function ok(payload: CartPayload, request: Request) {
+  return withReservationCookie(NextResponse.json(payload), payload, request)
 }
 
 export async function GET(request: Request) {
@@ -107,33 +164,56 @@ export async function GET(request: Request) {
   const cartId = searchParams.get("cartId")?.trim() ?? ""
 
   if (!cartId) {
-    return ok(emptyCartPayload())
+    return ok(emptyCartPayload(), request)
   }
 
   try {
     const payload = await fetchShopifyCart(cartId, {
       buyerIp: buyerIpFromRequest(request),
     })
-    return ok(payload)
+    return ok(payload, request)
   } catch (error) {
     // Expired / missing carts come back as `cart: null` (empty 200).
     // Only treat explicit "does not exist" GraphQL errors as empty —
     // a 502 from Shopify must not wipe the shopper's stored cart id.
     if (isMissingCartError(error)) {
-      return ok(emptyCartPayload())
+      return ok(emptyCartPayload(), request)
     }
     return errorResponse(error)
   }
 }
 
+type CartLineQuantityUpdate = {
+  lineId: string
+  quantity: number
+}
+
 type CartActionBody = {
-  action: "add" | "update" | "remove" | "clear" | "attachCustomer"
+  action: "add" | "update" | "remove" | "clear" | "attachCustomer" | "prepareCheckout"
   cartId?: string | null
   productId?: string
   lineId?: string
   quantity?: number
+  lines?: CartLineQuantityUpdate[]
   status?: CartItemKind
   skipMixedCheck?: boolean
+}
+
+function quantityUpdatesFromBody(
+  body: CartActionBody
+): CartLineQuantityUpdate[] {
+  if (Array.isArray(body.lines) && body.lines.length > 0) {
+    return body.lines
+      .filter((line) => typeof line?.lineId === "string" && line.lineId.trim())
+      .map((line) => ({
+        lineId: line.lineId.trim(),
+        quantity: line.quantity ?? 0,
+      }))
+  }
+  if (body.lineId?.trim()) {
+    return [{ lineId: body.lineId.trim(), quantity: body.quantity ?? 0 }]
+  }
+  return []
 }
 
 export async function POST(request: Request) {
@@ -152,6 +232,7 @@ export async function POST(request: Request) {
 
   const buyerIp = buyerIpFromRequest(request)
   const cartId = body.cartId?.trim() || null
+  const reservationSession = await reservationSessionFromRequest()
 
   try {
     switch (body.action) {
@@ -186,13 +267,14 @@ export async function POST(request: Request) {
             status: body.status,
             skipMixedCheck: body.skipMixedCheck === true,
           },
-          { buyerIp }
+          { buyerIp, reservationSession }
         )
-        return ok(payload)
+        return ok(payload, request)
       }
 
       case "update": {
-        if (!cartId || !body.lineId?.trim()) {
+        const lines = quantityUpdatesFromBody(body)
+        if (!cartId || lines.length === 0) {
           return NextResponse.json(
             {
               error: {
@@ -204,13 +286,11 @@ export async function POST(request: Request) {
             { status: 400 }
           )
         }
-        const payload = await updateCartLineQuantity(
-          cartId,
-          body.lineId.trim(),
-          body.quantity ?? 0,
-          { buyerIp }
-        )
-        return ok(payload)
+        const payload = await updateCartLineQuantities(cartId, lines, {
+          buyerIp,
+          reservationSession,
+        })
+        return ok(payload, request)
       }
 
       case "remove": {
@@ -229,27 +309,47 @@ export async function POST(request: Request) {
         const payload = await removeShopifyCartLines(
           cartId,
           [body.lineId.trim()],
-          { buyerIp }
+          { buyerIp, reservationSession }
         )
-        return ok(payload)
+        return ok(payload, request)
       }
 
       case "clear": {
         if (!cartId) {
-          return ok(emptyCartPayload())
+          return ok(emptyCartPayload(), request)
         }
-        const payload = await clearShopifyCart(cartId, { buyerIp })
-        return ok(payload)
+        const payload = await clearShopifyCart(cartId, {
+          buyerIp,
+          reservationSession,
+        })
+        return ok(payload, request)
       }
 
       case "attachCustomer": {
         if (!cartId) {
-          return ok(emptyCartPayload())
+          return ok(emptyCartPayload(), request)
         }
-        const attached = await attachCustomerToCart(cartId, { buyerIp })
-        if (attached) return ok(attached)
+        const attached = await attachCustomerToCart(cartId, {
+          buyerIp,
+          reservationSession,
+        })
+        if (attached) return ok(attached, request)
         const payload = await fetchShopifyCart(cartId, { buyerIp })
-        return ok(payload)
+        return ok(payload, request)
+      }
+
+      case "prepareCheckout": {
+        if (!cartId) {
+          return NextResponse.json(
+            {
+              error: { code: "invalid", message: "cartId is required." },
+              ...emptyCartPayload(),
+            },
+            { status: 400 }
+          )
+        }
+        const payload = await prepareShopifyCheckout(cartId, { buyerIp })
+        return ok(payload, request)
       }
 
       default:

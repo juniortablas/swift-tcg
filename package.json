@@ -16,7 +16,8 @@
     "setup:wishlist": "tsx scripts/setup-wishlist-metafield.ts",
     "setup:back-in-stock": "tsx scripts/setup-back-in-stock-metafields.ts",
     "setup:reviews": "tsx scripts/setup-product-reviews.ts",
-    "setup:cache-webhooks": "tsx scripts/setup-cache-webhooks.ts"
+    "setup:cache-webhooks": "tsx scripts/setup-cache-webhooks.ts",
+    "sync:weekly-reservations": "tsx scripts/sync-weekly-reservations.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

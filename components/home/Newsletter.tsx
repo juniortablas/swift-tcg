@@ -3,11 +3,28 @@
 import { Mail } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { useNewsletterForm } from "@/lib/newsletter/useNewsletterForm"
+import {
+  NewsletterHoneypotField,
+  useNewsletterForm,
+} from "@/lib/newsletter/useNewsletterForm"
+import { NEWSLETTER_EMAIL_MAX_LENGTH } from "@/lib/newsletter/constants"
 
 export default function Newsletter() {
-  const { email, setEmail, phase, feedback, pending, handleSubmit } =
-    useNewsletterForm("homepage")
+  const {
+    email,
+    setEmail,
+    phase,
+    feedback,
+    pending,
+    handleSubmit,
+    emailInputRef,
+    successRef,
+    errorRef,
+    inputId,
+    errorId,
+    honeypotId,
+    honeypotField,
+  } = useNewsletterForm("homepage")
 
   return (
     <section className="bg-white">
@@ -33,41 +50,55 @@ export default function Newsletter() {
             </div>
 
             {phase === "success" ? (
-              <p className="text-sm font-medium text-green-700">
+              <p
+                ref={successRef}
+                tabIndex={-1}
+                role="status"
+                className="text-sm font-medium text-green-700 outline-none"
+              >
                 You&apos;re on the list — thank you.
-              </p>
-            ) : phase === "unavailable" ? (
-              <p className="max-w-sm text-sm font-medium text-black/55">
-                {feedback}
               </p>
             ) : (
               <form
                 onSubmit={handleSubmit}
                 className="flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center"
+                aria-busy={pending}
               >
-                <label htmlFor="newsletter-email" className="sr-only">
+                <NewsletterHoneypotField id={honeypotId} name={honeypotField} />
+                <label htmlFor={inputId} className="sr-only">
                   Email address
                 </label>
                 <input
-                  id="newsletter-email"
+                  ref={emailInputRef}
+                  id={inputId}
                   type="email"
                   required
                   autoComplete="email"
+                  inputMode="email"
+                  maxLength={NEWSLETTER_EMAIL_MAX_LENGTH}
                   placeholder="Enter your email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   disabled={pending}
+                  aria-invalid={feedback ? true : undefined}
+                  aria-describedby={feedback ? errorId : undefined}
                   className="h-12 w-full rounded-full border border-black/10 bg-white px-5 text-sm text-black outline-none placeholder:text-black/35 focus:border-green-600/40 focus:ring-2 focus:ring-green-600/20 disabled:opacity-60"
                 />
                 <Button
                   type="submit"
                   disabled={pending}
+                  aria-busy={pending}
                   className="h-12 shrink-0 rounded-full bg-green-600 px-7 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(22,163,74,0.45)] transition-transform duration-200 hover:scale-[1.02] hover:bg-green-700 disabled:hover:scale-100"
                 >
                   Subscribe
                 </Button>
+                <span className="sr-only" aria-live="polite">
+                  {pending ? "Subscribing" : ""}
+                </span>
                 {feedback ? (
                   <p
+                    ref={errorRef}
+                    id={errorId}
                     role="alert"
                     className="w-full text-sm font-medium text-red-600 sm:basis-full"
                   >

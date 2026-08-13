@@ -1,19 +1,19 @@
-import type {
-  NewsletterSubscribeResult,
-  NewsletterSource,
-} from "@/lib/newsletter/types"
+import type { NewsletterSubscribeResult, NewsletterSource } from "./types"
+import {
+  NEWSLETTER_ERROR_MESSAGE,
+  NEWSLETTER_HONEYPOT_FIELD,
+} from "./constants"
 
-export type NewsletterApiResponse = NewsletterSubscribeResult & {
-  ok: boolean
-}
+export type NewsletterApiResponse = NewsletterSubscribeResult
 
 /**
- * Browser helper for newsletter forms. Hits the App Router API so ESP
+ * Browser helper for newsletter forms. Hits the App Router API so Admin
  * credentials never leave the server.
  */
 export async function subscribeNewsletterClient(input: {
   email: string
   source?: NewsletterSource
+  website?: string
 }): Promise<NewsletterApiResponse> {
   try {
     const res = await fetch("/api/newsletter", {
@@ -22,27 +22,24 @@ export async function subscribeNewsletterClient(input: {
       body: JSON.stringify({
         email: input.email,
         source: input.source,
+        [NEWSLETTER_HONEYPOT_FIELD]: input.website ?? "",
       }),
     })
 
-    const payload = (await res.json()) as NewsletterSubscribeResult
+    const payload = (await res.json()) as Partial<NewsletterSubscribeResult>
+
+    if (typeof payload.success === "boolean" && typeof payload.message === "string") {
+      return { success: payload.success, message: payload.message }
+    }
 
     return {
-      ok: res.ok && isSuccessStatus(payload.status),
-      status: payload.status,
-      message: payload.message,
+      success: false,
+      message: NEWSLETTER_ERROR_MESSAGE,
     }
   } catch {
     return {
-      ok: false,
-      status: "error",
-      message: "Something went wrong. Please try again.",
+      success: false,
+      message: NEWSLETTER_ERROR_MESSAGE,
     }
   }
-}
-
-function isSuccessStatus(
-  status: NewsletterSubscribeResult["status"]
-): boolean {
-  return status === "subscribed" || status === "already_subscribed"
 }

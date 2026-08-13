@@ -33,6 +33,23 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
         cartId: action.payload.cartId ?? null,
       }
 
+    case "SET_LINE_QUANTITY": {
+      if (action.quantity <= 0) {
+        return {
+          ...state,
+          items: state.items.filter((item) => item.id !== action.lineId),
+        }
+      }
+      return {
+        ...state,
+        items: state.items.map((item) =>
+          item.id === action.lineId
+            ? { ...item, quantity: Math.max(1, Math.floor(action.quantity)) }
+            : item
+        ),
+      }
+    }
+
     case "SET_CHECKOUT_URL":
       return { ...state, checkoutUrl: action.payload }
 

@@ -10,7 +10,7 @@ export const MIXED_CART_MESSAGE =
  */
 export function toCartItemKind(status: ProductStatus): CartItemKind | null {
   if (status === "preorder") return "preorder"
-  if (status === "instock") return "instock"
+  if (status === "instock" || status === "weekly_restock") return "instock"
   return null
 }
 

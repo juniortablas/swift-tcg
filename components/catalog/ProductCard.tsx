@@ -10,9 +10,10 @@ import dynamic from "next/dynamic"
 import ProductCardAddToCart from "@/components/catalog/ProductCardAddToCart"
 import ProductRating from "@/components/reviews/ProductRating"
 import WishlistButton from "@/components/wishlist/WishlistButton"
-import { getProductReleaseDate } from "@/lib/catalog"
+import { getAvailabilityBadge, getProductReleaseDate } from "@/lib/catalog"
+import { isWeeklyRestockProduct, weeklyRestockLeftLabel } from "@/lib/product/weeklyRestock"
 import { formatUsdPrice } from "@/lib/pricing"
-import type { Product, ProductStatus } from "@/types/product"
+import type { Product } from "@/types/product"
 import { cn } from "@/lib/utils"
 
 const ProductQuickView = dynamic(
@@ -28,38 +29,6 @@ function productHref(product: Product): string {
 /** Featured = Coming Soon / Newest Arrivals rails. Compact kept for denser grids. */
 export type ProductCardVariant = "featured" | "compact"
 export type ProductCardDensity = "default" | "rail"
-
-const BADGES: Partial<
-  Record<ProductStatus, { label: string; className: string }>
-> = {
-  instock: {
-    label: "In Stock",
-    className: "bg-green-600 text-white",
-  },
-  preorder: {
-    label: "Preorder",
-    className: "bg-black/[0.06] text-black/70",
-  },
-  soldout: {
-    label: "Sold Out",
-    className: "bg-neutral-500/10 text-neutral-500",
-  },
-}
-
-const COMING_SOON = {
-  label: "Coming Soon",
-  className: "bg-black/[0.06] text-black/55",
-}
-
-function availabilityBadge(product: Product) {
-  if (
-    (product.price == null || product.price <= 0) &&
-    product.status !== "soldout"
-  ) {
-    return COMING_SOON
-  }
-  return BADGES[product.status] ?? null
-}
 
 function formatReleaseLabel(product: Product): string | null {
   const iso = getProductReleaseDate(product)
@@ -97,7 +66,14 @@ export default function ProductCard({
         label: badgeOverride.trim(),
         className: "bg-black text-white",
       }
-    : availabilityBadge(product)
+    : getAvailabilityBadge(product)
+  const remaining = product.weeklyRestockRemaining ?? 0
+  const showRemainingLeft =
+    !compact &&
+    !rail &&
+    !badgeOverride?.trim() &&
+    isWeeklyRestockProduct(product) &&
+    remaining > 0
   const releaseLabel =
     product.status === "preorder" ||
     product.price == null ||
@@ -137,17 +113,31 @@ export default function ProductCard({
             )}
           >
             {availability ? (
-              <span
+              <div
                 className={cn(
-                  "absolute z-10 rounded-full font-semibold tracking-[0.06em] uppercase",
+                  "absolute z-10 flex flex-col items-start gap-1",
                   compact
-                    ? "top-2 left-2 px-1.5 py-0.5 text-[8px] font-bold"
-                    : "top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] sm:top-3 sm:left-3 sm:px-2.5 sm:py-1 sm:text-[10px]",
-                  availability.className
+                    ? "top-2 left-2"
+                    : "top-1.5 left-1.5 sm:top-3 sm:left-3"
                 )}
               >
-                {availability.label}
-              </span>
+                <span
+                  className={cn(
+                    "rounded-full font-semibold tracking-[0.06em] uppercase",
+                    compact
+                      ? "px-1.5 py-0.5 text-[8px] font-bold"
+                      : "px-1.5 py-0.5 text-[8px] sm:px-2.5 sm:py-1 sm:text-[10px]",
+                    availability.className
+                  )}
+                >
+                  {availability.label}
+                </span>
+                {showRemainingLeft ? (
+                  <span className="rounded-full bg-white/95 px-1.5 py-0.5 text-[8px] font-semibold tracking-[0.04em] text-green-800 uppercase ring-1 ring-green-600/15 sm:px-2 sm:py-1 sm:text-[10px]">
+                    {weeklyRestockLeftLabel(remaining)}
+                  </span>
+                ) : null}
+              </div>
             ) : null}
 
             <div className="relative flex h-full w-full items-center justify-center overflow-hidden">

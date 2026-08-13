@@ -181,6 +181,7 @@ export {
   CART_LINES_ADD,
   CART_LINES_UPDATE,
   CART_LINES_REMOVE,
+  CART_ATTRIBUTES_UPDATE,
 } from "./mutations"
 export * from "./customerAccount"
 export {
@@ -195,8 +196,10 @@ export {
   fetchProductForCart,
   fetchShopifyCart,
   mapShopifyCart,
+  prepareShopifyCheckout,
   removeShopifyCartLines,
   resolveMerchandise,
+  updateCartLineQuantities,
   updateCartLineQuantity,
   updateShopifyCartLines,
   type AddToCartInput,
@@ -204,7 +207,12 @@ export {
   type CartOperationError,
   type CartPayload,
 } from "./cart"
-export { GET_CART, GET_PRODUCT_FOR_CART, CART_FIELDS } from "./cartFields"
+export {
+  GET_CART,
+  GET_PRODUCT_FOR_CART,
+  CART_FIELDS,
+  CART_FIELDS_WITH_RESTOCK,
+} from "./cartFields"
 export {
   formatShopPayVariants,
   getShopPayStoreUrl,

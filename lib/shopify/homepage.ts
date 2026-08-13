@@ -24,6 +24,7 @@ import {
   type HomepagePromotion,
 } from "./homepageMerchandising"
 import { mapShopifyProducts } from "./mappers"
+import { applyWeeklyRestockLimits } from "./weeklyRestockAvailability"
 import {
   GET_COMING_SOON_COLLECTION_PRODUCTS,
   GET_COMING_SOON_PRODUCTS,
@@ -111,9 +112,11 @@ export async function getShopifyComingSoonProducts(
   )
 
   if (fromCollection.length > 0) {
-    return mapShopifyProducts(sortComingSoonProducts(fromCollection)).slice(
-      0,
-      limit
+    return applyWeeklyRestockLimits(
+      mapShopifyProducts(sortComingSoonProducts(fromCollection)).slice(
+        0,
+        limit
+      )
     )
   }
 
@@ -127,7 +130,9 @@ export async function getShopifyComingSoonProducts(
     .map((edge) => edge.node)
     .filter(isPreorderTagged)
 
-  return mapShopifyProducts(sortComingSoonProducts(tagged)).slice(0, limit)
+  return applyWeeklyRestockLimits(
+    mapShopifyProducts(sortComingSoonProducts(tagged)).slice(0, limit)
+  )
 }
 
 function parseHomepagePosition(product: ShopifyProduct): number | null {
@@ -191,18 +196,22 @@ export async function getShopifyNewestArrivals(limit = 8): Promise<Product[]> {
     .slice(0, limit)
 }
 
-function featuredResultFromEntries(
+async function featuredResultFromEntries(
   entries: Awaited<ReturnType<typeof getHomepageFeaturedProductEntries>>,
   limit: number
-): HomepageFeaturedProductsResult | null {
+): Promise<HomepageFeaturedProductsResult | null> {
   if (entries.length === 0) return null
   const sliced = entries.slice(0, limit)
   const badges: Record<string, string> = {}
-  const products = sliced.map((entry) => {
+  const mapped = sliced.map((entry) => {
     if (entry.badge) badges[entry.product.id] = entry.badge
     return entry.product
   })
-  return { products, badges, fromCms: true }
+  return {
+    products: await applyWeeklyRestockLimits(mapped),
+    badges,
+    fromCms: true,
+  }
 }
 
 /**
@@ -213,7 +222,7 @@ export async function getHomepageFeaturedProducts(
   limit = 8
 ): Promise<HomepageFeaturedProductsResult> {
   const entries = await getHomepageFeaturedProductEntries()
-  const fromCms = featuredResultFromEntries(entries, limit)
+  const fromCms = await featuredResultFromEntries(entries, limit)
   if (fromCms) return fromCms
 
   const products = await getShopifyComingSoonProducts(limit)
@@ -290,7 +299,7 @@ export const getHomepagePageData = cache(
       }
     }
 
-    const curatedFeatured = featuredResultFromEntries(
+    const curatedFeatured = await featuredResultFromEntries(
       featuredProductsFromMetaobjects(config.featuredProducts),
       limit
     )

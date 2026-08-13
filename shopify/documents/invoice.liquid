@@ -1,0 +1,346 @@
+{% comment %}
+  Invoice — Swift TCG branded
+  Paste into: Apps → Order Printer → Templates → Invoice
+  Paper: US Letter. HTML / CSS / Liquid only.
+{% endcomment %}
+
+<style>
+  @page { size: letter; margin: 0.5in; }
+  * { box-sizing: border-box; }
+  .doc {
+    font-family: Helvetica, Arial, sans-serif;
+    color: #111111;
+    font-size: 10pt;
+    line-height: 1.45;
+    background: #ffffff;
+  }
+  .doc img { max-width: 100%; }
+  .brand-logo { display: block; width: 160px; height: auto; }
+  .header { width: 100%; border-collapse: collapse; }
+  .header td { vertical-align: top; padding: 0; }
+  .doc-kicker {
+    margin: 0 0 4px;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #0EA54B;
+  }
+  .doc-title {
+    margin: 0;
+    font-size: 18pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .meta { margin: 6px 0 0; color: #333333; font-size: 10pt; text-align: right; }
+  .status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 8px;
+    border: 1px solid #111111;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .rule {
+    height: 3px;
+    background: #0EA54B;
+    border: 0;
+    margin: 14px 0 18px;
+  }
+  .cols { width: 100%; border-collapse: collapse; margin: 0 0 18px; }
+  .cols td { width: 33%; vertical-align: top; padding: 0 18px 0 0; }
+  .cols td:last-child { padding: 0; }
+  .label {
+    margin: 0 0 6px;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #111111;
+  }
+  .block { margin: 0; color: #111111; }
+  .items { width: 100%; border-collapse: collapse; margin: 8px 0 0; }
+  .items th {
+    text-align: left;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #111111;
+    padding: 0 8px 8px 0;
+  }
+  .items th.num,
+  .items td.num { text-align: right; padding-right: 0; }
+  .items td {
+    border-bottom: 1px solid #e5e5e5;
+    padding: 10px 8px 10px 0;
+    vertical-align: top;
+  }
+  .item-title { font-weight: 700; }
+  .sku { color: #333333; font-size: 9pt; }
+  .props { margin: 4px 0 0; color: #333333; font-size: 9pt; }
+  .totals { width: 280px; margin: 12px 0 0 auto; border-collapse: collapse; }
+  .totals td { padding: 5px 0; color: #333333; }
+  .totals td.num { text-align: right; }
+  .totals .grand td {
+    padding-top: 10px;
+    border-top: 1px solid #111111;
+    color: #111111;
+    font-weight: 700;
+    font-size: 12pt;
+  }
+  .support { margin: 28px 0 0; padding-top: 14px; border-top: 1px solid #e5e5e5; color: #333333; font-size: 9pt; }
+  .support a { color: #111111; text-decoration: none; }
+  @media print {
+    .doc { background: #ffffff; }
+    .rule { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .items tr { page-break-inside: avoid; }
+  }
+</style>
+
+<div class="doc">
+  <table class="header">
+    <tr>
+      <td>
+        <img
+          class="brand-logo"
+          src="https://www.swifttcg.com/brand/swift-tcg-logo.png"
+          alt="{{ shop.name }}"
+          width="160"
+        />
+      </td>
+      <td style="text-align: right;">
+        <p class="doc-kicker">Invoice</p>
+        <h1 class="doc-title">{{ order.order_name }}</h1>
+        <p class="meta">
+          {{ order.created_at | date: "%B %e, %Y" }}<br />
+          {% if order.po_number != blank %}PO # {{ order.po_number }}<br />{% endif %}
+          {% if order.email != blank %}{{ order.email }}{% endif %}
+        </p>
+        {% if order.financial_status_label != blank or order.financial_status != blank %}
+          <span class="status">{{ order.financial_status_label | default: order.financial_status }}</span>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+
+  <hr class="rule" />
+
+  <table class="cols">
+    <tr>
+      <td>
+        <p class="label">From</p>
+        <p class="block">
+          <strong>{{ shop.name }}</strong><br />
+          {{ shop.address | format_address }}
+          {% if shop.phone != blank %}<br />{{ shop.phone }}{% endif %}
+          {% if shop.email != blank %}<br />{{ shop.email }}{% endif %}
+          {% if shop.domain != blank %}<br />{{ shop.domain }}{% endif %}
+        </p>
+      </td>
+      <td>
+        <p class="label">Bill to</p>
+        {% if order.billing_address %}
+          <p class="block">
+            {{ order.billing_address | format_address }}
+            {% if order.billing_address.phone != blank %}
+              <br />{{ order.billing_address.phone }}
+            {% endif %}
+          </p>
+        {% elsif order.customer %}
+          <p class="block">{{ order.customer.name }}</p>
+        {% endif %}
+      </td>
+      <td>
+        <p class="label">Ship to</p>
+        {% if order.shipping_address %}
+          <p class="block">
+            {{ order.shipping_address | format_address }}
+            {% if order.shipping_address.phone != blank %}
+              <br />{{ order.shipping_address.phone }}
+            {% endif %}
+          </p>
+        {% else %}
+          <p class="block">—</p>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+
+  {% if order.note != blank %}
+    <p class="label">Order note</p>
+    <p class="block" style="margin-bottom: 16px;">{{ order.note }}</p>
+  {% endif %}
+
+  <p class="label">Order summary</p>
+  <table class="items">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th class="num" style="width: 8%;">Qty</th>
+        {% if tax_lines.size > 0 %}
+          <th class="num" style="width: 18%;">Taxes</th>
+        {% endif %}
+        <th class="num" style="width: 16%;">Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line_item in order.line_items %}
+        <tr>
+          <td>
+            <span class="item-title">{{ line_item.title }}</span>
+            {% if line_item.variant_title != blank and line_item.variant_title != 'Default Title' %}
+              <br /><span class="sku">{{ line_item.variant_title }}</span>
+            {% endif %}
+            {% if line_item.sku != blank %}
+              <br /><span class="sku">SKU {{ line_item.sku }}</span>
+            {% endif %}
+            {% if line_item.line_level_total_discount > 0 %}
+              <br /><span class="sku">Discount {{ line_item.line_level_total_discount | money }}</span>
+            {% endif %}
+            {% for property in line_item.properties %}
+              {% assign property_first_char = property.first | slice: 0 %}
+              {% if property.last != blank and property_first_char != '_' %}
+                <div class="props">{{ property.first }}: {{ property.last }}</div>
+              {% endif %}
+            {% endfor %}
+          </td>
+          <td class="num">{{ line_item.quantity }}</td>
+          {% if tax_lines.size > 0 %}
+            <td class="num">
+              {% for tax_line in line_item.tax_lines %}
+                {{ tax_line.price | money }} {{ tax_line.title }}{% unless forloop.last %}<br />{% endunless %}
+              {% endfor %}
+            </td>
+          {% endif %}
+          <td class="num">
+            {% if line_item.original_line_price != line_item.final_line_price %}
+              <span class="sku">{{ line_item.original_line_price | money }}</span><br />
+            {% endif %}
+            {{ line_item.final_line_price | money }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr>
+      <td>Subtotal</td>
+      <td class="num">{{ order.subtotal_price | money }}</td>
+    </tr>
+    {% for discount in order.discounts %}
+      <tr>
+        <td>Discount{% if discount.code %} ({{ discount.code }}){% endif %}</td>
+        <td class="num">{{ discount.savings | money }}</td>
+      </tr>
+    {% endfor %}
+    {% if order.discounts.size == 0 and order.total_discounts > 0 %}
+      <tr>
+        <td>Discount</td>
+        <td class="num">{{ order.total_discounts | money }}</td>
+      </tr>
+    {% endif %}
+    {% for shipping_method in order.shipping_methods %}
+      <tr>
+        <td>Shipping ({{ shipping_method.title }})</td>
+        <td class="num">{{ shipping_method.price | money }}</td>
+      </tr>
+    {% endfor %}
+    {% if order.shipping_methods.size == 0 %}
+      <tr>
+        <td>
+          Shipping
+          {% if order.shipping_method %} ({{ order.shipping_method.title }}){% endif %}
+        </td>
+        <td class="num">{{ order.shipping_price | money }}</td>
+      </tr>
+    {% endif %}
+    {% for tax_line in order.tax_lines %}
+      <tr>
+        <td>
+          {{ tax_line.title }}
+          {% if tax_line.rate_percentage %} ({{ tax_line.rate_percentage }}%){% endif %}
+        </td>
+        <td class="num">{{ tax_line.price | money }}</td>
+      </tr>
+    {% endfor %}
+    {% if order.tax_lines.size == 0 and order.tax_price %}
+      <tr>
+        <td>Tax</td>
+        <td class="num">{{ order.tax_price | money }}</td>
+      </tr>
+    {% endif %}
+    {% if order.total_duties %}
+      <tr>
+        <td>Duties</td>
+        <td class="num">{{ order.total_duties | money }}</td>
+      </tr>
+    {% endif %}
+    {% if order.total_tip > 0 %}
+      <tr>
+        <td>Tip</td>
+        <td class="num">{{ order.total_tip | money }}</td>
+      </tr>
+    {% endif %}
+    <tr class="grand">
+      <td>Total</td>
+      <td class="num">{{ order.total_price | money }}</td>
+    </tr>
+    {% if order.net_payment %}
+      <tr>
+        <td>Paid</td>
+        <td class="num">{{ order.net_payment | money }}</td>
+      </tr>
+    {% elsif order.total_paid %}
+      <tr>
+        <td>Paid</td>
+        <td class="num">{{ order.total_paid | money }}</td>
+      </tr>
+    {% endif %}
+    {% if order.total_refunded_amount > 0 %}
+      <tr>
+        <td>Refunded</td>
+        <td class="num">{{ order.total_refunded_amount | money }}</td>
+      </tr>
+    {% endif %}
+    {% if order.total_outstanding > 0 %}
+      <tr>
+        <td>Outstanding</td>
+        <td class="num">{{ order.total_outstanding | money }}</td>
+      </tr>
+    {% endif %}
+  </table>
+
+  {% if order.transactions.size > 0 %}
+    <p class="label" style="margin-top: 20px;">Payment</p>
+    <p class="block">
+      {% for transaction in order.transactions %}
+        {% if transaction.status == "success" %}
+          {{ transaction.gateway_display_name }} — {{ transaction.amount | money }}
+          {% if transaction.payment_details.credit_card_company %}
+            ({{ transaction.payment_details.credit_card_company }}
+            {% if transaction.payment_details.credit_card_last_four %}
+              •••• {{ transaction.payment_details.credit_card_last_four }}
+            {% endif %})
+          {% endif %}
+          <br />
+        {% endif %}
+      {% endfor %}
+      {% if order.gateway != blank %}
+        <span class="sku">Gateway: {{ order.gateway }}</span>
+      {% endif %}
+    </p>
+  {% endif %}
+
+  <div class="support">
+    <p style="margin: 0 0 6px;"><strong>Questions about this invoice?</strong></p>
+    <p style="margin: 0;">
+      Email <a href="mailto:support@swifttcg.com">support@swifttcg.com</a><br />
+      <a href="https://www.swifttcg.com">https://www.swifttcg.com</a>
+    </p>
+  </div>
+</div>

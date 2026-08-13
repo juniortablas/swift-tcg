@@ -1,38 +1,74 @@
-import { resolveNewsletterProvider } from "@/lib/newsletter/providers/resolve"
+import { subscribeShopifyNewsletterCustomer } from "@/lib/shopify/newsletter"
+import { ShopifyClientError } from "@/lib/shopify/client"
+
+import {
+  isHoneypotTriggered,
+  NEWSLETTER_INVALID_EMAIL_MESSAGE,
+  NEWSLETTER_RATE_LIMIT_MESSAGE,
+  NEWSLETTER_SUCCESS_MESSAGE,
+  sanitizeNewsletterEmail,
+} from "./constants"
+import {
+  isNewsletterRateLimited,
+  markNewsletterSubscribed,
+  wasRecentlySubscribed,
+} from "./rateLimit"
 import type {
   NewsletterSubscribeInput,
-  NewsletterSubscribeResult,
-  NewsletterSource,
-} from "@/lib/newsletter/types"
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  NewsletterSubscribeOutcome,
+} from "./types"
 
 /**
  * Server-side newsletter subscribe entrypoint.
  * Components must call this via `/api/newsletter` — never from the browser.
  */
 export async function subscribeToNewsletter(
-  input: NewsletterSubscribeInput
-): Promise<NewsletterSubscribeResult> {
-  const email = input.email.trim().toLowerCase()
-  const source = normalizeSource(input.source)
+  input: NewsletterSubscribeInput & { ip?: string }
+): Promise<NewsletterSubscribeOutcome> {
+  if (isHoneypotTriggered(input.website)) {
+    return { ok: true, message: NEWSLETTER_SUCCESS_MESSAGE }
+  }
 
-  if (!email || !EMAIL_PATTERN.test(email)) {
+  const email = sanitizeNewsletterEmail(input.email)
+  if (!email) {
     return {
-      status: "invalid_email",
-      message: "Enter a valid email address.",
+      ok: false,
+      reason: "invalid_email",
+      message: NEWSLETTER_INVALID_EMAIL_MESSAGE,
     }
   }
 
-  const provider = resolveNewsletterProvider()
-  return provider.subscribe({ email, source })
-}
-
-function normalizeSource(
-  source: NewsletterSource | undefined
-): NewsletterSource {
-  if (source === "homepage" || source === "footer" || source === "maintenance") {
-    return source
+  if (wasRecentlySubscribed(email)) {
+    return { ok: true, message: NEWSLETTER_SUCCESS_MESSAGE }
   }
-  return "unknown"
+
+  if (
+    isNewsletterRateLimited({
+      ip: input.ip?.trim() || "unknown",
+      email,
+    })
+  ) {
+    return {
+      ok: false,
+      reason: "rate_limited",
+      message: NEWSLETTER_RATE_LIMIT_MESSAGE,
+    }
+  }
+
+  try {
+    await subscribeShopifyNewsletterCustomer(email)
+    markNewsletterSubscribed(email)
+    return { ok: true, message: NEWSLETTER_SUCCESS_MESSAGE }
+  } catch (error) {
+    if (error instanceof ShopifyClientError && error.status === 400) {
+      return {
+        ok: false,
+        reason: "invalid_email",
+        message: NEWSLETTER_INVALID_EMAIL_MESSAGE,
+      }
+    }
+
+    console.error("[newsletter] unexpected subscribe failure", error)
+    throw error
+  }
 }

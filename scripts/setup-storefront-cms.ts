@@ -831,6 +831,33 @@ const PRODUCT_METAFIELDS: ProductMetafieldDef[] = [
       "Manufacturer or distributor product code. Leave empty to hide the row on the PDP.",
   },
   {
+    name: "Allow Weekly Restock",
+    namespace: "custom",
+    key: "allow_weekly_restock",
+    type: "boolean",
+    ownerType: "PRODUCT",
+    description:
+      "When true and inventory is 0, customers can reserve the product for the next weekly restock instead of Sold Out / Notify Me. Enable Continue selling when out of stock on the variant.",
+  },
+  {
+    name: "Weekly Restock Limit",
+    namespace: "custom",
+    key: "weekly_restock_limit",
+    type: "number_integer",
+    ownerType: "PRODUCT",
+    description:
+      "Maximum paid weekly restock reservations while inventory is 0. When reached, the product shows Sold Out / Notify Me.",
+  },
+  {
+    name: "Current Weekly Reservations",
+    namespace: "custom",
+    key: "current_weekly_reservations",
+    type: "number_integer",
+    ownerType: "PRODUCT",
+    description:
+      "Outstanding paid weekly restock reservations. Maintained automatically from orders (create, cancel, refund, fulfill). Remaining = weekly_restock_limit − this value. Do not edit.",
+  },
+  {
     name: "Homepage position",
     namespace: "swift",
     key: "homepage_position",

@@ -62,3 +62,17 @@ export const CART_LINES_REMOVE = `
     }
   }
 `
+
+export const CART_ATTRIBUTES_UPDATE = `
+  mutation CartAttributesUpdate($cartId: ID!, $attributes: [AttributeInput!]!) {
+    cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
+      cart {
+        ${CART_FIELDS}
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`

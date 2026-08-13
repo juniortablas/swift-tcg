@@ -23,6 +23,7 @@ const NON_SET_TAGS = new Set([
   "soldout",
   "sold-out",
   "coming-soon",
+  "weekly-restock",
   "ready-to-release",
   "release-approved",
   "released",

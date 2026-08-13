@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react"
 
 import ShopPayButton from "@/components/checkout/ShopPayButton"
+import ReserveItemNotice from "@/components/cart/ReserveItemNotice"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart/useCart"
 import type { CartItem } from "@/lib/cart/types"
@@ -30,12 +31,14 @@ export default function CartDrawer({
     items,
     itemCount,
     subtotal,
+    actionError,
     checkoutUrl,
     isOpen,
     closeCart,
     removeItem,
     updateQuantity,
     clearCart,
+    prepareCheckout,
   } = useCart()
 
   const shopPayVariants = formatShopPayVariants(
@@ -48,9 +51,12 @@ export default function CartDrawer({
   const showShopPay = Boolean(
     isOpen && shopPayStoreUrl && shopPayVariants && items.length > 0
   )
+  const hasWeeklyRestock = items.some((item) => item.weeklyRestock)
 
-  function handleCheckout() {
+  async function handleCheckout() {
     if (!checkoutUrl) return
+    const ready = await prepareCheckout()
+    if (!ready) return
     window.location.assign(checkoutUrl)
   }
 
@@ -202,8 +208,9 @@ export default function CartDrawer({
                           }
                           disabled={
                             item.quantityAvailable != null &&
-                            item.quantityAvailable > 0 &&
-                            item.quantity >= item.quantityAvailable
+                            item.quantity >= item.quantityAvailable &&
+                            (item.weeklyRestock === true ||
+                              item.quantityAvailable > 0)
                           }
                           tabIndex={isOpen ? 0 : -1}
                         >
@@ -236,6 +243,21 @@ export default function CartDrawer({
               <p className="mt-1 text-xs text-black/35">
                 Shipping and tax calculated at checkout.
               </p>
+
+              {hasWeeklyRestock ? (
+                <div className="mt-3">
+                  <ReserveItemNotice />
+                </div>
+              ) : null}
+
+              {actionError ? (
+                <p
+                  role="status"
+                  className="mt-3 text-xs font-medium text-amber-900"
+                >
+                  {actionError}
+                </p>
+              ) : null}
 
               <Button
                 type="button"
