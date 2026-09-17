@@ -86,7 +86,7 @@ export default function HelpfulButton({
         voted
           ? "border-green-600/30 bg-green-50 text-green-700"
           : "bg-white text-black/60 hover:border-black/20 hover:text-black",
-        "disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40",
+        "disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40",
         className
       )}
     >

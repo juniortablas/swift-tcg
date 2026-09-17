@@ -25,7 +25,7 @@ const FEATURES = [
 
 export default function TrustSection() {
   return (
-    <section className="bg-[#f3faf5]">
+    <section className="bg-[#eef2ff]">
       <div className="mx-auto max-w-[1920px] px-4 py-5 sm:px-6 sm:py-10 lg:px-8 lg:py-11 xl:px-10">
         <ul className="grid gap-4 sm:grid-cols-2 sm:gap-7 lg:grid-cols-4 lg:gap-6">
           {FEATURES.map(({ icon: Icon, title, description }) => (
@@ -34,7 +34,7 @@ export default function TrustSection() {
               className="flex items-start gap-3.5 lg:justify-center lg:gap-4"
             >
               <Icon
-                className="mt-0.5 size-6 shrink-0 text-green-600"
+                className="mt-0.5 size-6 shrink-0 text-indigo-600"
                 strokeWidth={1.5}
                 aria-hidden="true"
               />

@@ -56,10 +56,10 @@ export default function ReviewSummary({
               onClick={onWriteReview}
               disabled={writeDisabled}
               className={cn(
-                "mt-4 inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40",
+                "mt-4 inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40",
                 writeDisabled
                   ? "cursor-not-allowed bg-neutral-100 text-black/40"
-                  : "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
               )}
             >
               {writeLabel}
@@ -89,10 +89,10 @@ export default function ReviewSummary({
                     className="h-1.5 overflow-hidden rounded-full bg-black/[0.06]"
                     role="presentation"
                   >
-                    <div
-                      className="h-full rounded-full bg-[#0EA54B]"
-                      style={{ width: `${pct}%` }}
-                    />
+                  <div
+                    className="h-full rounded-full bg-[#6366F1]"
+                    style={{ width: `${pct}%` }}
+                  />
                   </div>
                   <span className="w-10 text-right text-xs tabular-nums text-black/50">
                     {pct}%

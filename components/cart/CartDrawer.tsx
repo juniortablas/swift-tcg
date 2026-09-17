@@ -128,7 +128,7 @@ export default function CartDrawer({
             <Button
               type="button"
               size="sm"
-              className="mt-6 h-11 bg-green-600 px-5 text-white hover:bg-green-600/90"
+              className="mt-6 h-11 bg-indigo-600 px-5 text-white hover:bg-indigo-600/90"
               onClick={closeCart}
               tabIndex={isOpen ? 0 : -1}
             >
@@ -262,7 +262,7 @@ export default function CartDrawer({
               <Button
                 type="button"
                 size="lg"
-                className="mt-4 h-12 w-full rounded-xl bg-green-600 text-[15px] font-semibold text-white hover:bg-green-600/90 disabled:opacity-40"
+                className="mt-4 h-12 w-full rounded-xl bg-indigo-600 text-[15px] font-semibold text-white hover:bg-indigo-600/90 disabled:opacity-40"
                 onClick={handleCheckout}
                 disabled={!checkoutUrl}
                 tabIndex={isOpen ? 0 : -1}

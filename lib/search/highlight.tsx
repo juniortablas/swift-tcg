@@ -26,7 +26,7 @@ export function highlightMatch(text: string, query: string): ReactNode {
         "mark",
         {
           key: `${index}-${matched}`,
-          className: "rounded-sm bg-green-600/15 text-inherit",
+          className: "rounded-sm bg-indigo-600/15 text-inherit",
         },
         matched
       )

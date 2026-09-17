@@ -59,7 +59,7 @@ export default function ReviewGallery({
             <button
               type="button"
               aria-label="Close photo"
-              className="absolute top-4 right-4 rounded-full bg-white/90 p-2 text-black shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+              className="absolute top-4 right-4 rounded-full bg-white/90 p-2 text-black shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
               onClick={() => setActive(null)}
             >
               <X className="size-5" aria-hidden="true" />
@@ -96,7 +96,7 @@ export default function ReviewGallery({
             <button
               type="button"
               onClick={() => setActive(index)}
-              className="relative size-16 overflow-hidden rounded-lg border border-black/[0.06] bg-black/[0.02] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 sm:size-20"
+              className="relative size-16 overflow-hidden rounded-lg border border-black/[0.06] bg-black/[0.02] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 sm:size-20"
               aria-label={`Enlarge review photo ${index + 1}`}
             >
               <Image

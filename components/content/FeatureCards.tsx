@@ -36,7 +36,7 @@ export default function FeatureCards({
           className="rounded-2xl border border-black/[0.06] bg-[#fafafa] p-5 sm:p-6 dark:border-white/10 dark:bg-white/[0.03]"
         >
           <Icon
-            className="size-5 text-green-600 dark:text-green-400"
+            className="size-5 text-indigo-600 dark:text-indigo-400"
             strokeWidth={1.5}
             aria-hidden="true"
           />

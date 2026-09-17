@@ -87,7 +87,7 @@ export default function CollectionToolbar({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder={searchPlaceholder}
-            className="h-11 w-full rounded-full border border-black/10 bg-white pr-4 pl-10 text-sm text-black outline-none transition-colors placeholder:text-black/35 focus:border-black/20 focus:ring-2 focus:ring-green-600/15 sm:h-10"
+            className="h-11 w-full rounded-full border border-black/10 bg-white pr-4 pl-10 text-sm text-black outline-none transition-colors placeholder:text-black/35 focus:border-black/20 focus:ring-2 focus:ring-indigo-600/15 sm:h-10"
           />
         </label>
 
@@ -99,7 +99,7 @@ export default function CollectionToolbar({
             id="collection-sort"
             value={sort}
             onChange={(event) => onSortChange(event.target.value as SortOption)}
-            className="h-11 min-w-0 flex-1 rounded-full border border-black/10 bg-white px-3.5 text-sm font-medium text-black/75 outline-none transition-colors hover:border-black/20 focus:border-black/20 focus:ring-2 focus:ring-green-600/15 sm:h-10 sm:min-w-[12.5rem] sm:flex-none"
+            className="h-11 min-w-0 flex-1 rounded-full border border-black/10 bg-white px-3.5 text-sm font-medium text-black/75 outline-none transition-colors hover:border-black/20 focus:border-black/20 focus:ring-2 focus:ring-indigo-600/15 sm:h-10 sm:min-w-[12.5rem] sm:flex-none"
           >
             {SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>

@@ -121,7 +121,7 @@ export default function PolicyPageContent({
                 <div className="flex items-start gap-3.5">
                   <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border border-black/[0.06] bg-[#fafafa] dark:border-white/10 dark:bg-white/[0.03]">
                     <Icon
-                      className="size-4 text-green-600 dark:text-green-400"
+                      className="size-4 text-indigo-600 dark:text-indigo-400"
                       strokeWidth={1.5}
                       aria-hidden="true"
                     />

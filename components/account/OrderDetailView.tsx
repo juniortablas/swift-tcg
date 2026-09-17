@@ -59,7 +59,7 @@ export default function OrderDetailView({ order }: { order: AccountOrderDetail }
           href={order.statusPageUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-green-700 hover:text-green-800"
+          className="text-sm font-medium text-indigo-700 hover:text-indigo-800"
         >
           View order status
         </a>

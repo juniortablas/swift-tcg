@@ -194,7 +194,7 @@ export default function ReviewList({
             type="button"
             onClick={handleLoadMore}
             disabled={pending}
-            className="h-10 rounded-full border border-black/[0.1] bg-white px-5 text-sm font-semibold text-black transition hover:border-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 disabled:opacity-50"
+            className="h-10 rounded-full border border-black/[0.1] bg-white px-5 text-sm font-semibold text-black transition hover:border-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 disabled:opacity-50"
           >
             {pending ? "Loading…" : `Load more (${reviews.length} of ${total})`}
           </button>

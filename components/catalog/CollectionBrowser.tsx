@@ -207,7 +207,7 @@ function CollectionBrowserInner({
               <button
                 type="button"
                 onClick={resetAll}
-                className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 focus-visible:ring-offset-2"
+                className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-indigo-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 focus-visible:ring-offset-2"
               >
                 Reset Filters
               </button>
@@ -291,7 +291,7 @@ function CollectionBrowserInner({
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(false)}
-              className="inline-flex h-12 w-full items-center justify-center rounded-full bg-green-600 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+              className="inline-flex h-12 w-full items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
             >
               Show {filtered.length}{" "}
               {filtered.length === 1 ? "product" : "products"}

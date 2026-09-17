@@ -54,7 +54,7 @@ export default function ProductCardAddToCart({
       type="button"
       onClick={handleAddToCart}
       disabled={!purchasable || !canReserveMore}
-      className="pointer-events-auto inline-flex h-8 items-center justify-center gap-1 rounded-full bg-green-600 text-[11px] font-semibold text-white shadow-[0_8px_20px_-10px_rgba(22,163,74,0.55)] transition-transform duration-200 hover:scale-[1.02] hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-neutral-400 disabled:hover:scale-100 sm:h-10 sm:gap-1.5 sm:text-sm"
+      className="pointer-events-auto inline-flex h-8 items-center justify-center gap-1 rounded-full bg-indigo-600 text-[11px] font-semibold text-white shadow-[0_8px_20px_-10px_rgba(79,70,229,0.55)] transition-transform duration-200 hover:scale-[1.02] hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-neutral-400 disabled:hover:scale-100 sm:h-10 sm:gap-1.5 sm:text-sm"
     >
       {purchasable ? (
         <ShoppingBag className="size-3 sm:size-3.5" aria-hidden="true" />

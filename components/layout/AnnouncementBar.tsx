@@ -6,7 +6,7 @@ export default function AnnouncementBar() {
     <div
       role="region"
       aria-label="Announcement"
-      className="flex h-8 w-full items-center justify-center overflow-hidden bg-green-600 text-white sm:h-10"
+      className="flex h-8 w-full items-center justify-center overflow-hidden bg-indigo-600 text-white sm:h-10"
     >
       <p className="hidden w-full text-center text-xs md:block">{MESSAGE}</p>
 

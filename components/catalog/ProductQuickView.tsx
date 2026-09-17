@@ -261,7 +261,7 @@ export default function ProductQuickView({
                   className={cn(
                     "h-12 w-full rounded-full text-sm font-semibold transition-all duration-200",
                     purchasable && canReserveMore
-                      ? "bg-green-600 text-white shadow-[0_10px_28px_-14px_rgba(22,163,74,0.55)] hover:-translate-y-0.5 hover:bg-green-700"
+                      ? "bg-indigo-600 text-white shadow-[0_10px_28px_-14px_rgba(79,70,229,0.55)] hover:-translate-y-0.5 hover:bg-indigo-700"
                       : "bg-neutral-100 text-black/45"
                   )}
                 >

@@ -64,13 +64,13 @@ export default function FooterNewsletter() {
         disabled={pending}
         aria-invalid={feedback ? true : undefined}
         aria-describedby={feedback ? errorId : undefined}
-        className="h-10 w-full rounded-full border border-black/10 bg-white px-4 text-sm text-black outline-none placeholder:text-black/35 focus:border-green-600/40 focus:ring-2 focus:ring-green-600/20 disabled:opacity-60 dark:border-white/15 dark:bg-white/5 dark:text-white dark:placeholder:text-white/35"
+        className="h-10 w-full rounded-full border border-black/10 bg-white px-4 text-sm text-black outline-none placeholder:text-black/35 focus:border-indigo-600/40 focus:ring-2 focus:ring-indigo-600/20 disabled:opacity-60 dark:border-white/15 dark:bg-white/5 dark:text-white dark:placeholder:text-white/35"
       />
       <Button
         type="submit"
         disabled={pending}
         aria-busy={pending}
-        className="h-10 w-full rounded-full bg-green-600 text-sm font-semibold text-white hover:bg-green-700"
+        className="h-10 w-full rounded-full bg-indigo-600 text-sm font-semibold text-white hover:bg-indigo-700"
       >
         Subscribe
       </Button>

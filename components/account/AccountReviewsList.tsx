@@ -127,7 +127,7 @@ function PendingEditForm({
           value={title}
           maxLength={REVIEW_TITLE_MAX}
           onChange={(event) => setTitle(event.target.value)}
-          className="h-10 w-full rounded-lg border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+          className="h-10 w-full rounded-lg border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
         />
       </label>
       <label className="block">
@@ -137,7 +137,7 @@ function PendingEditForm({
           maxLength={REVIEW_BODY_MAX}
           rows={4}
           onChange={(event) => setBody(event.target.value)}
-          className="w-full rounded-lg border border-black/[0.1] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+          className="w-full rounded-lg border border-black/[0.1] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
         />
       </label>
       <label className="block">
@@ -146,7 +146,7 @@ function PendingEditForm({
           value={nickname}
           maxLength={REVIEW_NICKNAME_MAX}
           onChange={(event) => setNickname(event.target.value)}
-          className="h-10 w-full rounded-lg border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+          className="h-10 w-full rounded-lg border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
         />
       </label>
       {error ? (
@@ -158,7 +158,7 @@ function PendingEditForm({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-9 items-center rounded-full bg-green-600 px-4 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+          className="inline-flex h-9 items-center rounded-full bg-indigo-600 px-4 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Save changes"}
         </button>

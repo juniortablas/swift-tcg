@@ -34,7 +34,7 @@ function stockLabel(product: Product): { label: string; className: string } {
   if (product.status === "instock" || product.status === "preorder") {
     return {
       label: product.status === "preorder" ? "Preorder" : "In stock",
-      className: "bg-green-600/10 text-green-700",
+      className: "bg-indigo-600/10 text-indigo-700",
     }
   }
   if (product.status === "weekly_restock") {

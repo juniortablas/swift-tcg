@@ -73,7 +73,7 @@ export default function ReviewStars({
               name={name}
               onClick={() => onChange?.(value)}
               className={cn(
-                "rounded-sm p-0.5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40",
+                "rounded-sm p-0.5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40",
                 filled ? "text-[#0EA54B]" : "text-black/15 hover:text-[#0EA54B]/70"
               )}
             >

@@ -36,11 +36,11 @@ Tight neutral system with a single brand accent. Avoid purple gradients, cream/t
 | `neutral.800` | `#262626` | Near-primary text on light |
 | `neutral.900` | `#171717` | Primary text |
 | `neutral.950` | `#0A0A0A` | Highest-contrast ink / primary buttons |
-| `brand.50` | `#F0FDF4` | Soft brand wash |
-| `brand.100` | `#DCFCE7` | Brand tint backgrounds |
-| `brand.500` | `#22C55E` | Brand highlight (icons, focus accents) |
-| `brand.600` | `#16A34A` | Primary CTA, links, key accents |
-| `brand.700` | `#15803D` | CTA hover / pressed |
+| `brand.50` | `#EEF2FF` | Soft brand wash |
+| `brand.100` | `#E0E7FF` | Brand tint backgrounds |
+| `brand.500` | `#6366F1` | Brand highlight (icons, focus accents) |
+| `brand.600` | `#4F46E5` | Primary CTA, links, key accents |
+| `brand.700` | `#4338CA` | CTA hover / pressed |
 | `semantic.success` | `#16A34A` | Positive states |
 | `semantic.warning` | `#D97706` | Caution, low stock |
 | `semantic.error` | `#DC2626` | Errors, destructive actions |
@@ -103,7 +103,7 @@ Single-layer, low-contrast elevation. Prefer border + light shadow over multi-la
 | `sm` | `0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)` | Cards at rest |
 | `md` | `0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)` | Hover / focused cards |
 | `lg` | `0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04)` | Modals, popovers |
-| `focus` | `0 0 0 3px rgba(22, 163, 74, 0.25)` | Focus rings (brand-tinted) |
+| `focus` | `0 0 0 3px rgba(79, 70, 229, 0.25)` | Focus rings (brand-tinted) |
 
 ---
 

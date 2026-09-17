@@ -37,15 +37,15 @@ export const NEUTRAL = {
 } as const satisfies Record<string, HexColor>
 
 /**
- * Brand green — primary CTAs, links, and quiet accents.
+ * Brand indigo — primary CTAs, links, and quiet accents.
  * Matches the storefront accent used for authenticity / Japan-import signals.
  */
 export const BRAND = {
-  50: "#F0FDF4",
-  100: "#DCFCE7",
-  500: "#22C55E",
-  600: "#16A34A",
-  700: "#15803D",
+  50: "#EEF2FF",
+  100: "#E0E7FF",
+  500: "#6366F1",
+  600: "#4F46E5",
+  700: "#4338CA",
 } as const satisfies Record<string, HexColor>
 
 /** Semantic feedback colors — use sparingly; never as decoration. */
@@ -149,7 +149,7 @@ export const SHADOWS = {
   md: "0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)",
   lg: "0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04)",
   /** Brand-tinted focus ring for interactive elements. */
-  focus: "0 0 0 3px rgba(22, 163, 74, 0.25)",
+  focus: "0 0 0 3px rgba(79, 70, 229, 0.25)",
 } as const satisfies Record<string, string>
 
 export type Shadows = typeof SHADOWS

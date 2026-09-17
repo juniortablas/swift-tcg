@@ -48,7 +48,7 @@ export default function ErrorRecovery({
           <Button
             type="button"
             onClick={onRetry}
-            className="h-11 rounded-full bg-green-600 px-6 text-sm font-semibold text-white hover:bg-green-700"
+            className="h-11 rounded-full bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-700"
           >
             Try again
           </Button>

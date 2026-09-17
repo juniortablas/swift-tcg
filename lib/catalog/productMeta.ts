@@ -350,13 +350,13 @@ export type AvailabilityBadgeSurface = "card" | "pdp"
 
 const WEEKLY_RESTOCK_BADGE: AvailabilityBadge = {
   label: WEEKLY_RESTOCK_BADGE_LABEL,
-  className: "bg-green-600/10 text-green-800",
+  className: "bg-indigo-600/10 text-indigo-800",
 }
 
 const CARD_STATUS_BADGES: Partial<Record<ProductStatus, AvailabilityBadge>> = {
   instock: {
     label: "In Stock",
-    className: "bg-green-600 text-white",
+    className: "bg-indigo-600 text-white",
   },
   preorder: {
     label: "Preorder",
@@ -372,7 +372,7 @@ const CARD_STATUS_BADGES: Partial<Record<ProductStatus, AvailabilityBadge>> = {
 const PDP_STATUS_BADGES: Partial<Record<ProductStatus, AvailabilityBadge>> = {
   instock: {
     label: "In Stock",
-    className: "bg-green-600 text-white",
+    className: "bg-indigo-600 text-white",
   },
   preorder: {
     label: "Preorder",

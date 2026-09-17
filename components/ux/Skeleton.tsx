@@ -16,7 +16,7 @@ export function Skeleton({ className, tone = "neutral" }: SkeletonProps) {
       aria-hidden
       className={cn(
         "relative inline-block overflow-hidden rounded-md",
-        tone === "brand" ? "bg-green-600/[0.08]" : "bg-black/[0.06]",
+        tone === "brand" ? "bg-indigo-600/[0.08]" : "bg-black/[0.06]",
         "after:absolute after:inset-0 after:-translate-x-full after:animate-skeleton-shimmer",
         "after:bg-gradient-to-r after:from-transparent after:via-white/55 after:to-transparent",
         className

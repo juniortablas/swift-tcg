@@ -68,7 +68,7 @@ export default function WishlistGrid({ products }: WishlistGridProps) {
                 className={cn(
                   "inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors",
                   purchasable
-                    ? "bg-green-600 text-white hover:bg-green-700"
+                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
                     : "cursor-not-allowed bg-neutral-100 text-black/40"
                 )}
               >

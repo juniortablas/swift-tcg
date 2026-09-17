@@ -26,7 +26,7 @@ export default function AccountShell({
       />
       <div className="relative mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 xl:px-10">
         <header className="max-w-2xl">
-          <p className="text-xs font-semibold tracking-[0.16em] text-green-700 uppercase">
+          <p className="text-xs font-semibold tracking-[0.16em] text-indigo-700 uppercase">
             Swift TCG Account
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-black sm:text-4xl">

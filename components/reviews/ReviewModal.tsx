@@ -169,7 +169,7 @@ function ReviewModalForm({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full p-1.5 text-black/50 transition hover:bg-black/[0.04] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+            className="rounded-full p-1.5 text-black/50 transition hover:bg-black/[0.04] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
           >
             <X className="size-5" aria-hidden="true" />
           </button>
@@ -186,7 +186,7 @@ function ReviewModalForm({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-10 items-center justify-center rounded-full bg-green-600 px-5 text-sm font-semibold text-white hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+              className="inline-flex h-10 items-center justify-center rounded-full bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
             >
               Done
             </button>
@@ -225,7 +225,7 @@ function ReviewModalForm({
                   value={title}
                   maxLength={REVIEW_TITLE_MAX}
                   onChange={(event) => setTitle(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+                  className="h-11 w-full rounded-xl border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
                   placeholder="Sum up your experience"
                 />
               </label>
@@ -240,7 +240,7 @@ function ReviewModalForm({
                   onChange={(event) => setBody(event.target.value)}
                   rows={5}
                   required
-                  className="w-full resize-y rounded-xl border border-black/[0.1] px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+                  className="w-full resize-y rounded-xl border border-black/[0.1] px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
                   placeholder="What stood out about quality, packaging, or authenticity?"
                 />
                 <span className="mt-1 block text-xs text-black/40">
@@ -258,7 +258,7 @@ function ReviewModalForm({
                   value={nickname}
                   maxLength={REVIEW_NICKNAME_MAX}
                   onChange={(event) => setNickname(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+                  className="h-11 w-full rounded-xl border border-black/[0.1] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
                   placeholder="How your name appears"
                 />
               </label>
@@ -301,7 +301,7 @@ function ReviewModalForm({
               <button
                 type="submit"
                 disabled={pending || uploading}
-                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-green-600 text-sm font-semibold text-white transition hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 disabled:opacity-50"
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 disabled:opacity-50"
               >
                 {pending ? "Submitting…" : "Submit"}
               </button>

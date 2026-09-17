@@ -36,19 +36,19 @@ export default async function AccountDashboardPage() {
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
             <Link
               href="/account/wishlist"
-              className="font-medium text-green-700 hover:text-green-800"
+              className="font-medium text-indigo-700 hover:text-indigo-800"
             >
               Wishlist
             </Link>
             <Link
               href="/account/profile"
-              className="font-medium text-green-700 hover:text-green-800"
+              className="font-medium text-indigo-700 hover:text-indigo-800"
             >
               Edit profile
             </Link>
             <Link
               href="/account/addresses"
-              className="font-medium text-green-700 hover:text-green-800"
+              className="font-medium text-indigo-700 hover:text-indigo-800"
             >
               Manage addresses
             </Link>
@@ -60,7 +60,7 @@ export default async function AccountDashboardPage() {
             <h2 className="text-sm font-medium text-black">Recent orders</h2>
             <Link
               href="/account/orders"
-              className="text-sm font-medium text-green-700 hover:text-green-800"
+              className="text-sm font-medium text-indigo-700 hover:text-indigo-800"
             >
               View all
             </Link>

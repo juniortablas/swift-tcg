@@ -63,7 +63,7 @@ export default function Navbar({
               >
                 {link.label}
                 {"badge" in link && link.badge ? (
-                  <span className="rounded-full bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
+                  <span className="rounded-full bg-indigo-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
                     {link.badge}
                   </span>
                 ) : null}
@@ -133,7 +133,7 @@ export default function Navbar({
               >
                 {link.label}
                 {"badge" in link && link.badge ? (
-                  <span className="rounded-full bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
+                  <span className="rounded-full bg-indigo-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
                     {link.badge}
                   </span>
                 ) : null}
