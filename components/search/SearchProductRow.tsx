@@ -77,7 +77,7 @@ export default function SearchProductRow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             {badge ? (
-              <span className="rounded-full bg-green-600/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-green-800 uppercase">
+              <span className="rounded-full bg-indigo-600/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-indigo-800 uppercase">
                 {badge}
               </span>
             ) : null}

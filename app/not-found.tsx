@@ -36,7 +36,7 @@ export default async function NotFound() {
             <div className="mt-8">
               <EscapedCardIllustration className="h-36 sm:h-44" />
             </div>
-            <p className="mt-6 text-xs font-semibold tracking-[0.22em] text-green-700 uppercase">
+            <p className="mt-6 text-xs font-semibold tracking-[0.22em] text-indigo-700 uppercase">
               404
             </p>
             <h1 className="mt-3 text-balance text-3xl font-semibold tracking-tight text-black sm:text-4xl">
@@ -55,7 +55,7 @@ export default async function NotFound() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-black/[0.1] bg-white px-5 text-sm font-semibold text-black/80 transition-colors hover:border-green-600/30 hover:bg-green-50 hover:text-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 focus-visible:ring-offset-2"
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-black/[0.1] bg-white px-5 text-sm font-semibold text-black/80 transition-colors hover:border-indigo-600/30 hover:bg-indigo-50 hover:text-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 focus-visible:ring-offset-2"
                 >
                   {link.label}
                 </Link>
@@ -73,7 +73,7 @@ export default async function NotFound() {
                 </h2>
                 <Link
                   href="/new-releases"
-                  className="text-sm font-medium text-green-700 hover:text-green-800"
+                  className="text-sm font-medium text-indigo-700 hover:text-indigo-800"
                 >
                   View all arrivals
                 </Link>

@@ -123,7 +123,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={item.label}
-                      className="flex size-9 items-center justify-center rounded-full border border-black/8 text-black/45 transition-all duration-200 hover:-translate-y-0.5 hover:border-green-600/25 hover:bg-green-600/5 hover:text-green-700 dark:border-white/10 dark:text-white/45 dark:hover:border-green-500/30 dark:hover:bg-green-500/10 dark:hover:text-green-400"
+                      className="flex size-9 items-center justify-center rounded-full border border-black/8 text-black/45 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-600/25 hover:bg-indigo-600/5 hover:text-indigo-700 dark:border-white/10 dark:text-white/45 dark:hover:border-indigo-500/30 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
                     >
                       <SocialIcon platform={item.platform} />
                     </a>

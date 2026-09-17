@@ -66,14 +66,14 @@ export default function MaintenanceNewsletter() {
               disabled={pending}
               aria-invalid={feedback ? true : undefined}
               aria-describedby={feedback ? errorId : undefined}
-              className="h-12 w-full rounded-xl border border-black/10 bg-white py-0 pr-4 pl-11 text-sm text-black outline-none placeholder:text-black/35 focus:border-green-600/40 focus:ring-2 focus:ring-green-600/20 disabled:opacity-60"
+              className="h-12 w-full rounded-xl border border-black/10 bg-white py-0 pr-4 pl-11 text-sm text-black outline-none placeholder:text-black/35 focus:border-indigo-600/40 focus:ring-2 focus:ring-indigo-600/20 disabled:opacity-60"
             />
           </div>
           <Button
             type="submit"
             disabled={pending}
             aria-busy={pending}
-            className="h-12 shrink-0 rounded-xl bg-green-600 px-6 text-sm font-semibold text-white hover:bg-green-700"
+            className="h-12 shrink-0 rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-700"
           >
             {pending ? "Joining…" : "Notify me"}
           </Button>

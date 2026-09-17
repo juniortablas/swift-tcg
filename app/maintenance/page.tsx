@@ -57,7 +57,7 @@ export default function MaintenancePage() {
             <BrandLogo height={64} priority />
           </div>
 
-          <p className="mt-10 animate-maintenance-enter text-[0.7rem] font-semibold tracking-[0.28em] text-green-600 uppercase [animation-delay:80ms] sm:text-xs">
+          <p className="mt-10 animate-maintenance-enter text-[0.7rem] font-semibold tracking-[0.28em] text-indigo-600 uppercase [animation-delay:80ms] sm:text-xs">
             Temporarily closed
           </p>
 
@@ -91,7 +91,7 @@ export default function MaintenancePage() {
                 href={socialLinks[0].href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-green-600 px-6 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(22,163,74,0.55)] transition-[transform,background-color] duration-200 hover:scale-[1.02] hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 focus-visible:ring-offset-2"
+                className="inline-flex h-12 items-center justify-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgba(79,70,229,0.55)] transition-[transform,background-color] duration-200 hover:scale-[1.02] hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 focus-visible:ring-offset-2"
               >
                 Follow on {socialLinks[0].label}
               </a>
@@ -116,7 +116,7 @@ export default function MaintenancePage() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-black/50 underline-offset-2 transition-colors hover:text-green-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+                  className="text-sm font-medium text-black/50 underline-offset-2 transition-colors hover:text-indigo-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
                 >
                   {link.label}
                 </a>

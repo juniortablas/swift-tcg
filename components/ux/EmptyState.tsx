@@ -56,9 +56,9 @@ export default function EmptyState({
                 key={`${action.href}:${action.label}`}
                 href={action.href}
                 className={cn(
-                  "inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 focus-visible:ring-offset-2",
+                  "inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 focus-visible:ring-offset-2",
                   primary
-                    ? "bg-green-600 text-white hover:bg-green-700"
+                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
                     : "border border-black/[0.1] bg-white text-black/80 hover:bg-black/[0.03]"
                 )}
               >

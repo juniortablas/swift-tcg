@@ -49,7 +49,7 @@ export default function MixedCartDialog({
           <Button
             type="button"
             size="lg"
-            className="h-11 w-full rounded-xl bg-green-600 text-[14px] font-semibold text-white hover:bg-green-600/90 sm:flex-1"
+            className="h-11 w-full rounded-xl bg-indigo-600 text-[14px] font-semibold text-white hover:bg-indigo-600/90 sm:flex-1"
             onClick={onClearAndAdd}
           >
             Clear cart and add item

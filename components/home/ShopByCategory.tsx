@@ -31,7 +31,7 @@ export default function ShopByCategory({
           </h2>
           <Link
             href="/pokemon"
-            className="hidden text-sm font-medium text-green-600 transition-colors hover:text-green-700 sm:inline-flex sm:items-center sm:gap-1"
+            className="hidden text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700 sm:inline-flex sm:items-center sm:gap-1"
           >
             View all categories
             <span aria-hidden="true">→</span>
