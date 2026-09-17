@@ -35,14 +35,14 @@ export default function ProductCarousel({
           <div className="flex items-end justify-between gap-3 sm:gap-4">
             <h2 className="flex items-center gap-1.5 text-[1.1rem] font-semibold tracking-tight text-black sm:gap-2.5 sm:text-[1.65rem]">
               <Icon
-                className="size-4 text-green-600 sm:size-6"
+                className="size-4 text-indigo-600 sm:size-6"
                 aria-hidden="true"
               />
               {title}
             </h2>
             <Link
               href={href}
-              className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-green-600 transition-colors hover:text-green-700 sm:text-sm"
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-600 transition-colors hover:text-indigo-700 sm:text-sm"
             >
               {linkLabel}
               <ArrowRight className="size-3.5 sm:size-4" aria-hidden="true" />

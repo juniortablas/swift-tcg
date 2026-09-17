@@ -33,7 +33,7 @@ function HeadingLines({ heading }: { heading: string }) {
         <span key={`${index}-${line}`}>
           {index > 0 ? <br /> : null}
           {index === lines.length - 1 && lines.length > 1 ? (
-            <span className="text-green-600">{line}</span>
+            <span className="text-indigo-600">{line}</span>
           ) : (
             line
           )}
@@ -189,10 +189,10 @@ export default function Hero({ slides }: HeroProps) {
               aria-hidden={i !== index}
             >
               <span className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.14em] text-black/50 uppercase sm:text-[11px]">
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 shrink-0 rounded-full bg-green-600"
-                />
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-full bg-indigo-600"
+              />
                 {slide.eyebrow}
               </span>
 
@@ -209,7 +209,7 @@ export default function Hero({ slides }: HeroProps) {
                   nativeButton={false}
                   render={<Link href={slide.primary.href} />}
                   size="lg"
-                  className="relative z-20 h-11 w-full gap-2 rounded-full bg-green-600 px-5 text-sm font-semibold text-white shadow-[0_10px_28px_-12px_rgba(22,163,74,0.5)] transition-transform duration-200 hover:scale-[1.02] hover:bg-green-600/90 min-[380px]:w-auto sm:h-9 sm:px-5 sm:text-[13px] lg:h-10 lg:px-6 lg:text-sm"
+                  className="relative z-20 h-11 w-full gap-2 rounded-full bg-indigo-600 px-5 text-sm font-semibold text-white shadow-[0_10px_28px_-12px_rgba(79,70,229,0.5)] transition-transform duration-200 hover:scale-[1.02] hover:bg-indigo-600/90 min-[380px]:w-auto sm:h-9 sm:px-5 sm:text-[13px] lg:h-10 lg:px-6 lg:text-sm"
                 >
                   {slide.primary.label}
                   <ArrowRight className="size-4" data-icon="inline-end" />
@@ -247,7 +247,7 @@ export default function Hero({ slides }: HeroProps) {
             >
               <span
                 key={`${index}-${paused}`}
-                className="absolute inset-y-0 left-0 rounded-full bg-green-600"
+                className="absolute inset-y-0 left-0 rounded-full bg-indigo-600"
                 style={
                   paused
                     ? { width: "100%", opacity: 0.45 }

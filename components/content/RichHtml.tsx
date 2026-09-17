@@ -15,8 +15,8 @@ export default function RichHtml({ html, className }: RichHtmlProps) {
     <div
       className={cn(
         "content-prose text-[15px] leading-relaxed text-black/65 dark:text-white/65",
-        "[&_a]:font-medium [&_a]:text-green-700 [&_a]:underline-offset-2 hover:[&_a]:underline dark:[&_a]:text-green-400",
-        "[&_blockquote]:my-4 [&_blockquote]:rounded-2xl [&_blockquote]:border [&_blockquote]:border-green-600/20 [&_blockquote]:bg-[#f3faf5] [&_blockquote]:px-4 [&_blockquote]:py-3.5 [&_blockquote]:text-sm [&_blockquote]:leading-relaxed [&_blockquote]:text-black/70 dark:[&_blockquote]:border-green-500/25 dark:[&_blockquote]:bg-green-500/[0.06] dark:[&_blockquote]:text-white/70",
+        "[&_a]:font-medium [&_a]:text-indigo-700 [&_a]:underline-offset-2 hover:[&_a]:underline dark:[&_a]:text-indigo-400",
+        "[&_blockquote]:my-4 [&_blockquote]:rounded-2xl [&_blockquote]:border [&_blockquote]:border-indigo-600/20 [&_blockquote]:bg-[#eef2ff] [&_blockquote]:px-4 [&_blockquote]:py-3.5 [&_blockquote]:text-sm [&_blockquote]:leading-relaxed [&_blockquote]:text-black/70 dark:[&_blockquote]:border-indigo-500/25 dark:[&_blockquote]:bg-indigo-500/[0.06] dark:[&_blockquote]:text-white/70",
         "[&_blockquote_p]:my-0",
         "[&_blockquote_strong]:text-black/85 dark:[&_blockquote_strong]:text-white/85",
         "[&_code]:rounded [&_code]:bg-black/[0.04] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.9em] dark:[&_code]:bg-white/10",

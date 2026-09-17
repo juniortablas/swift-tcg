@@ -58,7 +58,7 @@ function SocialList({ links }: { links: SocialLink[] }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={link.label}
-            className="flex size-10 items-center justify-center rounded-full border border-black/8 text-black/50 transition-all duration-200 hover:-translate-y-0.5 hover:border-green-600/25 hover:bg-green-600/5 hover:text-green-700 dark:border-white/10 dark:text-white/50 dark:hover:border-green-500/30 dark:hover:bg-green-500/10 dark:hover:text-green-400"
+            className="flex size-10 items-center justify-center rounded-full border border-black/8 text-black/50 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-600/25 hover:bg-indigo-600/5 hover:text-indigo-700 dark:border-white/10 dark:text-white/50 dark:hover:border-indigo-500/30 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
           >
             <SocialIcon platform={link.platform} />
           </a>
@@ -91,7 +91,7 @@ export default function ContactDetailsPanel({
         {email ? (
           <div className="flex gap-3">
             <Mail
-              className="mt-0.5 size-4 shrink-0 text-green-600 dark:text-green-400"
+              className="mt-0.5 size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
               strokeWidth={1.5}
               aria-hidden="true"
             />
@@ -102,7 +102,7 @@ export default function ContactDetailsPanel({
               <dd className="mt-1">
                 <a
                   href={`mailto:${email}`}
-                  className="text-sm font-medium text-green-700 transition-colors hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                  className="text-sm font-medium text-indigo-700 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
                 >
                   {email}
                 </a>
@@ -113,7 +113,7 @@ export default function ContactDetailsPanel({
 
         <div className="flex gap-3">
           <Clock
-            className="mt-0.5 size-4 shrink-0 text-green-600 dark:text-green-400"
+            className="mt-0.5 size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
             strokeWidth={1.5}
             aria-hidden="true"
           />
@@ -129,7 +129,7 @@ export default function ContactDetailsPanel({
 
         <div className="flex gap-3">
           <Clock
-            className="mt-0.5 size-4 shrink-0 text-green-600 dark:text-green-400"
+            className="mt-0.5 size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
             strokeWidth={1.5}
             aria-hidden="true"
           />
@@ -175,7 +175,7 @@ export function ContactPageContent({ title, contact }: ContactPageProps) {
           {email ? (
             <a
               href={`mailto:${email}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-green-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-indigo-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
             >
               Email support
             </a>
@@ -206,7 +206,7 @@ export function ContactPageContent({ title, contact }: ContactPageProps) {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="font-medium text-green-700 underline-offset-2 hover:underline dark:text-green-400"
+                  className="font-medium text-indigo-700 underline-offset-2 hover:underline dark:text-indigo-400"
                 >
                   {link.label}
                 </Link>

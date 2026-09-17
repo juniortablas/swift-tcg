@@ -84,7 +84,7 @@ export default function FaqPageContent({
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search FAQ…"
             autoComplete="off"
-            className="h-11 w-full rounded-full border border-black/[0.08] bg-[#fafafa] pr-4 pl-10 text-sm text-black outline-none transition-[border-color,box-shadow] placeholder:text-black/35 focus:border-green-600/35 focus:ring-2 focus:ring-green-600/15 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:placeholder:text-white/35 dark:focus:border-green-500/40 dark:focus:ring-green-500/20"
+            className="h-11 w-full rounded-full border border-black/[0.08] bg-[#fafafa] pr-4 pl-10 text-sm text-black outline-none transition-[border-color,box-shadow] placeholder:text-black/35 focus:border-indigo-600/35 focus:ring-2 focus:ring-indigo-600/15 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:placeholder:text-white/35 dark:focus:border-indigo-500/40 dark:focus:ring-indigo-500/20"
           />
         </div>
       </ContentPageHeader>
@@ -160,7 +160,7 @@ function FaqContactCta() {
         <p className="mt-1">
           <Link
             href={CONTENT_PAGE_PATHS.contact}
-            className="font-medium text-green-700 underline-offset-2 hover:underline dark:text-green-400"
+            className="font-medium text-indigo-700 underline-offset-2 hover:underline dark:text-indigo-400"
           >
             Contact us.
           </Link>

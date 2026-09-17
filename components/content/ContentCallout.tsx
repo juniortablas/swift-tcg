@@ -14,7 +14,7 @@ type ContentCalloutProps = {
 const VARIANT_STYLES = {
   note: "border-black/[0.06] bg-[#fafafa] dark:border-white/10 dark:bg-white/[0.03]",
   important:
-    "border-green-600/20 bg-[#f3faf5] dark:border-green-500/25 dark:bg-green-500/[0.06]",
+    "border-indigo-600/20 bg-[#eef2ff] dark:border-indigo-500/25 dark:bg-indigo-500/[0.06]",
   info: "border-black/[0.06] bg-white dark:border-white/10 dark:bg-white/[0.02]",
 } as const
 
@@ -39,7 +39,7 @@ export default function ContentCallout({
       <div className="flex gap-3">
         {Icon ? (
           <Icon
-            className="mt-0.5 size-4 shrink-0 text-green-600 dark:text-green-400"
+            className="mt-0.5 size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
             strokeWidth={1.5}
             aria-hidden="true"
           />

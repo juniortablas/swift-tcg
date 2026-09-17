@@ -100,7 +100,7 @@ export default function ProductCard({
       >
         <Link
           href={href}
-          className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 focus-visible:ring-offset-2"
+          className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 focus-visible:ring-offset-2"
         >
           <div
             className={cn(
@@ -133,7 +133,7 @@ export default function ProductCard({
                   {availability.label}
                 </span>
                 {showRemainingLeft ? (
-                  <span className="rounded-full bg-white/95 px-1.5 py-0.5 text-[8px] font-semibold tracking-[0.04em] text-green-800 uppercase ring-1 ring-green-600/15 sm:px-2 sm:py-1 sm:text-[10px]">
+                  <span className="rounded-full bg-white/95 px-1.5 py-0.5 text-[8px] font-semibold tracking-[0.04em] text-indigo-800 uppercase ring-1 ring-indigo-600/15 sm:px-2 sm:py-1 sm:text-[10px]">
                     {weeklyRestockLeftLabel(remaining)}
                   </span>
                 ) : null}

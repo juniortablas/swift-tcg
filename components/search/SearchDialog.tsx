@@ -615,8 +615,8 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                       className={cn(
                         "inline-flex h-10 items-center rounded-full border border-black/[0.08] px-3.5 text-xs font-semibold text-black/70 transition-colors",
                         active
-                          ? "border-green-600/30 bg-green-50 text-green-800"
-                          : "hover:border-green-600/30 hover:bg-green-50 hover:text-green-800"
+                          ? "border-indigo-600/30 bg-indigo-50 text-indigo-800"
+                          : "hover:border-indigo-600/30 hover:bg-indigo-50 hover:text-indigo-800"
                       )}
                     >
                       {category.label}
@@ -657,7 +657,7 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
               <button
                 type="button"
                 onClick={() => setRetryToken((token) => token + 1)}
-                className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-green-600 px-5 text-sm font-semibold text-white hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+                className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
               >
                 Try again
               </button>
@@ -677,7 +677,7 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                       onClick={() =>
                         applySuggestion(suggestion.text, "suggestion")
                       }
-                      className="inline-flex h-9 items-center rounded-full border border-black/[0.08] px-3 text-xs font-semibold text-black/70 hover:border-green-600/30 hover:bg-green-50 hover:text-green-800"
+                      className="inline-flex h-9 items-center rounded-full border border-black/[0.08] px-3 text-xs font-semibold text-black/70 hover:border-indigo-600/30 hover:bg-indigo-50 hover:text-indigo-800"
                     >
                       {suggestion.text}
                     </button>
@@ -690,7 +690,7 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                     key={category.href}
                     href={category.href}
                     onClick={close}
-                    className="inline-flex h-10 items-center rounded-full border border-black/[0.08] px-3.5 text-xs font-semibold text-black/70 hover:border-green-600/30 hover:bg-green-50 hover:text-green-800"
+                    className="inline-flex h-10 items-center rounded-full border border-black/[0.08] px-3.5 text-xs font-semibold text-black/70 hover:border-indigo-600/30 hover:bg-indigo-50 hover:text-indigo-800"
                   >
                     {category.label}
                   </Link>
@@ -705,7 +705,7 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                     `/search?q=${encodeURIComponent(trimmed)}`
                   )
                 }}
-                className="mt-5 inline-flex text-sm font-medium text-green-700 hover:text-green-800"
+                className="mt-5 inline-flex text-sm font-medium text-indigo-700 hover:text-indigo-800"
               >
                 Open full search results
               </Link>
@@ -912,8 +912,8 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                       className={cn(
                         "inline-flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold transition-colors",
                         active
-                          ? "bg-green-600 text-white"
-                          : "bg-green-600/10 text-green-800 hover:bg-green-600/15"
+                          ? "bg-indigo-600 text-white"
+                          : "bg-indigo-600/10 text-indigo-800 hover:bg-indigo-600/15"
                       )}
                     >
                       View all results for “{trimmed}”

@@ -87,7 +87,7 @@ function CheckboxRow({
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="size-4 rounded border-black/20 text-green-600 accent-green-600"
+        className="size-4 rounded border-black/20 text-indigo-600 accent-indigo-600"
       />
       <span className="text-sm text-black/70">{label}</span>
     </label>
@@ -120,7 +120,7 @@ export default function CollectionFilters({
             <button
               type="button"
               onClick={onReset}
-              className="text-xs font-medium text-green-600 transition-colors hover:text-green-700"
+              className="text-xs font-medium text-indigo-600 transition-colors hover:text-indigo-700"
             >
               Reset Filters
             </button>
@@ -135,7 +135,7 @@ export default function CollectionFilters({
             <button
               type="button"
               onClick={onReset}
-              className="text-xs font-medium text-green-600 transition-colors hover:text-green-700"
+              className="text-xs font-medium text-indigo-600 transition-colors hover:text-indigo-700"
             >
               Reset Filters
             </button>
@@ -248,7 +248,7 @@ export default function CollectionFilters({
                   priceMax: filters.priceMax,
                 })
               }}
-              className="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-1.5 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-green-600 [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-green-600"
+              className="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-1.5 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-indigo-600"
             />
             <label htmlFor={maxId} className="sr-only">
               Maximum price
@@ -270,7 +270,7 @@ export default function CollectionFilters({
                     clamped >= priceBounds.max ? null : clamped,
                 })
               }}
-              className="pointer-events-none absolute inset-x-0 top-1/2 z-20 h-1.5 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-green-600 [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-green-600"
+              className="pointer-events-none absolute inset-x-0 top-1/2 z-20 h-1.5 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-indigo-600"
             />
             <div
               aria-hidden="true"
@@ -278,7 +278,7 @@ export default function CollectionFilters({
             />
             <div
               aria-hidden="true"
-              className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-green-600/70"
+              className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-indigo-600/70"
               style={{
                 left: `${((currentMin - priceBounds.min) / Math.max(priceBounds.max - priceBounds.min, 1)) * 100}%`,
                 right: `${100 - ((currentMax - priceBounds.min) / Math.max(priceBounds.max - priceBounds.min, 1)) * 100}%`,
