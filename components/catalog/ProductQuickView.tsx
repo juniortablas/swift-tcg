@@ -31,11 +31,7 @@ type ProductQuickViewProps = {
   className?: string
 }
 
-const TRUST = [
-  "Ships from California",
-  "Factory Sealed",
-  "Imported Weekly",
-] as const
+// Removed hardcoded marketing trust badges in favor of product-specific highlights
 
 function productHref(product: Product): string {
   if (product.url) return product.url
@@ -72,7 +68,7 @@ export default function ProductQuickView({
   const remaining = product.weeklyRestockRemaining ?? 0
   const canReserveMore = weeklyRestockAddableQuantity(product, items) > 0
   const href = productHref(product)
-  const { shortDescription } = getProductDescription(product)
+  const { shortDescription, highlights } = getProductDescription(product)
   const isPreorder = product.status === "preorder" && product.price != null
 
   useEffect(() => {
@@ -230,21 +226,23 @@ export default function ProductQuickView({
                 {shortDescription}
               </p>
 
-              <ul className="mt-4 space-y-2">
-                {TRUST.map((point) => (
-                  <li
-                    key={point}
-                    className="flex items-center gap-2 text-[13px] text-black/60"
-                  >
-                    <Check
-                      className="size-3.5 shrink-0 text-green-600"
-                      strokeWidth={2.5}
-                      aria-hidden="true"
-                    />
-                    {point}
-                  </li>
-                ))}
-              </ul>
+              {highlights.length > 0 ? (
+                <ul className="mt-4 space-y-2">
+                  {highlights.map((point) => (
+                    <li
+                      key={point}
+                      className="flex items-center gap-2 text-[13px] text-black/60"
+                    >
+                      <Check
+                        className="size-3.5 shrink-0 text-green-600"
+                        strokeWidth={2.5}
+                        aria-hidden="true"
+                      />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
 
               <div className="mt-auto flex flex-col gap-2.5 pt-6">
                 {isWeeklyRestock && !canReserveMore ? (

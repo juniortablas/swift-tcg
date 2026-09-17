@@ -27,25 +27,62 @@ function resolveProductType(product: ProductLike): string {
 }
 
 /**
- * Build storefront copy from fields already present on the product.
- * Does not invent product-specific facts beyond shared brand statements.
+ * Strip HTML tags from a description to get plain text.
+ */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+/**
+ * Build product description preferring real Shopify content.
+ * Falls back to neutral product-only copy without company marketing.
  */
 export function getProductDescription(product: ProductLike): ProductDescription {
   const productType = resolveProductType(product)
 
-  const shortDescription = `${product.title} is an authentic Japanese ${productType}, factory sealed and imported from Japan.`
+  // Prefer Shopify description (plain text or stripped HTML)
+  let descriptionText = ""
+  if (product.description?.trim()) {
+    descriptionText = product.description.trim()
+  } else if (product.descriptionHtml?.trim()) {
+    descriptionText = stripHtml(product.descriptionHtml)
+  }
 
-  const paragraphs = [
-    `${product.title} is an authentic Japanese ${productType} imported directly from Japan. Every unit is factory sealed and sourced from trusted Japanese distributors for collectors who want the real thing.`,
-    `Swift TCG specializes in current Japanese Pokémon and One Piece sealed product. We import weekly, inspect each shipment, and ship carefully from California so your order arrives ready for your collection.`,
-    `Whether you're opening packs or keeping it sealed, this product is intended for serious collectors who value authenticity, condition, and reliable U.S. fulfillment.`,
-  ]
+  // If we have a Shopify description, use it
+  if (descriptionText) {
+    // Use first sentence or paragraph for short description
+    const firstSentence = descriptionText.split(/[.!?]\s+/)[0]
+    const shortDescription = firstSentence
+      ? `${firstSentence}.`.replace(/\.\.$/, ".")
+      : descriptionText.substring(0, 150)
 
-  const highlights: string[] = [
-    "Factory Sealed",
-    "Imported from Japan",
-    "Ships from California",
-  ]
+    return {
+      shortDescription,
+      description: descriptionText,
+      paragraphs: descriptionText.split(/\n\n+/).filter(Boolean),
+      highlights: buildHighlights(product),
+    }
+  }
+
+  // Fallback to neutral product-only description
+  const shortDescription = `${product.title} — ${productType}.`
+
+  return {
+    shortDescription,
+    description: shortDescription,
+    paragraphs: [shortDescription],
+    highlights: buildHighlights(product),
+  }
+}
+
+/**
+ * Build highlights from product facts only (no company marketing).
+ */
+function buildHighlights(product: ProductLike): string[] {
+  const highlights: string[] = []
 
   if (product.releaseDate) {
     highlights.push(`Official Japanese Release: ${product.releaseDate}`)
@@ -59,10 +96,5 @@ export function getProductDescription(product: ProductLike): ProductDescription 
     }
   }
 
-  return {
-    shortDescription,
-    description: paragraphs.join(" "),
-    paragraphs,
-    highlights,
-  }
+  return highlights
 }
