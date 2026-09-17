@@ -55,7 +55,7 @@ export default function ProductRating({
       <a
         href={href}
         className={cn(
-          "inline-flex transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40",
+          "inline-flex transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40",
           className
         )}
       >

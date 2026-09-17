@@ -37,7 +37,7 @@ function Field({
         defaultValue={defaultValue ?? ""}
         required={required}
         autoComplete={autoComplete}
-        className="mt-1.5 h-10 w-full rounded-lg border border-black/10 bg-white px-3 text-sm text-black outline-none transition-[border-color,box-shadow] focus:border-green-600/40 focus:ring-3 focus:ring-green-600/15"
+        className="mt-1.5 h-10 w-full rounded-lg border border-black/10 bg-white px-3 text-sm text-black outline-none transition-[border-color,box-shadow] focus:border-indigo-600/40 focus:ring-3 focus:ring-indigo-600/15"
       />
     </label>
   )

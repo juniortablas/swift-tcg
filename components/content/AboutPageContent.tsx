@@ -122,18 +122,18 @@ export default function AboutPageContent({ title }: AboutPageContentProps) {
           {HOW_IT_WORKS.map(({ icon: Icon, label, detail }, index) => (
             <li
               key={label}
-              className="relative flex gap-4 border-l border-green-600/20 py-4 pl-5 sm:flex-col sm:border-l-0 sm:border-t sm:py-0 sm:pt-6 sm:pl-0 dark:border-green-500/25"
+              className="relative flex gap-4 border-l border-indigo-600/20 py-4 pl-5 sm:flex-col sm:border-l-0 sm:border-t sm:py-0 sm:pt-6 sm:pl-0 dark:border-indigo-500/25"
             >
               <span
-                className="absolute -left-[9px] top-5 flex size-4 items-center justify-center rounded-full bg-white ring-2 ring-green-600/40 sm:top-0 sm:-mt-[9px] sm:left-0 dark:bg-background dark:ring-green-500/40"
+                className="absolute -left-[9px] top-5 flex size-4 items-center justify-center rounded-full bg-white ring-2 ring-indigo-600/40 sm:top-0 sm:-mt-[9px] sm:left-0 dark:bg-background dark:ring-indigo-500/40"
                 aria-hidden="true"
               >
-                <span className="size-1.5 rounded-full bg-green-600 dark:bg-green-400" />
+                <span className="size-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
               </span>
               <div className="sm:pt-2">
                 <div className="flex items-center gap-2.5">
                   <Icon
-                    className="size-4 shrink-0 text-green-600 dark:text-green-400"
+                    className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
                     strokeWidth={1.5}
                     aria-hidden="true"
                   />

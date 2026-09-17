@@ -69,7 +69,7 @@ export default function ProductDetails({
                 <dd className="text-sm font-medium text-black">
                   <Link
                     href={collectionHref!}
-                    className="text-green-700 underline-offset-2 hover:underline"
+                    className="text-indigo-700 underline-offset-2 hover:underline"
                   >
                     {collectionLabel}
                   </Link>

@@ -33,7 +33,7 @@ export default function ReviewFilters({
         <select
           value={sort}
           onChange={(event) => onSortChange(event.target.value as ReviewSort)}
-          className="h-9 rounded-full border border-black/[0.08] bg-white px-3 text-sm font-medium text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40"
+          className="h-9 rounded-full border border-black/[0.08] bg-white px-3 text-sm font-medium text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40"
           aria-label="Sort reviews"
         >
           {OPTIONS.map((option) => (

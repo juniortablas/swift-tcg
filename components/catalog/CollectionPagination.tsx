@@ -58,7 +58,7 @@ export default function CollectionPagination({
               className={cn(
                 "inline-flex size-10 items-center justify-center rounded-full text-sm font-medium transition-colors",
                 value === page
-                  ? "bg-green-600 text-white shadow-[0_8px_18px_-10px_rgba(22,163,74,0.55)]"
+                  ? "bg-indigo-600 text-white shadow-[0_8px_18px_-10px_rgba(79,70,229,0.55)]"
                   : "border border-black/10 bg-white text-black/65 hover:border-black/20 hover:text-black"
               )}
             >

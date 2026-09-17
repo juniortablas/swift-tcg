@@ -80,7 +80,7 @@ export default function WeeklyRestockNotice({
           <div
             className={cn(
               "h-full rounded-full",
-              urgent ? "bg-amber-600" : "bg-green-600"
+              urgent ? "bg-amber-600" : "bg-indigo-600"
             )}
             style={{ width: `${fillPercent}%` }}
           />

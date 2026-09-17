@@ -134,7 +134,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
                 className={cn(
                 "relative size-[3.75rem] shrink-0 overflow-hidden rounded-xl border bg-white transition-all duration-200 sm:size-[4.5rem]",
                   index === active
-                    ? "border-green-600 shadow-[0_0_0_1px_rgba(22,163,74,0.35)]"
+                    ? "border-indigo-600 shadow-[0_0_0_1px_rgba(79,70,229,0.35)]"
                     : "border-black/8 hover:border-black/20"
                 )}
               >
@@ -157,7 +157,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
             role="button"
             tabIndex={0}
             aria-label={`View larger image of ${title}`}
-            className="group relative flex h-[min(36vh,300px)] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-[12px] bg-white outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 sm:h-[min(52vh,460px)] sm:rounded-[17px]"
+            className="group relative flex h-[min(36vh,300px)] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-[12px] bg-white outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/40 sm:h-[min(52vh,460px)] sm:rounded-[17px]"
             onClick={openLightbox}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {

@@ -80,7 +80,7 @@ export default function CollectionNavCards({
         {resetHref && selectedSlug ? (
           <Link
             href={resetHref}
-            className="text-sm font-medium text-green-600 transition-colors hover:text-green-700"
+            className="text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
           >
             {resetLabel}
             <span aria-hidden="true"> →</span>
